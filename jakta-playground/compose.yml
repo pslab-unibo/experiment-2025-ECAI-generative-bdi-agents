@@ -1,0 +1,18 @@
+services:
+  baml-over-http:
+    build:
+      context: ../jakta-llm/src/main/baml/
+      dockerfile: Dockerfile
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:2024/_debug/ping" ]
+      interval: 1s
+      timeout: 100ms
+      retries: 3
+    volumes:
+      - ../jakta-llm/src/main/baml/baml_src/:/app/baml_src/
+    ports:
+      - "2024:2024"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}

@@ -1,0 +1,13 @@
+services:
+  llama-cpp:
+    # ghcr.io/ggerganov/llama.cpp:server-cuda GPU+CPU inference
+    image: ghcr.io/ggerganov/llama.cpp:server-b4563 # for CPU-only inference
+    environment:
+      - LLAMA_ARG_CTX_SIZE=${CTX_SIZE}
+      - LLAMA_ARG_MODEL=/models/${MODEL}
+      - LLAMA_ARG_HOST=${HOST}
+      #- LLAMA_ARG_N_GPU_LAYERS=24
+    volumes:
+      - ./models:/models
+    ports:
+      - "8080:8080"
