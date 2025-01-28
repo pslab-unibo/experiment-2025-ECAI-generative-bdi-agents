@@ -25,6 +25,7 @@ import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
+import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.BeliefBaseAddition
 import it.unibo.jakta.agents.bdi.events.BeliefBaseRemoval
 import it.unibo.jakta.agents.bdi.events.Event
@@ -49,6 +50,13 @@ import it.unibo.jakta.agents.bdi.messages.Tell
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 import it.unibo.jakta.agents.fsm.Activity
+import it.unibo.jakta.llm.LLMConfiguration
+import it.unibo.jakta.llm.input.LLMCaller
+import it.unibo.jakta.llm.input.Prompt
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 
 internal data class AgentLifecycleImpl(
     private var agent: Agent,
@@ -354,7 +362,29 @@ internal data class AgentLifecycleImpl(
         this.agent = this.agent.copy(newBeliefBase, newEvents)
     }
 
-    override fun deliberate() {
+    private suspend fun generatePlan(cfg: LLMConfiguration): Deferred<Plan?> =
+        coroutineScope {
+            async {
+                val prompt =
+                    Prompt(
+                        actions = cfg.tools.joinToString("\n\n") { it.metadata.toString() },
+                        observations = cfg.observations,
+                        goalName = cfg.goalName,
+                        goalDescription = cfg.goalDescription,
+                    ).buildPrompt()
+
+                val caller = LLMCaller()
+                val message = caller.callLLM(prompt)
+                if (message != null) {
+                    val loader = PlanLoader(cfg)
+                    loader.loadPlan(message.action)
+                } else {
+                    null
+                }
+            }
+        }
+
+    override fun deliberate(llmConfig: LLMConfiguration?) {
         // STEP5: Selecting an Event.
         var newEvents = this.agent.context.events
         val selectedEvent = selectEvent(this.agent.context.events)
@@ -363,8 +393,36 @@ internal data class AgentLifecycleImpl(
             newEvents = newEvents - selectedEvent
 
             // STEP6: Retrieving all Relevant Plans.
-            val relevantPlans = selectRelevantPlans(selectedEvent, agent.context.planLibrary)
-            // if the set of relevant plans is empty, the event is simply discarded.
+            val candidateRelevantPlans = selectRelevantPlans(selectedEvent, agent.context.planLibrary)
+
+            /*
+             If an LLM config is given, the event's trigger is an AchievementGoalInvocation,
+             and there are no relevant plans, try to generate a new suitable plan by calling
+             an LLM. Otherwise, the event is simply discarded.
+             */
+            val relevantPlans: PlanLibrary =
+                if (llmConfig != null &&
+                    selectedEvent.trigger is AchievementGoalInvocation &&
+                    candidateRelevantPlans.plans.isEmpty()
+                ) {
+                    runBlocking {
+                        val plan = generatePlan(llmConfig)
+                        plan.await()?.let {
+                            /*
+                             TODO verify whether the compiled plan really satisfies the goal
+                              before adding it to the the plan library of the agent
+                             */
+                            agent.context.planLibrary.addPlan(it)
+                            /*
+                             TODO Keep track of whether the plan satisfies the goal or not and if the
+                              plan is successful add it to the plan library of the agent
+                             */
+                            PlanLibrary.of(it)
+                        } ?: PlanLibrary.empty()
+                    }
+                } else {
+                    candidateRelevantPlans
+                }
 
             // STEP7: Determining the Applicable Plans.
             val applicablePlans = relevantPlans.plans.filter {
@@ -435,9 +493,10 @@ internal data class AgentLifecycleImpl(
         environment: Environment,
         controller: Activity.Controller?,
         debugEnabled: Boolean,
+        llmConfig: LLMConfiguration?,
     ): Iterable<EnvironmentChange> {
         sense(environment, controller, debugEnabled)
-        deliberate()
+        deliberate(llmConfig)
         return act(environment)
     }
 }

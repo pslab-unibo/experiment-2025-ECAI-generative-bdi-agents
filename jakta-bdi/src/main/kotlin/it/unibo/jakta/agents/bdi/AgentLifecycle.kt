@@ -16,10 +16,10 @@ import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 import it.unibo.jakta.agents.fsm.Activity
+import it.unibo.jakta.llm.LLMConfiguration
 
 /** BDI Agent definition*/
 interface AgentLifecycle {
-
     /**
      * STEP 1 of reasoning cycle: Belief Update Function.
      * This function defines how to merge new [perceptions] into the current [beliefBase]
@@ -27,7 +27,10 @@ interface AgentLifecycle {
      * @param beliefBase: [BeliefBase] the current agent's [BeliefBase]
      * @return a [RetrieveResult] that contains the updated [BeliefBase] and the added [Belief]s
      */
-    fun updateBelief(perceptions: BeliefBase, beliefBase: BeliefBase): RetrieveResult
+    fun updateBelief(
+        perceptions: BeliefBase,
+        beliefBase: BeliefBase,
+    ): RetrieveResult
 
     /**
      * STEP 5 of reasoning cycle: Selecting an Event.
@@ -46,7 +49,10 @@ interface AgentLifecycle {
      * @param planLibrary: the [PlanLibrary] of the Agent
      * @return the relevant [Plan]s
      */
-    fun selectRelevantPlans(event: Event, planLibrary: PlanLibrary): PlanLibrary
+    fun selectRelevantPlans(
+        event: Event,
+        planLibrary: PlanLibrary,
+    ): PlanLibrary
 
     /**
      * STEP 7 of reasoning cycle: Determining the Applicable Plans.
@@ -56,7 +62,11 @@ interface AgentLifecycle {
      * @param beliefBase: the agent's [BeliefBase]
      * @return yes if it's applicable, false otherwise.
      */
-    fun isPlanApplicable(event: Event, plan: Plan, beliefBase: BeliefBase): Boolean
+    fun isPlanApplicable(
+        event: Event,
+        plan: Plan,
+        beliefBase: BeliefBase,
+    ): Boolean
 
     /**
      * Step 8 of reasoning cycle: Selecting one Applicable Plan.
@@ -76,7 +86,11 @@ interface AgentLifecycle {
      * @param intentions: the [IntentionPool] of the agent
      * @return the updated [Intention]
      */
-    fun assignPlanToIntention(event: Event, plan: Plan, intentions: IntentionPool): Intention
+    fun assignPlanToIntention(
+        event: Event,
+        plan: Plan,
+        intentions: IntentionPool,
+    ): Intention
 
     /**
      * Step 9 of reasoning cycle: Selecting an Intention for Further Execution.
@@ -93,7 +107,11 @@ interface AgentLifecycle {
      * @param intention: [Intention] on which the agent is currently focused
      * @return the updated [Intention] after agent execution
      */
-    fun runIntention(intention: Intention, context: AgentContext, environment: Environment): ExecutionResult
+    fun runIntention(
+        intention: Intention,
+        context: AgentContext,
+        environment: Environment,
+    ): ExecutionResult
 
     /** Performs the whole procedure (10 steps) of the BDI Agent's Reasoning Cycle.
      *  @param environment the [Environment]
@@ -104,9 +122,10 @@ interface AgentLifecycle {
         environment: Environment,
         controller: Activity.Controller? = null,
         debugEnabled: Boolean = false,
+        llmConfig: LLMConfiguration? = null,
     ): Iterable<EnvironmentChange> {
         sense(environment, controller, debugEnabled)
-        deliberate()
+        deliberate(llmConfig)
         return act(environment)
     }
 
@@ -120,7 +139,11 @@ interface AgentLifecycle {
      *  @param controller [Activity.Controller] that manages agent's execution
      *  @param debugEnabled [Boolean] specifies wether debug logs are needed or not
      */
-    fun sense(environment: Environment, controller: Activity.Controller?, debugEnabled: Boolean)
+    fun sense(
+        environment: Environment,
+        controller: Activity.Controller?,
+        debugEnabled: Boolean,
+    )
 
     /** Performs the reason phase of the reasoning cycle, in particular:
      *  - STEP5: Selecting an Event
@@ -128,7 +151,7 @@ interface AgentLifecycle {
      *  - STEP7: Determining the Applicable Plans
      *  - STEP8: Selecting one Applicable Plan
      */
-    fun deliberate()
+    fun deliberate(llmConfig: LLMConfiguration?)
 
     /**
      * Performs the reason phase of the reasoning cycle, in particular:
