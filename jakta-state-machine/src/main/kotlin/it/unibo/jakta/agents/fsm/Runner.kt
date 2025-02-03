@@ -1,5 +1,7 @@
 package it.unibo.jakta.agents.fsm
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.fsm.impl.SimulatedTimeRunner
 import it.unibo.jakta.agents.fsm.impl.State
 import it.unibo.jakta.agents.fsm.impl.SyncRunner
@@ -30,6 +32,8 @@ interface Runner {
      * @return true if the FSM is in [State.PAUSED].
      */
     val isPaused: Boolean
+
+    val logger: KLogger get() = logger {}
 
     /**
      * Method that starts the FSM execution.

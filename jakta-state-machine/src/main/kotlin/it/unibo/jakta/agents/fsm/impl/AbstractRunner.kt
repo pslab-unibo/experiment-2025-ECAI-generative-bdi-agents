@@ -67,16 +67,23 @@ abstract class AbstractRunner(override val activity: Activity) : Runner {
         }
     }
 
+    private fun logStateChange(op: Operation) {
+        logger.debug { "State transition: $_state -> $nextOperation due to operation $op" }
+    }
+
     /**
      * Method that evaluate the next state of the FSM and executes its callbacks.
      */
-    protected fun doStateTransition() = when (_state) {
-        CREATED -> doStateTransitionFromCreated(nextOperation)
-        STARTED -> doStateTransitionFromStarted(nextOperation)
-        RUNNING -> doStateTransitionFromRunning(nextOperation)
-        PAUSED -> doStateTransitionFromPaused(nextOperation)
-        STOPPED -> doStateTransitionFromStopped(nextOperation)
-        else -> error("Reached illegal state: $_state")
+    protected fun doStateTransition() {
+        logStateChange(nextOperation)
+        return when (_state) {
+            CREATED -> doStateTransitionFromCreated(nextOperation)
+            STARTED -> doStateTransitionFromStarted(nextOperation)
+            RUNNING -> doStateTransitionFromRunning(nextOperation)
+            PAUSED -> doStateTransitionFromPaused(nextOperation)
+            STOPPED -> doStateTransitionFromStopped(nextOperation)
+            else -> error("Reached illegal state: $_state")
+        }
     }
 
     /**
