@@ -9,7 +9,6 @@ import it.unibo.jakta.agents.bdi.dsl.plans.PlansScope
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.executionstrategies.TimeDistribution
 import it.unibo.jakta.agents.bdi.executionstrategies.setTimeDistribution
-import it.unibo.jakta.agents.bdi.executionstrategies.timeDistribution
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 
