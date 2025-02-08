@@ -96,7 +96,6 @@ class JaktaAgentForAlchemist<P : Position<P>>(
                     agentLifecycle.sense(
                         environment = jaktaEnvironment,
                         controller = jaktaController,
-                        debugEnabled = false,
                     )
                     emptyList()
                 }
@@ -109,7 +108,6 @@ class JaktaAgentForAlchemist<P : Position<P>>(
             else -> agentLifecycle.runOneCycle(
                 environment = jaktaEnvironment,
                 controller = jaktaController,
-                debugEnabled = false,
             )
         }
         sideEffects.forEach {

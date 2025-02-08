@@ -5,12 +5,12 @@ import it.unibo.jakta.agents.fsm.Activity
 import it.unibo.jakta.agents.fsm.Runner
 
 internal class OneThreadPerMasImpl : AbstractSingleRunnerExecutionStrategy() {
-    override fun dispatch(mas: Mas, debugEnabled: Boolean) {
+    override fun dispatch(mas: Mas) {
         mas.agents.forEach { synchronizedAgents.addAgent(it) }
         Runner.threadOf(
             Activity.of {
                 synchronizedAgents.getAgents().forEach { (_, agentLC) ->
-                    val sideEffects = agentLC.runOneCycle(mas.environment, it, debugEnabled)
+                    val sideEffects = agentLC.runOneCycle(mas.environment, it)
                     mas.applyEnvironmentEffects(sideEffects)
                 }
                 synchronizedAgents.getAgents().ifEmpty { it.stop() }

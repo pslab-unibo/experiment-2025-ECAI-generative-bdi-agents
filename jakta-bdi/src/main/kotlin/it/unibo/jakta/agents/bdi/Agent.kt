@@ -1,5 +1,7 @@
 package it.unibo.jakta.agents.bdi
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalActions
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
@@ -19,6 +21,8 @@ interface Agent : Taggable<Agent> {
     val agentID: AgentID
 
     val name: String
+
+    val logger: KLogger get() = logger("[$name]")
 
     /** Snapshot of Agent's Actual State */
     val context: AgentContext

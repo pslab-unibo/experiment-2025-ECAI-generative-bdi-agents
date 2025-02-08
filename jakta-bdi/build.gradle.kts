@@ -7,4 +7,7 @@ dependencies {
     api(libs.tuprolog.oop.lib)
     api(libs.tuprolog.solve.classic)
     implementation(libs.kotlin.coroutines)
+    implementation(libs.kotlin.logging)
+    implementation(libs.logback)
+    implementation(libs.slf4jOverLogback)
 }

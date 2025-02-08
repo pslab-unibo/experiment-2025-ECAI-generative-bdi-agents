@@ -28,5 +28,5 @@ fun main() {
                 }
             }
         }
-    }.start(true)
+    }.start()
 }

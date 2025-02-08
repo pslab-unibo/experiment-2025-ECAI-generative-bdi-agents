@@ -1,5 +1,7 @@
 package it.unibo.jakta.agents.bdi
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
@@ -9,8 +11,9 @@ interface Mas {
     val environment: Environment
     val agents: Iterable<Agent>
     val executionStrategy: ExecutionStrategy
+    val logger: KLogger get() = logger("[MAS]")
 
-    fun start(debugEnabled: Boolean = false)
+    fun start()
 
     fun applyEnvironmentEffects(effects: Iterable<EnvironmentChange>)
 

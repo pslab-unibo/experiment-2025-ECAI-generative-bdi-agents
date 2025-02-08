@@ -116,15 +116,13 @@ interface AgentLifecycle {
     /** Performs the whole procedure (10 steps) of the BDI Agent's Reasoning Cycle.
      *  @param environment the [Environment]
      *  @param controller [Activity.Controller] that manages agent's execution
-     *  @param debugEnabled [Boolean] specifies wether debug logs are needed or not
      */
     fun runOneCycle(
         environment: Environment,
         controller: Activity.Controller? = null,
-        debugEnabled: Boolean = false,
         llmConfig: LLMConfiguration? = null,
     ): Iterable<EnvironmentChange> {
-        sense(environment, controller, debugEnabled)
+        sense(environment, controller)
         deliberate(llmConfig)
         return act(environment)
     }
@@ -137,12 +135,10 @@ interface AgentLifecycle {
      *  - STEP4: Selecting "Socially Acceptable" Messages
      *  @param environment the [Environment]
      *  @param controller [Activity.Controller] that manages agent's execution
-     *  @param debugEnabled [Boolean] specifies wether debug logs are needed or not
      */
     fun sense(
         environment: Environment,
         controller: Activity.Controller?,
-        debugEnabled: Boolean,
     )
 
     /** Performs the reason phase of the reasoning cycle, in particular:
@@ -151,7 +147,7 @@ interface AgentLifecycle {
      *  - STEP7: Determining the Applicable Plans
      *  - STEP8: Selecting one Applicable Plan
      */
-    fun deliberate(llmConfig: LLMConfiguration?)
+    fun deliberate(llmConfig: LLMConfiguration? = null)
 
     /**
      * Performs the reason phase of the reasoning cycle, in particular:

@@ -1,6 +1,7 @@
 package it.unibo.jakta.agents.bdi.impl
 
 import it.unibo.jakta.agents.bdi.Agent
+import it.unibo.jakta.agents.bdi.Jakta.implementation
 import it.unibo.jakta.agents.bdi.Mas
 import it.unibo.jakta.agents.bdi.actions.effects.AddData
 import it.unibo.jakta.agents.bdi.actions.effects.BroadcastMessage
@@ -23,9 +24,10 @@ internal class MasImpl(
         agents.forEach { environment = environment.addAgent(it) }
     }
 
-    override fun start(debugEnabled: Boolean) = executionStrategy.dispatch(this, debugEnabled)
+    override fun start() = executionStrategy.dispatch(this)
 
     override fun applyEnvironmentEffects(effects: Iterable<EnvironmentChange>) = effects.forEach {
+        logger.implementation(it)
         when (it) {
             is BroadcastMessage -> environment = environment.broadcastMessage(it.message)
             is RemoveAgent -> {

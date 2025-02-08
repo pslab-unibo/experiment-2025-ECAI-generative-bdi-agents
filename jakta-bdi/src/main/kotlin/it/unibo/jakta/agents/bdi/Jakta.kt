@@ -1,5 +1,8 @@
 package it.unibo.jakta.agents.bdi
 
+import io.github.oshai.kotlinlogging.KLogger
+import it.unibo.jakta.agents.bdi.actions.effects.SideEffect
+import it.unibo.jakta.agents.bdi.logging.LogEvent
 import it.unibo.tuprolog.core.Clause
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.TermFormatter
@@ -7,6 +10,7 @@ import it.unibo.tuprolog.core.operators.Operator
 import it.unibo.tuprolog.core.operators.OperatorSet
 import it.unibo.tuprolog.core.operators.Specifier
 import it.unibo.tuprolog.core.parsing.TermParser
+import java.util.Locale
 
 object Jakta {
 
@@ -45,4 +49,14 @@ object Jakta {
             println("+!$trigger : $guard <- $body")
         }
     }
+
+    fun String.capitalize() = replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    }
+
+    fun KLogger.implementation(event: LogEvent) =
+        this.info { "[${event.name}] ${event.description}" }
+
+    fun KLogger.implementation(sideEffect: SideEffect) =
+        this.info { "[${sideEffect.name}] ${sideEffect.description}" }
 }
