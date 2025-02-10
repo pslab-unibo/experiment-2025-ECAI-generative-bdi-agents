@@ -1,11 +1,19 @@
 class Step {
+  goalName string
+  @description(#"
+    The identifier of the goal to complete, in camel case.
+  "#)
   thought string
   @description(#"
     The reasoning of the agent.
   "#)
-  code string
+  planBody string
   @description(#"
-    The plan written in the given Kotlin template.
+    The list of goals and/or actions needed to complete the goal of the plan.
+  "#)
+  planGuard string
+  @description(#"
+    The preconditions that need to be true in order to run the plan. Leave empty if none are needed.
   "#)
 }
 
@@ -31,73 +39,52 @@ test requestPlanGeneration {
 
       You will be given a goal to achieve as best you can. To solve the goal, you must proceed in
       a series of steps, in a cycle of "thought:" and "code:" sequences.
-      You can use your beliefs to inform your decisions.
+
+      Your objective is to provide a plan, in the form of a set of goals that allow to complete the given goal.
+      To solve the goal, you must proceed in a series of steps, in a cycle of "thought:" and "plan:" sequences.
 
       At each step, in the "thought:" section, you should first explain your reasoning towards
-      building the plan and the signature of the actions that you want to use.
-      Then in the "code:" section, you should write the code of the plan in Kotlin.
+      building the plan and the actions that you want to use or the goals that need to be achieved.
+      Then in the "plan:" section, you should write the code of the plan in Prolog.
 
-      The plan must be defined using this template:
+      The plan must be defined using two fields:
 
-      ```kotlin
-      +achieve("orderedGoalExecution") onlyIf {
-          // Add zero or more beliefs here
-      } then {
-          // Add at least an action here
-      }
-      ```
+      - body: it holds the actions or the goals to achieve in order to satisfy the goal of the plan;
+      - guard: it holds the preconditions that must be true in order to execute the plan.
       
-      In order to generate a valid plan, you need to provide a set of beliefs
-      that must be true in order to execute the plan, and a set of actions that will be executed.
+      In the body section provide the goals as a snippet of prolog code:
+
+      ```prolog
+      put the goals here
+      ```
+
+      If you think that the plan has preconditions, put them in a snippet of prolog code too.
       
-      If no beliefs are needed, you can leave the `onlyIf` block empty.
+      Available actions:
+      ```
+      %! Prints a message to the console and a newline.
+      print(+message:string).
 
-      Below you can see some examples of plans and of the goals they achieve:
-
-      ```kotlin
-      +achieve("printMessage") then {
-          Print("Hello, World!")
-          execute("stop")
-      }
+      %! Stops the agent, preventing the execution of subsequent actions.
+      stop().
       ```
 
-      Signature of the available actions:
+      Other available goals:
       ```
-      /**
-        * Prints a message to the console and a newline.
-        */
-      Print: (message: String) -> Unit
-
-      /**
-        * Stops the agent, preventing the execution of subsequent actions.
-        */
-      execute("stop"): () -> Unit
+      None.
       ```
 
-      ## Observations
+      ## Remarks
 
       The agent must stop once the goal is completed.
 
-      ## Previous steps information
-
-      Your memories:
+      The goal to solve is:
       ```
-      none
+      Print numbers 1...3 in this order and stop the agent.
       ```
 
-      ## Current step information
-
-      Your beliefs:
-      ```
-      none
-      ```
-
-      The goal to solve, named `orderedGoalExecution`, is:
-      ```
-      Create a plan that prints 2 3 1 3 in this order.
-      ```
-
-      Now take a deep breath and take your time to think. Write the current step using the schema below.
+      Now take a deep breath and take your time to think. 
+      Write the current step using the schema below.
       "#
   }
 }

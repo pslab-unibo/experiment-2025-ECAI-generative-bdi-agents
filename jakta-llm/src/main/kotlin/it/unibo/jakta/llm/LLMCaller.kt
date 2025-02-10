@@ -1,22 +1,21 @@
-package it.unibo.jakta.llm.input
+package it.unibo.jakta.llm
 
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.gson.gson
-import it.unibo.jakta.llm.output.ChatMessage
 import org.openapitools.client.api.DefaultApi
 import org.openapitools.client.models.AskForPlanGenerationRequest
+import org.openapitools.client.models.Step
 
 class LLMCaller {
-    suspend fun callLLM(prompt: String): ChatMessage? {
+    suspend fun callLLM(prompt: String): Step? {
         val request = AskForPlanGenerationRequest(prompt)
         val response = apiClient.askForPlanGeneration(request)
         return when (response.status) {
             HttpStatusCode.Companion.OK.value -> {
-                val step = response.body()
-                ChatMessage(step.thought, step.code)
+                response.body()
             }
             else -> {
                 println(response.body())

@@ -5,12 +5,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 import it.unibo.jakta.agents.bdi.impl.MasImpl
 
 interface Mas {
     val environment: Environment
     val agents: Iterable<Agent>
     val executionStrategy: ExecutionStrategy
+    val generationStrategy: GenerationStrategy?
     val logger: KLogger get() = logger("[MAS]")
 
     fun start()
@@ -22,6 +24,7 @@ interface Mas {
             executionStrategy: ExecutionStrategy,
             environment: Environment,
             agent: Agent,
+            generationStrategy: GenerationStrategy? = null,
             vararg agents: Agent,
         ): Mas =
             of(executionStrategy, environment, agents.asIterable() + agent)
@@ -30,6 +33,13 @@ interface Mas {
             executionStrategy: ExecutionStrategy,
             environment: Environment,
             agents: Iterable<Agent>,
-        ): Mas = MasImpl(executionStrategy, environment, agents)
+            generationStrategy: GenerationStrategy? = null,
+        ): Mas =
+            MasImpl(
+                executionStrategy,
+                environment,
+                agents,
+                generationStrategy,
+            )
     }
 }

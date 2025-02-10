@@ -9,6 +9,7 @@ import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
+import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 import it.unibo.jakta.agents.bdi.impl.AgentLifecycleImpl
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
@@ -16,7 +17,6 @@ import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 import it.unibo.jakta.agents.fsm.Activity
-import it.unibo.jakta.llm.LLMConfiguration
 
 /** BDI Agent definition*/
 interface AgentLifecycle {
@@ -120,10 +120,10 @@ interface AgentLifecycle {
     fun runOneCycle(
         environment: Environment,
         controller: Activity.Controller? = null,
-        llmConfig: LLMConfiguration? = null,
+        generationStrategy: GenerationStrategy? = null,
     ): Iterable<EnvironmentChange> {
         sense(environment, controller)
-        deliberate(llmConfig)
+        deliberate(environment, generationStrategy)
         return act(environment)
     }
 
@@ -147,7 +147,10 @@ interface AgentLifecycle {
      *  - STEP7: Determining the Applicable Plans
      *  - STEP8: Selecting one Applicable Plan
      */
-    fun deliberate(llmConfig: LLMConfiguration? = null)
+    fun deliberate(
+        environment: Environment,
+        generationStrategy: GenerationStrategy? = null,
+    )
 
     /**
      * Performs the reason phase of the reasoning cycle, in particular:

@@ -31,7 +31,7 @@ internal class DiscreteEventExecutionImpl : AbstractSingleRunnerExecutionStrateg
                 synchronizedAgents.getAgents()
                     .filter { (agent, _) -> agentsToExecute.contains(agent.agentID) }
                     .forEach { (_, agentLC) ->
-                        val sideEffects = agentLC.runOneCycle(mas.environment, it)
+                        val sideEffects = agentLC.runOneCycle(mas.environment, it, mas.generationStrategy)
                         mas.applyEnvironmentEffects(sideEffects)
                     }
                 synchronizedAgents.getAgents().ifEmpty { it.stop() }

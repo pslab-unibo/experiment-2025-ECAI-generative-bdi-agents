@@ -17,7 +17,7 @@ internal class OneThreadPerAgentImpl : ExecutionStrategy {
             Runner.threadOf(
                 Activity.of {
                     agentsRunners += agent to it
-                    val sideEffects = agentLC.runOneCycle(executionMas.environment, it)
+                    val sideEffects = agentLC.runOneCycle(executionMas.environment, it, executionMas.generationStrategy)
                     executionMas.applyEnvironmentEffects(sideEffects)
                 },
             ).run()
@@ -29,7 +29,7 @@ internal class OneThreadPerAgentImpl : ExecutionStrategy {
         Runner.threadOf(
             Activity.of {
                 agentsRunners += agent to it
-                val sideEffects = agentLC.runOneCycle(executionMas.environment, it)
+                val sideEffects = agentLC.runOneCycle(executionMas.environment, it, executionMas.generationStrategy)
                 executionMas.applyEnvironmentEffects(sideEffects)
             },
         ).run()

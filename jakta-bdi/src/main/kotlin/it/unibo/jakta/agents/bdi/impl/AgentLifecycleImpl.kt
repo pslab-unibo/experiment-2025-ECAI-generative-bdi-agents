@@ -26,13 +26,13 @@ import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
-import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.BeliefBaseAddition
 import it.unibo.jakta.agents.bdi.events.BeliefBaseRemoval
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
+import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.Act
 import it.unibo.jakta.agents.bdi.goals.ActExternally
@@ -51,6 +51,7 @@ import it.unibo.jakta.agents.bdi.logging.ActionFinished
 import it.unibo.jakta.agents.bdi.logging.AssignPlanToExistingIntention
 import it.unibo.jakta.agents.bdi.logging.AssignPlanToNewIntention
 import it.unibo.jakta.agents.bdi.logging.EventSelected
+import it.unibo.jakta.agents.bdi.logging.GenerationEvent
 import it.unibo.jakta.agents.bdi.logging.GoalAchieved
 import it.unibo.jakta.agents.bdi.logging.GoalCreated
 import it.unibo.jakta.agents.bdi.logging.GoalFailed
@@ -61,14 +62,8 @@ import it.unibo.jakta.agents.bdi.logging.PlanSelected
 import it.unibo.jakta.agents.bdi.messages.Tell
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
+import it.unibo.jakta.agents.bdi.plans.generated.GeneratedPlan
 import it.unibo.jakta.agents.fsm.Activity
-import it.unibo.jakta.llm.LLMConfiguration
-import it.unibo.jakta.llm.input.LLMCaller
-import it.unibo.jakta.llm.input.Prompt
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 
 internal data class AgentLifecycleImpl(
     private var agent: Agent,
@@ -415,29 +410,7 @@ internal data class AgentLifecycleImpl(
         this.agent = this.agent.copy(newBeliefBase, newEvents)
     }
 
-    private suspend fun generatePlan(cfg: LLMConfiguration): Deferred<Plan?> =
-        coroutineScope {
-            async {
-                val prompt =
-                    Prompt(
-                        actions = cfg.tools.joinToString("\n\n") { it.metadata.toString() },
-                        observations = cfg.observations,
-                        goalName = cfg.goalName,
-                        goalDescription = cfg.goalDescription,
-                    ).buildPrompt()
-
-                val caller = LLMCaller()
-                val message = caller.callLLM(prompt)
-                if (message != null) {
-                    val loader = PlanLoader(cfg)
-                    loader.loadPlan(message.action)
-                } else {
-                    null
-                }
-            }
-        }
-
-    override fun deliberate(llmConfig: LLMConfiguration?) {
+    override fun deliberate(environment: Environment, generationStrategy: GenerationStrategy?) {
         // STEP5: Selecting an Event.
         var newEvents = this.agent.context.events
         val selectedEvent = selectEvent(this.agent.context.events)
@@ -447,36 +420,7 @@ internal data class AgentLifecycleImpl(
             newEvents = newEvents - selectedEvent
 
             // STEP6: Retrieving all Relevant Plans.
-            val candidateRelevantPlans = selectRelevantPlans(selectedEvent, agent.context.planLibrary)
-
-            /*
-             If an LLM config is given, the event's trigger is an AchievementGoalInvocation,
-             and there are no relevant plans, try to generate a new suitable plan by calling
-             an LLM. Otherwise, the event is simply discarded.
-             */
-            val relevantPlans: PlanLibrary =
-                if (llmConfig != null &&
-                    selectedEvent.trigger is AchievementGoalInvocation &&
-                    candidateRelevantPlans.plans.isEmpty()
-                ) {
-                    runBlocking {
-                        val plan = generatePlan(llmConfig)
-                        plan.await()?.let {
-                            /*
-                             TODO verify whether the compiled plan really satisfies the goal
-                              before adding it to the the plan library of the agent
-                             */
-                            agent.context.planLibrary.addPlan(it)
-                            /*
-                             TODO Keep track of whether the plan satisfies the goal or not and if the
-                              plan is successful add it to the plan library of the agent
-                             */
-                            PlanLibrary.of(it)
-                        } ?: PlanLibrary.empty()
-                    }
-                } else {
-                    candidateRelevantPlans
-                }
+            val relevantPlans = selectRelevantPlans(selectedEvent, agent.context.planLibrary)
 
             // STEP7: Determining the Applicable Plans.
             val applicablePlans = relevantPlans.plans.filter {
@@ -484,7 +428,39 @@ internal data class AgentLifecycleImpl(
             }
 
             // STEP8: Selecting one Applicable Plan.
-            val selectedPlan = selectApplicablePlan(applicablePlans)
+            val candidateSelectedPlan = selectApplicablePlan(applicablePlans)
+
+            /*
+                Check if the plan uses a generation strategy and apply it.
+
+                If an LLM config is given, the event's trigger is an AchievementGoalInvocation,
+                and there are no relevant plans, try to generate a new suitable plan by calling
+                an LLM. Otherwise, the event is simply discarded.
+             */
+            val selectedPlan: Plan? = if (candidateSelectedPlan is GeneratedPlan) {
+                val generationStrategy = generationStrategy ?: candidateSelectedPlan.genCfg.genStrategy
+                val planToGenerate = candidateSelectedPlan
+                    .applicablePlan(selectedEvent, this.agent.context.beliefBase) as GeneratedPlan
+                val generatedPlanResult = generationStrategy
+                    ?.copy(
+                        actions =
+                        agent.context.internalActions.values.toList() +
+                            environment.externalActions.values.toList(),
+                        plans = agent.context.planLibrary,
+                    )
+                    ?.generatePlan(planToGenerate)
+                val generatedPlan = generatedPlanResult?.generatedPlan
+                if (generatedPlan != null) {
+                    agent.context.planLibrary.addPlan(generatedPlan)
+                    agent.logger.implementation(GenerationEvent(generatedPlan))
+                    generatedPlan
+                } else {
+                    agent.logger.error { "Failed generation due to: ${generatedPlanResult?.errorMsg}" }
+                }
+                generatedPlan
+            } else {
+                candidateSelectedPlan
+            }
 
             // Add plan to intentions
             if (selectedPlan != null) {
@@ -549,11 +525,11 @@ internal data class AgentLifecycleImpl(
     override fun runOneCycle(
         environment: Environment,
         controller: Activity.Controller?,
-        llmConfig: LLMConfiguration?,
+        genStrategy: GenerationStrategy?,
     ): Iterable<EnvironmentChange> {
 //        agent.logger.implementation(ReasoningCycleStart(cycleCount = cycleCount++))
         sense(environment, controller)
-        deliberate(llmConfig)
+        deliberate(environment, genStrategy)
         return act(environment)
     }
 }

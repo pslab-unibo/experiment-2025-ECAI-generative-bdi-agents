@@ -14,11 +14,13 @@ import it.unibo.jakta.agents.bdi.actions.effects.SpawnAgent
 import it.unibo.jakta.agents.bdi.actions.effects.UpdateData
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 
 internal class MasImpl(
     override val executionStrategy: ExecutionStrategy,
     override var environment: Environment,
     override var agents: Iterable<Agent>,
+    override val generationStrategy: GenerationStrategy? = null,
 ) : Mas {
     init {
         agents.forEach { environment = environment.addAgent(it) }
