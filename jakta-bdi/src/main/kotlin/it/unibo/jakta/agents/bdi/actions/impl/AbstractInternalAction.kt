@@ -3,6 +3,8 @@ package it.unibo.jakta.agents.bdi.actions.impl
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalRequest
 import it.unibo.jakta.agents.bdi.actions.InternalResponse
+import it.unibo.jakta.agents.bdi.actions.Parameter
+import it.unibo.jakta.agents.bdi.actions.SignatureWithDoc
 import it.unibo.jakta.agents.bdi.actions.effects.AgentChange
 import it.unibo.jakta.agents.bdi.actions.effects.BeliefChange
 import it.unibo.jakta.agents.bdi.actions.effects.EventChange
@@ -17,12 +19,14 @@ import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.tuprolog.solve.Signature
 
-abstract class AbstractInternalAction(override val signature: Signature) : InternalAction,
+abstract class AbstractInternalAction(override val signature: SignatureWithDoc) : InternalAction,
     AbstractAction<AgentChange, InternalResponse, InternalRequest>(signature) {
 
-    constructor(name: String, arity: Int) : this(Signature(name, arity))
+    constructor(name: String, arity: Int) : this(SignatureWithDoc(name, arity))
+    constructor(name: String, description: String, parameters: List<Parameter>) : this(
+        SignatureWithDoc(name, description, parameters),
+    )
 
     override fun addBelief(belief: Belief) {
         effects.add(BeliefChange(belief, ADDITION))
