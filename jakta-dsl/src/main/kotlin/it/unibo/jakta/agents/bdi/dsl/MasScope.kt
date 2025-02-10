@@ -10,6 +10,7 @@ import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 import it.unibo.jakta.agents.bdi.logging.ActionAddition
 import kotlin.collections.forEach
 
@@ -18,6 +19,7 @@ class MasScope : Builder<Mas> {
     var env: Environment = Environment.of()
     var agents: List<Agent> = emptyList()
     var executionStrategy = ExecutionStrategy.oneThreadPerMas()
+    var generationStrategy: GenerationStrategy? = null
 
     fun environment(f: EnvironmentScope.() -> Unit): MasScope {
         env = EnvironmentScope().also(f).build()
@@ -39,7 +41,12 @@ class MasScope : Builder<Mas> {
         return this
     }
 
-    override fun build(): Mas = Mas.of(executionStrategy, env, agents).also {
+    fun generationStrategy(f: () -> GenerationStrategy): MasScope {
+        generationStrategy = f()
+        return this
+    }
+
+    override fun build(): Mas = Mas.of(executionStrategy, env, agents, generationStrategy).also {
         env.externalActions.values.forEach { act -> it.logger.implementation(ActionAddition(act)) }
         agents.forEach { agt ->
             agt.context.events.forEach { agt.logger.implementation(EventChange(it, ADDITION)) }

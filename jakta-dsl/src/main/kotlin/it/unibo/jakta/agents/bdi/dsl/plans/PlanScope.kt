@@ -9,6 +9,8 @@ import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.EmptyGoal
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.plans.generated.GeneratedPlan
+import it.unibo.jakta.agents.bdi.plans.generated.GenerationConfiguration
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth
@@ -20,6 +22,7 @@ data class PlanScope(
     private val triggerType: KClass<out Trigger>,
 ) {
     private var guard: Struct = Truth.TRUE
+    private var genCfg: GenerationConfiguration? = null
     private var goals: List<Goal> = mutableListOf()
     var failure: Boolean = false
 
@@ -34,44 +37,81 @@ data class PlanScope(
         return this
     }
 
+    infix fun given(given: PlanConfigScope.() -> Unit): PlanScope {
+        genCfg = PlanConfigScope().also(given).build()
+        return this
+    }
+
     fun build(): Plan {
-        if (failure) {
-            return when (triggerType) {
-                BeliefBaseRevision::class -> Plan.ofBeliefBaseRemoval(
-                    Belief.from(trigger),
-                    goals.ifEmpty { listOf(EmptyGoal()) },
-                    guard,
-                )
-                TestGoalTrigger::class -> Plan.ofTestGoalFailure(
-                    trigger,
-                    goals.ifEmpty { listOf(EmptyGoal()) },
-                    guard,
-                )
-                AchievementGoalTrigger::class -> Plan.ofAchievementGoalFailure(
-                    trigger,
-                    goals.ifEmpty { listOf(EmptyGoal()) },
-                    guard,
-                )
-                else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
+        if (genCfg != null && genCfg?.generate == true) {
+            if (failure) {
+                return when (triggerType) {
+                    AchievementGoalTrigger::class -> GeneratedPlan.ofAchievementGoalFailure(
+                        trigger,
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        genCfg!!,
+                        guard,
+                    )
+                    TestGoalTrigger::class ->
+                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
+                    BeliefBaseRevision::class ->
+                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
+                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
+                }
+            } else {
+                return when (triggerType) {
+                    AchievementGoalTrigger::class -> GeneratedPlan.ofAchievementGoalInvocation(
+                        trigger,
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        genCfg!!,
+                        guard,
+                    )
+                    TestGoalTrigger::class ->
+                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
+                    BeliefBaseRevision::class ->
+                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
+                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
+                }
             }
         } else {
-            return when (triggerType) {
-                BeliefBaseRevision::class -> Plan.ofBeliefBaseAddition(
-                    Belief.from(trigger),
-                    goals.ifEmpty { listOf(EmptyGoal()) },
-                    guard,
-                )
-                TestGoalTrigger::class -> Plan.ofTestGoalInvocation(
-                    trigger,
-                    goals.ifEmpty { listOf(EmptyGoal()) },
-                    guard,
-                )
-                AchievementGoalTrigger::class -> Plan.ofAchievementGoalInvocation(
-                    trigger,
-                    goals.ifEmpty { listOf(EmptyGoal()) },
-                    guard,
-                )
-                else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
+            if (failure) {
+                return when (triggerType) {
+                    BeliefBaseRevision::class -> Plan.ofBeliefBaseRemoval(
+                        Belief.from(trigger),
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        guard,
+                    )
+                    TestGoalTrigger::class -> Plan.ofTestGoalFailure(
+                        trigger,
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        guard,
+                    )
+                    AchievementGoalTrigger::class -> Plan.ofAchievementGoalFailure(
+                        trigger,
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        guard,
+                    )
+                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
+                }
+            } else {
+                return when (triggerType) {
+                    BeliefBaseRevision::class -> Plan.ofBeliefBaseAddition(
+                        Belief.from(trigger),
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        guard,
+                    )
+                    TestGoalTrigger::class -> Plan.ofTestGoalInvocation(
+                        trigger,
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        guard,
+                    )
+                    AchievementGoalTrigger::class -> Plan.ofAchievementGoalInvocation(
+                        trigger,
+                        goals.ifEmpty { listOf(EmptyGoal()) },
+                        guard,
+                    )
+                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
+                }
             }
         }
     }
