@@ -13,7 +13,7 @@ import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Struct
 
 const val orderedGoalExecution =
-    "Print numbers 1...<N> in this order and stop the agent at the end."
+    "Print numbers I...J in this order and stop the agent at the end."
 
 const val agentNeedsToStop =
     "The agent must stop only once, when all the numbers in the sequence are printed."
@@ -21,10 +21,10 @@ const val agentNeedsToStop =
 fun MasScope.printerAgent() =
     agent("printer") {
         goals {
-            achieve(orderedGoalExecution(10))
+            achieve(orderedGoalExecution(1, 10))
         }
         plans {
-            +achieve(orderedGoalExecution(N)) given {
+            +achieve(orderedGoalExecution(I, J)) given {
                 // generate = true
                 generationStrategy = GenerationStrategy.oneShot()
                 remark(agentNeedsToStop)

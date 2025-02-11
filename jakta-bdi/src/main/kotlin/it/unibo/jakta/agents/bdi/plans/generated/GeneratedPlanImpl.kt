@@ -5,8 +5,9 @@ import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
+import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.plans.impl.PlanImpl
 import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.Substitution
 import it.unibo.tuprolog.unify.Unificator.Companion.mguWith
 
 internal data class GeneratedPlanImpl(
@@ -22,34 +23,24 @@ internal data class GeneratedPlanImpl(
         return isRelevant(event) && beliefBase.solve(actualGuard).isYes
     }
 
-    override fun applicablePlan(event: Event, beliefBase: BeliefBase): GeneratedPlan =
-        when (isApplicable(event, beliefBase)) {
-            true -> {
-                val mgu: Substitution = event.trigger.value mguWith this.trigger.value
-
-                val updatedFunctor = event.trigger.value.functor.replace(Regex("<([^>]*)>")) {
-                    val placeholderName = it.groupValues[1]
-                    val substitution = mgu.filter { it.key.name == placeholderName }
-                        .map { it.value }
-                        .firstOrNull()
-                    substitution?.toString() ?: placeholderName
-                }
-
-                val actualGuard = guard.apply(mgu).castToStruct()
-                val solvedGuard = beliefBase.solve(actualGuard)
-                val actualGoals = goals.map {
-                    it.copy(
-                        it.value
-                            .apply(mgu)
-                            .apply(solvedGuard.substitution)
-                            .castToStruct(),
-                    )
-                }
-
-                GeneratedPlanImpl(event.trigger, actualGuard, actualGoals, genCfg.withGoal(updatedFunctor))
+    override fun applicablePlan(event: Event, beliefBase: BeliefBase): Plan = when (isApplicable(event, beliefBase)) {
+        true -> {
+            val mgu = event.trigger.value mguWith this.trigger.value
+            val actualGuard = guard.apply(mgu).castToStruct()
+            val solvedGuard = beliefBase.solve(actualGuard)
+            val actualGoals = goals.map {
+                it.copy(
+                    it.value
+                        .apply(mgu)
+                        .apply(solvedGuard.substitution)
+                        .castToStruct(),
+                )
             }
-            else -> this
+
+            PlanImpl(event.trigger, actualGuard, actualGoals)
         }
+        else -> this
+    }
 
     override fun isRelevant(event: Event): Boolean =
         event.trigger::class == this.trigger::class && (trigger.value mguWith event.trigger.value).isSuccess

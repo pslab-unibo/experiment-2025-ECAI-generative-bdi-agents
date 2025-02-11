@@ -439,8 +439,6 @@ internal data class AgentLifecycleImpl(
              */
             val selectedPlan: Plan? = if (candidateSelectedPlan is GeneratedPlan) {
                 val generationStrategy = generationStrategy ?: candidateSelectedPlan.genCfg.genStrategy
-                val planToGenerate = candidateSelectedPlan
-                    .applicablePlan(selectedEvent, this.agent.context.beliefBase) as GeneratedPlan
                 val generatedPlanResult = generationStrategy
                     ?.copy(
                         actions =
@@ -448,7 +446,7 @@ internal data class AgentLifecycleImpl(
                             environment.externalActions.values.toList(),
                         plans = agent.context.planLibrary,
                     )
-                    ?.generatePlan(planToGenerate)
+                    ?.generatePlan(candidateSelectedPlan)
                 val generatedPlan = generatedPlanResult?.generatedPlan
                 if (generatedPlan != null) {
                     agent.context.planLibrary.addPlan(generatedPlan)

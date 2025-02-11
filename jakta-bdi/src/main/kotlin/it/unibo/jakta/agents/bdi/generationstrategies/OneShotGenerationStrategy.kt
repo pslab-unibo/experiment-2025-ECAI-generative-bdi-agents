@@ -43,17 +43,15 @@ class OneShotGenerationStrategy(
         val prompt = PromptGenerator(
             actions = acts.joinToString("\n\n"),
             remarks = remarks,
-            goal = genCfg.goal.toString(),
+            goal = """
+            | ${plan.trigger.value.functor}
+            | The plan should work for any value of ${plan.trigger.value.args.joinToString(
+                " and ",
+            ) { it.castToVar().name }}.
+            """.trimMargin("| "),
         ).buildPrompt()
 
         val message = LLMCaller().callLLM(prompt)
-
-//        val message =
-//            """
-//            print('1').
-//            stop.
-//            """.trimIndent()
-
         return if (message.step != null) {
             try {
 //                println(actions.joinToString("\n") { it.signature.name })
