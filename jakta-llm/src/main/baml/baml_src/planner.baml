@@ -1,8 +1,4 @@
 class Step {
-  goalName string
-  @description(#"
-    The identifier of the goal to complete, in camel case.
-  "#)
   thought string
   @description(#"
     The reasoning of the agent.
