@@ -8,19 +8,28 @@ import io.ktor.serialization.gson.gson
 import org.openapitools.client.api.DefaultApi
 import org.openapitools.client.models.AskForPlanGenerationRequest
 import org.openapitools.client.models.Step
+import java.net.ConnectException
+
+data class LLMResponse(
+    val step: Step? = null,
+    val errorMsg: String? = null,
+)
 
 class LLMCaller {
-    suspend fun callLLM(prompt: String): Step? {
+    suspend fun callLLM(prompt: String): LLMResponse {
         val request = AskForPlanGenerationRequest(prompt)
-        val response = apiClient.askForPlanGeneration(request)
-        return when (response.status) {
-            HttpStatusCode.Companion.OK.value -> {
-                response.body()
+        return try {
+            val response = apiClient.askForPlanGeneration(request)
+            when (response.status) {
+                HttpStatusCode.Companion.OK.value -> {
+                    LLMResponse(response.body())
+                }
+                else -> {
+                    LLMResponse(errorMsg = response.body().toString())
+                }
             }
-            else -> {
-                println(response.body())
-                return null
-            }
+        } catch (e: ConnectException) {
+            LLMResponse(errorMsg = e.message)
         }
     }
 

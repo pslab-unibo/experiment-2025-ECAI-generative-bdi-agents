@@ -11,7 +11,6 @@ import it.unibo.tuprolog.core.parsing.ParseException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import org.openapitools.client.models.Step
 
 class OneShotGenerationStrategy(
     override val actions: List<Action<*, *, *>> = emptyList(),
@@ -47,7 +46,7 @@ class OneShotGenerationStrategy(
             goal = genCfg.goal.toString(),
         ).buildPrompt()
 
-        val message: Step? = LLMCaller().callLLM(prompt)
+        val message = LLMCaller().callLLM(prompt)
 
 //        val message =
 //            """
@@ -55,12 +54,12 @@ class OneShotGenerationStrategy(
 //            stop.
 //            """.trimIndent()
 
-        return if (message != null) {
+        return if (message.step != null) {
             try {
 //                println(actions.joinToString("\n") { it.signature.name })
 //                println(planLibrary?.plans?.map { it.trigger.value }?.joinToString("\n"))
                 // TODO what if the output is not an action?
-                val goals = loadTheoryFromString(message.planBody).rules.map { Act.of(it.head) }
+                val goals = loadTheoryFromString(message.step!!.planBody).rules.map { Act.of(it.head) }
 //                goals.forEach { println(it) }
                 // TODO handle guards
                 val generatedPlan = GeneratedPlan.of(plan.trigger, plan.guard, genCfg, goals)
@@ -69,7 +68,7 @@ class OneShotGenerationStrategy(
                 PlanGenerationResult(errorMsg = e.message)
             }
         } else {
-            null
+            PlanGenerationResult(errorMsg = message.errorMsg)
         }
     }
 
