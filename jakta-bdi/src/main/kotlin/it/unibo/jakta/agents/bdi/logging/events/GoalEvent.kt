@@ -1,4 +1,4 @@
-package it.unibo.jakta.agents.bdi.logging
+package it.unibo.jakta.agents.bdi.logging.events
 
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.tuprolog.core.Struct

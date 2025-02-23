@@ -1,6 +1,5 @@
 package it.unibo.jakta.agents.bdi.actions.effects
 
-sealed interface SideEffect {
-    val name: String get() = this.javaClass.simpleName
-    val description: String
-}
+import it.unibo.jakta.agents.bdi.logging.events.LogEvent
+
+sealed interface SideEffect : LogEvent

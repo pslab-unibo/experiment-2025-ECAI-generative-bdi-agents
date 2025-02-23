@@ -1,8 +1,5 @@
 package it.unibo.jakta.agents.bdi
 
-import io.github.oshai.kotlinlogging.KLogger
-import it.unibo.jakta.agents.bdi.actions.effects.SideEffect
-import it.unibo.jakta.agents.bdi.logging.LogEvent
 import it.unibo.tuprolog.core.Clause
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.TermFormatter
@@ -53,10 +50,4 @@ object Jakta {
     fun String.capitalize() = replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
-
-    fun KLogger.implementation(event: LogEvent) =
-        this.info { "[${event.name}] ${event.description}" }
-
-    fun KLogger.implementation(sideEffect: SideEffect) =
-        this.info { "[${sideEffect.name}] ${sideEffect.description}" }
 }

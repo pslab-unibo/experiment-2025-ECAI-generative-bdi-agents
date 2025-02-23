@@ -1,8 +1,7 @@
-package it.unibo.jakta.agents.bdi.logging
+package it.unibo.jakta.agents.bdi.logging.events
 
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.Trigger
-import it.unibo.jakta.agents.bdi.logging.BdiEvent.Companion.eventDescription
 
 sealed interface BdiEvent : LogEvent {
     companion object {
@@ -27,5 +26,5 @@ sealed interface BdiEvent : LogEvent {
 data class EventSelected(
     val event: Event,
 ) : BdiEvent {
-    override val description: String = eventDescription(event, "selected")
+    override val description: String = BdiEvent.Companion.eventDescription(event, "selected")
 }

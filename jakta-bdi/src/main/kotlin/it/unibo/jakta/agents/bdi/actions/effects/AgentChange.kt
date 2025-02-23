@@ -7,7 +7,7 @@ import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.intentions.Intention
-import it.unibo.jakta.agents.bdi.logging.BdiEvent.Companion.eventDescription
+import it.unibo.jakta.agents.bdi.logging.events.BdiEvent.Companion.eventDescription
 import it.unibo.jakta.agents.bdi.plans.Plan
 
 sealed interface AgentChange : SideEffect
@@ -54,6 +54,12 @@ data class EventChange(
         ADDITION -> eventDescription(event, "created")
         REMOVAL -> eventDescription(event, "deleted")
     }
+
+    override val params = super.params + buildMap {
+        put("changeType", changeType)
+        put("trigger", event.trigger)
+        put("intention", event.intention)
+    }
 }
 
 data class PlanChange(
@@ -65,6 +71,13 @@ data class PlanChange(
     override val description = when (changeType) {
         ADDITION -> "Plan: ${plan.trigger.value} added to the plan library"
         REMOVAL -> "Plan ${plan.trigger.value} removed from the plan library"
+    }
+
+    override val params = super.params + buildMap {
+        put("changeType", changeType)
+        put("trigger", plan.trigger)
+        put("guard", plan.guard)
+        put("goals", plan.goals)
     }
 }
 
