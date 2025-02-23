@@ -4,8 +4,6 @@ import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.actions.ExternalRequest
 import it.unibo.jakta.agents.bdi.actions.ExternalResponse
-import it.unibo.jakta.agents.bdi.actions.Parameter
-import it.unibo.jakta.agents.bdi.actions.SignatureWithDoc
 import it.unibo.jakta.agents.bdi.actions.effects.AddData
 import it.unibo.jakta.agents.bdi.actions.effects.BroadcastMessage
 import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
@@ -15,14 +13,12 @@ import it.unibo.jakta.agents.bdi.actions.effects.SendMessage
 import it.unibo.jakta.agents.bdi.actions.effects.SpawnAgent
 import it.unibo.jakta.agents.bdi.actions.effects.UpdateData
 import it.unibo.jakta.agents.bdi.messages.Message
+import it.unibo.tuprolog.solve.Signature
 
-abstract class AbstractExternalAction(override val signature: SignatureWithDoc) : ExternalAction,
+abstract class AbstractExternalAction(override val signature: Signature) : ExternalAction,
     AbstractAction<EnvironmentChange, ExternalResponse, ExternalRequest>(signature) {
 
-    constructor(name: String, arity: Int) : this(SignatureWithDoc(name, arity))
-    constructor(name: String, description: String, parameters: List<Parameter>) : this(
-        SignatureWithDoc(name, description, parameters),
-    )
+    constructor(name: String, arity: Int) : this(Signature(name, arity))
 
     override fun addAgent(agent: Agent) {
         effects.add(SpawnAgent(agent))

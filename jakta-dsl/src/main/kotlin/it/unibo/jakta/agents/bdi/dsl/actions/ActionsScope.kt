@@ -3,7 +3,6 @@ package it.unibo.jakta.agents.bdi.dsl.actions
 import it.unibo.jakta.agents.bdi.actions.Action
 import it.unibo.jakta.agents.bdi.actions.ActionRequest
 import it.unibo.jakta.agents.bdi.actions.ActionResponse
-import it.unibo.jakta.agents.bdi.actions.Parameter
 import it.unibo.jakta.agents.bdi.actions.effects.SideEffect
 import it.unibo.jakta.agents.bdi.dsl.Builder
 import it.unibo.tuprolog.core.Term
@@ -17,10 +16,6 @@ abstract class ActionsScope<C, Res, Req, A, As> : Builder<Map<String, A>>
           As : ActionScope<C, Res, Req, A> {
 
     private val actions = mutableListOf<A>()
-
-    fun action(name: String, description: String, parameters: List<Parameter>, f: As.() -> Unit) {
-        actions += newAction(name, description, parameters, f)
-    }
 
     fun action(name: String, arity: Int, f: As.() -> Unit) {
         actions += newAction(name, arity, f)
@@ -37,13 +32,6 @@ abstract class ActionsScope<C, Res, Req, A, As> : Builder<Map<String, A>>
     }
 
     protected abstract fun newAction(name: String, arity: Int, f: As.() -> Unit): A
-
-    protected abstract fun newAction(
-        name: String,
-        description: String,
-        parameters: List<Parameter>,
-        f: As.() -> Unit,
-    ): A
 
     override fun build(): Map<String, A> = actions.associateBy { it.signature.name }
 

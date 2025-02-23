@@ -4,13 +4,7 @@ import it.unibo.jakta.agents.bdi.actions.impl.AbstractInternalAction
 import it.unibo.tuprolog.core.Substitution
 
 object InternalActions {
-    object Print : AbstractInternalAction(
-        name = "print",
-        description = "Prints a message to the console and a newline.",
-        listOf(
-            Parameter("message", Type.String, Mode.Input),
-        ),
-    ) {
+    object Print : AbstractInternalAction("print", 2) {
         override fun action(request: InternalRequest) {
             val payload = request.arguments.joinToString(" ") {
                 when {
@@ -28,11 +22,7 @@ object InternalActions {
         }
     }
 
-    object Stop : AbstractInternalAction(
-        name = "stop",
-        description = "Stops the agent, preventing the execution of subsequent actions.",
-        parameters = listOf(),
-    ) {
+    object Stop : AbstractInternalAction("stop", 0) {
         override fun action(request: InternalRequest) {
             stopAgent()
         }
