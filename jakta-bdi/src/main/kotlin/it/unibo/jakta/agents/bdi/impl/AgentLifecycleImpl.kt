@@ -2,7 +2,6 @@ package it.unibo.jakta.agents.bdi.impl
 
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.AgentLifecycle
-import it.unibo.jakta.agents.bdi.Jakta.implementation
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.actions.ExternalRequest
 import it.unibo.jakta.agents.bdi.actions.InternalAction
@@ -32,7 +31,6 @@ import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
-import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.Act
 import it.unibo.jakta.agents.bdi.goals.ActExternally
@@ -47,28 +45,27 @@ import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
-import it.unibo.jakta.agents.bdi.logging.ActionFinished
-import it.unibo.jakta.agents.bdi.logging.AssignPlanToExistingIntention
-import it.unibo.jakta.agents.bdi.logging.AssignPlanToNewIntention
-import it.unibo.jakta.agents.bdi.logging.EventSelected
-import it.unibo.jakta.agents.bdi.logging.GenerationEvent
-import it.unibo.jakta.agents.bdi.logging.GoalAchieved
-import it.unibo.jakta.agents.bdi.logging.GoalCreated
-import it.unibo.jakta.agents.bdi.logging.GoalFailed
-import it.unibo.jakta.agents.bdi.logging.IntentionGoalRun
-import it.unibo.jakta.agents.bdi.logging.NewMessage
-import it.unibo.jakta.agents.bdi.logging.NewPercept
-import it.unibo.jakta.agents.bdi.logging.PlanSelected
+import it.unibo.jakta.agents.bdi.logging.events.ActionFinished
+import it.unibo.jakta.agents.bdi.logging.events.AssignPlanToExistingIntention
+import it.unibo.jakta.agents.bdi.logging.events.AssignPlanToNewIntention
+import it.unibo.jakta.agents.bdi.logging.events.EventSelected
+import it.unibo.jakta.agents.bdi.logging.events.GoalAchieved
+import it.unibo.jakta.agents.bdi.logging.events.GoalCreated
+import it.unibo.jakta.agents.bdi.logging.events.GoalFailed
+import it.unibo.jakta.agents.bdi.logging.events.IntentionGoalRun
+import it.unibo.jakta.agents.bdi.logging.events.NewMessage
+import it.unibo.jakta.agents.bdi.logging.events.NewPercept
+import it.unibo.jakta.agents.bdi.logging.events.PlanSelected
+import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.messages.Tell
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
-import it.unibo.jakta.agents.bdi.plans.generated.GeneratedPlan
 import it.unibo.jakta.agents.fsm.Activity
 
 internal data class AgentLifecycleImpl(
     private var agent: Agent,
 ) : AgentLifecycle {
-//    private var cycleCount = 1
+    private var cycleCount = 0
     private var controller: Activity.Controller? = null
     private var cachedEffects = emptyList<EnvironmentChange>()
 
@@ -108,7 +105,7 @@ internal data class AgentLifecycleImpl(
     override fun assignPlanToIntention(event: Event, plan: Plan, intentions: IntentionPool) =
         when (event.isExternal()) {
             true -> Intention.of(plan).also {
-                agent.logger.implementation(AssignPlanToNewIntention(it))
+                agent.logger?.implementation(AssignPlanToNewIntention(it))
             }
             false -> {
                 when (event.trigger) {
@@ -117,7 +114,7 @@ internal data class AgentLifecycleImpl(
                     // else -> intentions[event.intention!!.id]!!.push(plan.toActivationRecord())
                     else -> event.intention!!.pop().push(plan.toActivationRecord())
                 }.also {
-                    agent.logger.implementation(AssignPlanToExistingIntention(it))
+                    agent.logger?.implementation(AssignPlanToExistingIntention(it))
                 }
             }
         }
@@ -132,20 +129,20 @@ internal data class AgentLifecycleImpl(
     ): ExecutionResult {
         var newIntention = intention.pop()
         if (action.signature.arity < goal.action.args.size) {
-            agent.logger.warn { "[ArgNumberMismatch] Failed to invoke action" }
+            agent.logger?.warn { "[ArgNumberMismatch] Failed to invoke action" }
             return ExecutionResult(failAchievementGoal(intention, context))
         } else {
             val internalResponse = action.execute(
                 InternalRequest.of(this.agent, controller?.currentTime(), goal.action.args),
             )
-            agent.logger.implementation(ActionFinished(action))
+            agent.logger?.implementation(ActionFinished(action))
             // Apply substitution
             return if (internalResponse.substitution.isSuccess) {
                 if (newIntention.recordStack.isNotEmpty()) {
                     newIntention = newIntention.applySubstitution(internalResponse.substitution)
                 } else {
-                    agent.logger.warn { "[IntentionLacksGoal] Intention has no other goals to run" }
-                    agent.logger.implementation(GoalAchieved(intention.currentPlan()))
+                    agent.logger?.warn { "[IntentionLacksGoal] Intention has no other goals to run" }
+                    agent.logger?.implementation(GoalAchieved(intention.currentPlan()))
                 }
                 val newContext = applyEffects(context, internalResponse.effects)
                 ExecutionResult(
@@ -166,7 +163,7 @@ internal data class AgentLifecycleImpl(
     ): ExecutionResult {
         var newIntention = intention.pop()
         if (action.signature.arity < goal.action.args.size) {
-            agent.logger.warn { "[ArgNumberMismatch] Failed to invoke action" }
+            agent.logger?.warn { "[ArgNumberMismatch] Failed to invoke action" }
             return ExecutionResult(failAchievementGoal(intention, context))
         } else {
             val externalResponse = action.execute(
@@ -177,13 +174,13 @@ internal data class AgentLifecycleImpl(
                     goal.action.args,
                 ),
             )
-            agent.logger.implementation(ActionFinished(action))
+            agent.logger?.implementation(ActionFinished(action))
             return if (externalResponse.substitution.isSuccess) {
                 if (newIntention.recordStack.isNotEmpty()) {
                     newIntention = newIntention.applySubstitution(externalResponse.substitution)
                 } else {
-                    agent.logger.warn { "[IntentionLacksGoal] Intention has no other goals to run" }
-                    agent.logger.implementation(GoalAchieved(intention.currentPlan()))
+                    agent.logger?.warn { "[IntentionLacksGoal] Intention has no other goals to run" }
+                    agent.logger?.implementation(GoalAchieved(intention.currentPlan()))
                 }
                 ExecutionResult(
                     context.copy(intentions = context.intentions.updateIntention(newIntention)),
@@ -196,7 +193,7 @@ internal data class AgentLifecycleImpl(
     }
 
     override fun runIntention(intention: Intention, context: AgentContext, environment: Environment): ExecutionResult {
-        agent.logger.implementation(IntentionGoalRun(intention))
+        agent.logger?.implementation(IntentionGoalRun(intention))
         return when (val nextGoal = intention.nextGoal()) {
             is EmptyGoal -> ExecutionResult(
                 context.copy(intentions = context.intentions.updateIntention(intention.pop())),
@@ -207,7 +204,7 @@ internal data class AgentLifecycleImpl(
 
                     if (internalAction == null) {
                         // Internal Action not found
-                        agent.logger.warn { "${nextGoal.action.functor} Internal Action not found." }
+                        agent.logger?.warn { "${nextGoal.action.functor} Internal Action not found." }
                         ExecutionResult(failAchievementGoal(intention, context))
                     } else {
                         // Execute Internal Action
@@ -218,7 +215,7 @@ internal data class AgentLifecycleImpl(
                     val externalAction = environment.externalActions[nextGoal.action.functor]
                     if (externalAction == null) {
                         // Internal Action not found
-                        agent.logger.warn { "${nextGoal.action.functor} External Action not found." }
+                        agent.logger?.warn { "${nextGoal.action.functor} External Action not found." }
                         ExecutionResult(failAchievementGoal(intention, context))
                     } else {
                         // Execute External Action
@@ -228,7 +225,7 @@ internal data class AgentLifecycleImpl(
                 is Act -> {
                     val action = (environment.externalActions + context.internalActions)[nextGoal.action.functor]
                     if (action == null) {
-                        agent.logger.warn { "${nextGoal.action.functor} Action not found." }
+                        agent.logger?.warn { "${nextGoal.action.functor} Action not found." }
                         ExecutionResult(failAchievementGoal(intention, context))
                     } else {
                         // Execute Action
@@ -259,7 +256,7 @@ internal data class AgentLifecycleImpl(
                 when (solution.isYes) {
                     true -> {
                         val newIntention = intention.pop().applySubstitution(solution.substitution)
-                        agent.logger.implementation(IntentionChange(newIntention, ADDITION))
+                        agent.logger?.implementation(IntentionChange(newIntention, ADDITION))
                         ExecutionResult(
                             context.copy(
                                 intentions = context.intentions.updateIntention(newIntention),
@@ -269,8 +266,8 @@ internal data class AgentLifecycleImpl(
                     else -> {
                         val failedGoal = intention.currentPlan()
                         val newEvent = Event.ofTestGoalFailure(failedGoal, intention)
-                        agent.logger.implementation(EventChange(newEvent, ADDITION))
-                        agent.logger.implementation(GoalFailed(failedGoal))
+                        agent.logger?.implementation(EventChange(newEvent, ADDITION))
+                        agent.logger?.implementation(GoalFailed(failedGoal))
                         ExecutionResult(
                             context.copy(
                                 events = context.events + newEvent,
@@ -302,7 +299,7 @@ internal data class AgentLifecycleImpl(
         var newPlans = context.planLibrary
         var newIntentions = context.intentions
         effects.forEach {
-            agent.logger.implementation(it)
+            agent.logger?.implementation(it)
             when (it) {
                 is BeliefChange -> {
                     val rr = when (it.changeType) {
@@ -341,8 +338,8 @@ internal data class AgentLifecycleImpl(
     private fun failAchievementGoal(intention: Intention, context: AgentContext): AgentContext {
         val failedGoal = intention.currentPlan()
         val newEvent = Event.ofAchievementGoalFailure(failedGoal, intention)
-        agent.logger.implementation(EventChange(newEvent, ADDITION))
-        agent.logger.implementation(GoalFailed(failedGoal))
+        agent.logger?.implementation(EventChange(newEvent, ADDITION))
+        agent.logger?.implementation(GoalFailed(failedGoal))
         return context.copy(
             events = context.events + newEvent,
         )
@@ -354,7 +351,7 @@ internal data class AgentLifecycleImpl(
                 REMOVAL -> Event.of(BeliefBaseRemoval(it.belief))
                 ADDITION -> Event.of(BeliefBaseAddition(it.belief))
             }.also { ev ->
-                agent.logger.implementation(EventChange(ev, it.updateType))
+                agent.logger?.implementation(EventChange(ev, it.updateType))
             }
         }
 
@@ -364,7 +361,7 @@ internal data class AgentLifecycleImpl(
         // STEP1: Perceive the Environment
         val perceptions = environment.percept()
         perceptions.forEach {
-            agent.logger.implementation(
+            agent.logger?.implementation(
                 NewPercept(
                     percept = it,
                     source = "environment",
@@ -375,11 +372,11 @@ internal data class AgentLifecycleImpl(
         // STEP2: Update the BeliefBase
         val rr = updateBelief(perceptions, agent.context.beliefBase)
         rr.modifiedBeliefs.forEach {
-            agent.logger.implementation(BeliefChange(it.belief, it.updateType))
+            agent.logger?.implementation(BeliefChange(it.belief, it.updateType))
         }
 
         var newBeliefBase = rr.updatedBeliefBase
-        agent.logger.trace { "pre-run -> ${agent.context}" }
+        agent.logger?.trace { "pre-run -> ${agent.context}" }
         // Generate events related to BeliefBase revision
         var newEvents = generateEvents(agent.context.events, rr.modifiedBeliefs)
 
@@ -390,16 +387,16 @@ internal data class AgentLifecycleImpl(
 
         // Parse message
         if (message != null) {
-            agent.logger.implementation(NewMessage(message = message))
+            agent.logger?.implementation(NewMessage(message = message))
             newEvents = when (message.type) {
                 is it.unibo.jakta.agents.bdi.messages.Achieve -> {
                     val goalToAchieve = Achieve.of(message.value)
-                    agent.logger.implementation(GoalCreated(goalToAchieve))
+                    agent.logger?.implementation(GoalCreated(goalToAchieve))
                     newEvents + Event.ofAchievementGoalInvocation(goalToAchieve)
                 }
                 is Tell -> {
                     val beliefFromMessage = Belief.fromMessageSource(message.from, message.value)
-                    agent.logger.implementation(BeliefChange(beliefFromMessage, ADDITION))
+                    agent.logger?.implementation(BeliefChange(beliefFromMessage, ADDITION))
                     val retrieveResult = newBeliefBase.add(beliefFromMessage)
                     newBeliefBase = retrieveResult.updatedBeliefBase
                     generateEvents(newEvents, retrieveResult.modifiedBeliefs)
@@ -407,16 +404,16 @@ internal data class AgentLifecycleImpl(
             }
             cachedEffects = cachedEffects + PopMessage(this.agent.name)
         }
-        this.agent = this.agent.copy(newBeliefBase, newEvents)
+        this.agent = this.agent.copy(beliefBase = newBeliefBase, events = newEvents)
     }
 
-    override fun deliberate(environment: Environment, generationStrategy: GenerationStrategy?) {
+    override fun deliberate(environment: Environment) {
         // STEP5: Selecting an Event.
         var newEvents = this.agent.context.events
         val selectedEvent = selectEvent(this.agent.context.events)
         var newIntentionPool = agent.context.intentions
         if (selectedEvent != null) {
-            agent.logger.implementation(EventSelected(selectedEvent))
+            agent.logger?.implementation(EventSelected(selectedEvent))
             newEvents = newEvents - selectedEvent
 
             // STEP6: Retrieving all Relevant Plans.
@@ -430,39 +427,12 @@ internal data class AgentLifecycleImpl(
             // STEP8: Selecting one Applicable Plan.
             val candidateSelectedPlan = selectApplicablePlan(applicablePlans)
 
-            /*
-                Check if the plan uses a generation strategy and apply it.
-
-                If an LLM config is given, the event's trigger is an AchievementGoalInvocation,
-                and there are no relevant plans, try to generate a new suitable plan by calling
-                an LLM. Otherwise, the event is simply discarded.
-             */
-            val selectedPlan: Plan? = if (candidateSelectedPlan is GeneratedPlan) {
-                val generationStrategy = generationStrategy ?: candidateSelectedPlan.genCfg.genStrategy
-                val generatedPlanResult = generationStrategy
-                    ?.copy(
-                        actions =
-                        agent.context.internalActions.values.toList() +
-                            environment.externalActions.values.toList(),
-                        plans = agent.context.planLibrary,
-                    )
-                    ?.generatePlan(candidateSelectedPlan)
-                val generatedPlan = generatedPlanResult?.generatedPlan
-                if (generatedPlan != null) {
-                    agent.context.planLibrary.addPlan(generatedPlan)
-                    agent.logger.implementation(GenerationEvent(generatedPlan))
-                    generatedPlan
-                } else {
-                    agent.logger.error { "Failed generation due to: ${generatedPlanResult?.errorMsg}" }
-                }
-                generatedPlan
-            } else {
-                candidateSelectedPlan
-            }
+            // Check if the plan uses a generation strategy and apply it.
+            val selectedPlan: Plan? = candidateSelectedPlan
 
             // Add plan to intentions
             if (selectedPlan != null) {
-                agent.logger.implementation(PlanSelected(selectedPlan))
+                agent.logger?.implementation(PlanSelected(selectedPlan))
                 val updatedIntention = assignPlanToIntention(
                     selectedEvent,
                     selectedPlan.applicablePlan(selectedEvent, this.agent.context.beliefBase),
@@ -470,15 +440,15 @@ internal data class AgentLifecycleImpl(
                 )
                 newIntentionPool = agent.context.intentions.updateIntention(updatedIntention)
             } else {
-                agent.logger.warn { "There's no applicable plan for the event: $selectedEvent" }
+                agent.logger?.warn { "There's no applicable plan for the event: $selectedEvent" }
                 if (selectedEvent.isInternal()) {
                     val intentionToRemove = selectedEvent.intention!!
-                    agent.logger.implementation(IntentionChange(intentionToRemove, REMOVAL))
+                    agent.logger?.implementation(IntentionChange(intentionToRemove, REMOVAL))
                     newIntentionPool = newIntentionPool.deleteIntention(intentionToRemove.id)
                 }
             }
         } else {
-//            agent.logger.warn { "No event selected" }
+//            agent.logger?.warn { "No event selected" }
         }
         // Select intention to execute
         this.agent = this.agent.copy(
@@ -498,10 +468,9 @@ internal data class AgentLifecycleImpl(
             newIntentionPool = result.newIntentionPool
             // STEP10: Executing one Step on an Intention
             this.agent = if (scheduledIntention.recordStack.isEmpty()) {
-                agent.logger.info { "[IntentionLacksGoal] Intention has no other goals to run" }
+                agent.logger?.warn { "[IntentionLacksGoal] Intention has no other goals to run" }
                 this.agent.copy(intentions = newIntentionPool)
             } else {
-                agent.logger.info { "[ScheduleIntention]: ${scheduledIntention.id}" }
                 executionResult = runIntention(
                     scheduledIntention,
                     this.agent.context.copy(intentions = newIntentionPool),
@@ -509,9 +478,9 @@ internal data class AgentLifecycleImpl(
                 )
                 this.agent.copy(executionResult.newAgentContext)
             }
-            agent.logger.trace { "post run -> ${agent.context}" }
+            agent.logger?.trace { "post run -> ${agent.context}" }
         } else {
-//            agent.logger.warn { "This agent lacks any intention" }
+//            agent.logger?.warn { "This agent lacks any intention" }
         }
 
         // Generate Environment Changes
@@ -523,11 +492,10 @@ internal data class AgentLifecycleImpl(
     override fun runOneCycle(
         environment: Environment,
         controller: Activity.Controller?,
-        genStrategy: GenerationStrategy?,
     ): Iterable<EnvironmentChange> {
-//        agent.logger.implementation(ReasoningCycleStart(cycleCount = cycleCount++))
+        cycleCount++
         sense(environment, controller)
-        deliberate(environment, genStrategy)
+        deliberate(environment)
         return act(environment)
     }
 }

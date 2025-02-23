@@ -9,7 +9,6 @@ import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
-import it.unibo.jakta.agents.bdi.generationstrategies.GenerationStrategy
 import it.unibo.jakta.agents.bdi.impl.AgentLifecycleImpl
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
@@ -120,10 +119,9 @@ interface AgentLifecycle {
     fun runOneCycle(
         environment: Environment,
         controller: Activity.Controller? = null,
-        generationStrategy: GenerationStrategy? = null,
     ): Iterable<EnvironmentChange> {
         sense(environment, controller)
-        deliberate(environment, generationStrategy)
+        deliberate(environment)
         return act(environment)
     }
 
@@ -147,10 +145,7 @@ interface AgentLifecycle {
      *  - STEP7: Determining the Applicable Plans
      *  - STEP8: Selecting one Applicable Plan
      */
-    fun deliberate(
-        environment: Environment,
-        generationStrategy: GenerationStrategy? = null,
-    )
+    fun deliberate(environment: Environment)
 
     /**
      * Performs the reason phase of the reasoning cycle, in particular:

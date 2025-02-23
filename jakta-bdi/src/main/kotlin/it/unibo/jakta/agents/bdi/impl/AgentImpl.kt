@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.impl
 
+import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.AgentID
 import it.unibo.jakta.agents.bdi.context.AgentContext
@@ -7,12 +8,15 @@ import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 import java.util.UUID
 
 internal data class AgentImpl(
     override val context: AgentContext,
     override val agentID: AgentID = AgentID(),
     override val name: String = "Agent-" + UUID.randomUUID(),
+    override val logger: KLogger? = null,
+    override val generationStrategy: GenerationStrategy? = null,
     override val tags: Map<String, Any> = emptyMap(),
 ) : Agent {
     override fun selectEvent(events: EventQueue) = events.firstOrNull()

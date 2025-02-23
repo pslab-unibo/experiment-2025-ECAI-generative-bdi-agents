@@ -1,7 +1,6 @@
 package it.unibo.jakta.agents.bdi
 
 import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalActions
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
@@ -13,6 +12,7 @@ import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
+import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 import it.unibo.tuprolog.utils.Taggable
 import java.util.*
 
@@ -22,7 +22,9 @@ interface Agent : Taggable<Agent> {
 
     val name: String
 
-    val logger: KLogger get() = logger("[$name]")
+    val logger: KLogger?
+
+    val generationStrategy: GenerationStrategy?
 
     /** Snapshot of Agent's Actual State */
     val context: AgentContext
@@ -37,9 +39,11 @@ interface Agent : Taggable<Agent> {
     fun scheduleIntention(intentions: IntentionPool): SchedulingResult
 
     fun copy(agentContext: AgentContext = this.context) =
-        of(this.agentID, this.name, agentContext.copy())
+        of(this.agentID, this.name, this.logger, this.generationStrategy, agentContext.copy())
 
     fun copy(
+        logger: KLogger? = this.logger,
+        generationStrategy: GenerationStrategy? = this.generationStrategy,
         beliefBase: BeliefBase = this.context.beliefBase,
         events: EventQueue = this.context.events,
         planLibrary: PlanLibrary = this.context.planLibrary,
@@ -48,6 +52,8 @@ interface Agent : Taggable<Agent> {
     ) = of(
         this.agentID,
         this.name,
+        logger,
+        generationStrategy,
         context.copy(beliefBase, events, planLibrary, intentions, internalActions),
     )
 
@@ -56,6 +62,8 @@ interface Agent : Taggable<Agent> {
         fun of(
             agentID: AgentID = AgentID(),
             name: String = "Agent-" + UUID.randomUUID(),
+            logger: KLogger? = null,
+            generationStrategy: GenerationStrategy? = null,
             beliefBase: BeliefBase = BeliefBase.empty(),
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
@@ -64,12 +72,16 @@ interface Agent : Taggable<Agent> {
             AgentContext.of(beliefBase, events, planLibrary, internalActions),
             agentID,
             name,
+            logger,
+            generationStrategy,
         )
 
         fun of(
             agentID: AgentID = AgentID(),
             name: String = "Agent-" + UUID.randomUUID(),
+            logger: KLogger? = null,
+            generationStrategy: GenerationStrategy? = null,
             agentContext: AgentContext,
-        ): Agent = AgentImpl(agentContext, agentID, name)
+        ): Agent = AgentImpl(agentContext, agentID, name, logger, generationStrategy)
     }
 }

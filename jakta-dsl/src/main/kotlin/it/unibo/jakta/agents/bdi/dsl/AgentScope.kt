@@ -11,6 +11,7 @@ import it.unibo.jakta.agents.bdi.executionstrategies.TimeDistribution
 import it.unibo.jakta.agents.bdi.executionstrategies.setTimeDistribution
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
+import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 
 class AgentScope(
     val name: String? = null,
@@ -21,6 +22,7 @@ class AgentScope(
     private val actionsScope by lazy { InternalActionsScope() }
     private var plans = emptyList<Plan>()
     private lateinit var time: TimeDistribution
+    var generationStrategy: GenerationStrategy? = null
 
     fun beliefs(f: BeliefsScope.() -> Unit): AgentScope {
         beliefsScope.also(f)
@@ -56,6 +58,7 @@ class AgentScope(
         var agent = Agent.of(
             name = name.orEmpty(),
             beliefBase = beliefsScope.build(),
+            generationStrategy = generationStrategy,
             events = goalsScope.build().map { Event.of(it) },
             planLibrary = PlanLibrary.of(plans + plansScope.build().toList()),
             internalActions = InternalActions.default() + actionsScope.build(),
