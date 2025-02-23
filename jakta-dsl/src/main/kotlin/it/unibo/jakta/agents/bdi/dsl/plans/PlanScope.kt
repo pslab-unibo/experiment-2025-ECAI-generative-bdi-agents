@@ -1,16 +1,11 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
 import it.unibo.jakta.agents.bdi.Prolog2Jakta
-import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.events.AchievementGoalTrigger
-import it.unibo.jakta.agents.bdi.events.BeliefBaseRevision
-import it.unibo.jakta.agents.bdi.events.TestGoalTrigger
+import it.unibo.jakta.agents.bdi.dsl.LiteratePrologParser
 import it.unibo.jakta.agents.bdi.events.Trigger
-import it.unibo.jakta.agents.bdi.goals.EmptyGoal
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.generated.GeneratedPlan
-import it.unibo.jakta.agents.bdi.plans.generated.GenerationConfiguration
+import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth
@@ -20,10 +15,14 @@ data class PlanScope(
     private val scope: Scope,
     private val trigger: Struct,
     private val triggerType: KClass<out Trigger>,
+    private val triggerDescription: String? = null,
 ) {
     private var guard: Struct = Truth.TRUE
-    private var genCfg: GenerationConfiguration? = null
+    private var literateGuards: String? = null
+    private var generate = false
+    private var genStrategy: GenerationStrategy? = null
     private var goals: List<Goal> = mutableListOf()
+    private var literateGoals: String? = null
     var failure: Boolean = false
 
     infix fun onlyIf(guards: GuardScope.() -> Struct): PlanScope {
@@ -32,87 +31,44 @@ data class PlanScope(
         return this
     }
 
+    infix fun onlyIf(literateGuard: String): PlanScope {
+        val litGuard = literateGuard.trimIndent()
+        literateGuards = litGuard
+        val parsedGuard = LiteratePrologParser.tangleStruct(litGuard)
+        guard = parsedGuard ?: Truth.TRUE
+        return this
+    }
+
     infix fun then(body: BodyScope.() -> Unit): PlanScope {
-        goals = BodyScope(scope).also(body).build()
+        goals += BodyScope(scope).also(body).build()
         return this
     }
 
-    infix fun given(given: PlanConfigScope.() -> Unit): PlanScope {
-        genCfg = PlanConfigScope().also(given).build()
+    infix fun then(literateBody: String): PlanScope {
+        literateGoals = literateBody
+        val parsedGoals = LiteratePrologParser.tanglePlanBody(literateBody)
+        parsedGoals.forEach { goal -> goals += goal }
         return this
     }
 
-    fun build(): Plan {
-        if (genCfg != null && genCfg?.generate == true) {
-            if (failure) {
-                return when (triggerType) {
-                    AchievementGoalTrigger::class -> GeneratedPlan.ofAchievementGoalFailure(
-                        trigger,
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        genCfg!!,
-                        guard,
-                    )
-                    TestGoalTrigger::class ->
-                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
-                    BeliefBaseRevision::class ->
-                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
-                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
-                }
-            } else {
-                return when (triggerType) {
-                    AchievementGoalTrigger::class -> GeneratedPlan.ofAchievementGoalInvocation(
-                        trigger,
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        genCfg!!,
-                        guard,
-                    )
-                    TestGoalTrigger::class ->
-                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
-                    BeliefBaseRevision::class ->
-                        throw IllegalArgumentException("Trigger: $triggerType not supported for plan generation")
-                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
-                }
-            }
-        } else {
-            if (failure) {
-                return when (triggerType) {
-                    BeliefBaseRevision::class -> Plan.ofBeliefBaseRemoval(
-                        Belief.from(trigger),
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        guard,
-                    )
-                    TestGoalTrigger::class -> Plan.ofTestGoalFailure(
-                        trigger,
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        guard,
-                    )
-                    AchievementGoalTrigger::class -> Plan.ofAchievementGoalFailure(
-                        trigger,
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        guard,
-                    )
-                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
-                }
-            } else {
-                return when (triggerType) {
-                    BeliefBaseRevision::class -> Plan.ofBeliefBaseAddition(
-                        Belief.from(trigger),
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        guard,
-                    )
-                    TestGoalTrigger::class -> Plan.ofTestGoalInvocation(
-                        trigger,
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        guard,
-                    )
-                    AchievementGoalTrigger::class -> Plan.ofAchievementGoalInvocation(
-                        trigger,
-                        goals.ifEmpty { listOf(EmptyGoal()) },
-                        guard,
-                    )
-                    else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
-                }
-            }
-        }
+    infix fun given(given: PlanGenerationScope.() -> Unit): PlanScope {
+        val planGenCfg = PlanGenerationScope().also(given).build()
+        generate = planGenCfg.generate
+        genStrategy = planGenCfg.generationStrategy
+        return this
     }
+
+    fun build(): Plan =
+        PlanFactory(
+            trigger = trigger,
+            goals = goals,
+            guard = guard,
+            genStrategy = genStrategy,
+            generate = generate,
+            failure = failure,
+            triggerDescription = triggerDescription,
+            literateGuards = literateGuards,
+            literateGoals = literateGoals,
+            triggerType = triggerType,
+        ).build()
 }

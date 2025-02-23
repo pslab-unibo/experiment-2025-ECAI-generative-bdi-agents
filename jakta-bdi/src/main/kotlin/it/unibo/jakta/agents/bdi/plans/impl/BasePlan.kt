@@ -1,4 +1,4 @@
-package it.unibo.jakta.agents.bdi.plans.generated
+package it.unibo.jakta.agents.bdi.plans.impl
 
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.events.Event
@@ -6,16 +6,14 @@ import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.impl.PlanImpl
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.unify.Unificator.Companion.mguWith
 
-internal data class GeneratedPlanImpl(
+internal abstract class BasePlan(
     override val trigger: Trigger,
     override val guard: Struct,
     override val goals: List<Goal>,
-    override val genCfg: GenerationConfiguration,
-) : GeneratedPlan {
+) : Plan {
 
     override fun isApplicable(event: Event, beliefBase: BeliefBase): Boolean {
         val mgu = event.trigger.value mguWith this.trigger.value
@@ -23,8 +21,8 @@ internal data class GeneratedPlanImpl(
         return isRelevant(event) && beliefBase.solve(actualGuard).isYes
     }
 
-    override fun applicablePlan(event: Event, beliefBase: BeliefBase): Plan = when (isApplicable(event, beliefBase)) {
-        true -> {
+    override fun applicablePlan(event: Event, beliefBase: BeliefBase): Plan {
+        return if (isApplicable(event, beliefBase)) {
             val mgu = event.trigger.value mguWith this.trigger.value
             val actualGuard = guard.apply(mgu).castToStruct()
             val solvedGuard = beliefBase.solve(actualGuard)
@@ -36,14 +34,20 @@ internal data class GeneratedPlanImpl(
                         .castToStruct(),
                 )
             }
-
-            PlanImpl(event.trigger, actualGuard, actualGoals)
+            createConcretePlan(event.trigger, actualGuard, actualGoals)
+        } else {
+            this
         }
-        else -> this
     }
 
     override fun isRelevant(event: Event): Boolean =
         event.trigger::class == this.trigger::class && (trigger.value mguWith event.trigger.value).isSuccess
 
     override fun toActivationRecord(): ActivationRecord = ActivationRecord.of(goals, trigger.value)
+
+    /**
+     * Abstract method to create a concrete plan instance.
+     * This allows subclasses to define their own creation logic.
+     */
+    protected abstract fun createConcretePlan(trigger: Trigger, guard: Struct, goals: List<Goal>): Plan
 }
