@@ -9,6 +9,7 @@ logback = "1.4.14"
 openapi = "7.10.0"
 kotlinLogging = "7.0.3"
 slf4j = "2.0.3"
+openai = "4.0.1"
 kotlinxPlugin="2.1.0"
 kotlinCoroutines="1.10.1"
 
@@ -22,14 +23,7 @@ alchemist-maps = {module = "it.unibo.alchemist:alchemist-maps", version.ref = "a
 alchemist-physics = {module = "it.unibo.alchemist:alchemist-physics", version.ref = "alchemist" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
-kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
-kotlin-script-runtime = { group = "org.jetbrains.kotlin", name = "kotlin-script-runtime", version.ref = "kotlin" }
-ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-gson = { module = "io.ktor:ktor-client-gson", version.ref = "ktor" }
-ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
-logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 kotest-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -47,11 +41,20 @@ tuprolog-dsl-unify = { module = "it.unibo.tuprolog:dsl-unify-jvm", version.ref =
 tuprolog-dsl-theory = { module = "it.unibo.tuprolog:dsl-theory-jvm", version.ref = "tuprolog" }
 tuprolog-dsl-solve = { module = "it.unibo.tuprolog:dsl-solve-jvm", version.ref = "tuprolog" }
 tuprolog-oop-lib = { module = "it.unibo.tuprolog:oop-lib-jvm", version.ref = "tuprolog" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
-slf4jOverLogback = { module = "org.slf4j:log4j-over-slf4j", version.ref = "slf4j" }
-kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
+openai = { module = "com.aallam.openai:openai-client", version.ref = "openai" }
 
 [bundles]
+kotlin-logging = [ "logback", "kotlin-logging" ]
+kotlin-ktor = [
+    "ktor-client-cio",
+    "ktor-client-contentnegotiation",
+    "ktor-serialization-kotlinx"
+]
 kotlin-testing = [ "kotest-junit5-jvm", "kotest-assertions-core-jvm", "mockito-core" ]
 alchemist-api = [
     "alchemist",
@@ -75,5 +78,4 @@ multiJvmTesting = { id = "org.danilopianini.multi-jvm-test-plugin", version = "3
 publishOnCentral =  { id = "org.danilopianini.publish-on-central", version = "8.0.1"}
 taskTree = { id = "com.dorongold.task-tree", version = "4.0.0" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
-openapi-generator = { id = "org.openapi.generator", version.ref = "openapi" }
 kotlinx = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxPlugin"}

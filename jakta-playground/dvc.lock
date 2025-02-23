@@ -1,0 +1,11 @@
+schema: '2.0'
+stages:
+  testGeneration@phi4-blocksworld:
+    cmd: ../gradlew runExperiment --quiet --args=" --model-id=phi4 --log-dir=experiments
+      --log-to-console --log-to-file"
+    outs:
+    - path: experiments
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
