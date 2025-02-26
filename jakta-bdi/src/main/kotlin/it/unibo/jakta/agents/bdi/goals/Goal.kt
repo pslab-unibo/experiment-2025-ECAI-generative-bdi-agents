@@ -6,6 +6,7 @@ import it.unibo.jakta.agents.bdi.goals.impl.ActExternallyImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActInternallyImpl
 import it.unibo.jakta.agents.bdi.goals.impl.AddBeliefImpl
+import it.unibo.jakta.agents.bdi.goals.impl.GenerateImpl
 import it.unibo.jakta.agents.bdi.goals.impl.RemoveBeliefImpl
 import it.unibo.jakta.agents.bdi.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TestImpl
@@ -101,5 +102,12 @@ interface ActInternally : ActionGoal {
 interface ActExternally : ActionGoal {
     companion object {
         fun of(value: Struct): ActExternally = ActExternallyImpl(value)
+    }
+}
+
+interface Generate : Goal {
+    val goal: Goal
+    companion object {
+        fun of(goal: Goal): Generate = GenerateImpl(goal)
     }
 }

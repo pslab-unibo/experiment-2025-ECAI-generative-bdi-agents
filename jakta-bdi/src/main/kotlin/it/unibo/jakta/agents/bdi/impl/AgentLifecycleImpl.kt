@@ -39,6 +39,7 @@ import it.unibo.jakta.agents.bdi.goals.ActionGoal
 import it.unibo.jakta.agents.bdi.goals.AddBelief
 import it.unibo.jakta.agents.bdi.goals.BeliefGoal
 import it.unibo.jakta.agents.bdi.goals.EmptyGoal
+import it.unibo.jakta.agents.bdi.goals.Generate
 import it.unibo.jakta.agents.bdi.goals.RemoveBelief
 import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
@@ -49,6 +50,7 @@ import it.unibo.jakta.agents.bdi.logging.events.ActionFinished
 import it.unibo.jakta.agents.bdi.logging.events.AssignPlanToExistingIntention
 import it.unibo.jakta.agents.bdi.logging.events.AssignPlanToNewIntention
 import it.unibo.jakta.agents.bdi.logging.events.EventSelected
+import it.unibo.jakta.agents.bdi.logging.events.GenerationEvent
 import it.unibo.jakta.agents.bdi.logging.events.GoalAchieved
 import it.unibo.jakta.agents.bdi.logging.events.GoalCreated
 import it.unibo.jakta.agents.bdi.logging.events.GoalFailed
@@ -58,6 +60,8 @@ import it.unibo.jakta.agents.bdi.logging.events.NewPercept
 import it.unibo.jakta.agents.bdi.logging.events.PlanSelected
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.messages.Tell
+import it.unibo.jakta.agents.bdi.plans.ActivationRecord
+import it.unibo.jakta.agents.bdi.plans.GeneratedPlan
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 import it.unibo.jakta.agents.fsm.Activity
@@ -192,7 +196,11 @@ internal data class AgentLifecycleImpl(
         }
     }
 
-    override fun runIntention(intention: Intention, context: AgentContext, environment: Environment): ExecutionResult {
+    override fun runIntention(
+        intention: Intention,
+        context: AgentContext,
+        environment: Environment,
+    ): ExecutionResult {
         agent.logger?.implementation(IntentionGoalRun(intention))
         return when (val nextGoal = intention.nextGoal()) {
             is EmptyGoal -> ExecutionResult(
@@ -289,6 +297,16 @@ internal data class AgentLifecycleImpl(
                         intentions = context.intentions.updateIntention(intention.pop()),
                     ),
                 )
+            }
+            is Generate -> {
+                // Will return an empty intention since it has only one action
+                val updatedGoalQueue = intention.recordStack.first().goalQueue - nextGoal + nextGoal.goal
+                val plan = intention.currentPlan()
+                val updatedRecordStack = intention.recordStack.drop(1) + ActivationRecord.of(updatedGoalQueue, plan)
+                val execRes = runIntention(intention.copy(recordStack = updatedRecordStack), context, environment)
+                // TODO update the GeneratedPlan with a message that gives feedback on the executed action
+                // TODO convert the Generate to a normal goal once it is executed successfully
+                execRes
             }
         }
     }
@@ -428,7 +446,45 @@ internal data class AgentLifecycleImpl(
             val candidateSelectedPlan = selectApplicablePlan(applicablePlans)
 
             // Check if the plan uses a generation strategy and apply it.
-            val selectedPlan: Plan? = candidateSelectedPlan
+            val selectedPlan: Plan? =
+                if (candidateSelectedPlan is GeneratedPlan) {
+                    val genStrategy = candidateSelectedPlan.generationStrategy
+                    if (genStrategy != null) {
+                        val planGenResult = genStrategy.requestPlanGeneration(
+                            candidateSelectedPlan,
+                            agent.context,
+                            environment.externalActions.values.toList(),
+                        )
+                        val generatedPlan = planGenResult.generatedPlan
+                        if (generatedPlan != null && planGenResult.errorMsg == null) {
+                            /*
+                                Update the [GeneratedPlan] with the newly generated goal
+                             */
+                            agent.context.planLibrary.removePlan(candidateSelectedPlan)
+                            agent.context.planLibrary.addPlan(generatedPlan)
+
+                            /*
+                                Until an instance of a [Plan] is returned, the generation process is not ended
+                                and a new event is added to keep it going.
+
+                                The newly added event is always external.
+                             */
+                            if (generatedPlan is GeneratedPlan) {
+                                agent.logger?.implementation(GenerationEvent(generatedPlan))
+                                newEvents = newEvents + Event.of(selectedEvent.trigger)
+                            }
+                            generatedPlan
+                        } else {
+                            agent.logger?.error { "Failed generation due to: ${planGenResult.errorMsg}" }
+                            null
+                        }
+                    } else {
+                        agent.logger?.error { "Failed generation due the missing strategy" }
+                        null
+                    }
+                } else {
+                    candidateSelectedPlan
+                }
 
             // Add plan to intentions
             if (selectedPlan != null) {
@@ -447,9 +503,8 @@ internal data class AgentLifecycleImpl(
                     newIntentionPool = newIntentionPool.deleteIntention(intentionToRemove.id)
                 }
             }
-        } else {
-//            agent.logger?.warn { "No event selected" }
         }
+
         // Select intention to execute
         this.agent = this.agent.copy(
             events = newEvents,
