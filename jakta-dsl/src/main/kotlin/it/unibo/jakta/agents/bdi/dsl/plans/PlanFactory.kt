@@ -206,7 +206,7 @@ class PlanFactory(
                                         literatePlan.guard,
                                         genStrategy,
                                         literatePlan.literateTrigger,
-                                        literatePlan.literateGuards,
+                                        literatePlan.literateGuard,
                                         literatePlan.literateGoals,
                                     )
                                 } else {
@@ -216,7 +216,7 @@ class PlanFactory(
                                         literatePlan.guard,
                                         genStrategy,
                                         literatePlan.literateTrigger,
-                                        literatePlan.literateGuards,
+                                        literatePlan.literateGuard,
                                         literatePlan.literateGoals,
                                     )
                                 }
@@ -230,7 +230,7 @@ class PlanFactory(
                                         literatePlan.guard,
                                         genStrategy,
                                         literatePlan.literateTrigger,
-                                        literatePlan.literateGuards,
+                                        literatePlan.literateGuard,
                                         literatePlan.literateGoals,
                                     )
                                 } else {
@@ -240,7 +240,7 @@ class PlanFactory(
                                         literatePlan.guard,
                                         genStrategy,
                                         literatePlan.literateTrigger,
-                                        literatePlan.literateGuards,
+                                        literatePlan.literateGuard,
                                         literatePlan.literateGoals,
                                     )
                                 }
@@ -254,7 +254,7 @@ class PlanFactory(
                                         literatePlan.guard,
                                         genStrategy,
                                         literatePlan.literateTrigger,
-                                        literatePlan.literateGuards,
+                                        literatePlan.literateGuard,
                                         literatePlan.literateGoals,
                                     )
                                 } else {
@@ -264,7 +264,7 @@ class PlanFactory(
                                         literatePlan.guard,
                                         genStrategy,
                                         literatePlan.literateTrigger,
-                                        literatePlan.literateGuards,
+                                        literatePlan.literateGuard,
                                         literatePlan.literateGoals,
                                     )
                                 }

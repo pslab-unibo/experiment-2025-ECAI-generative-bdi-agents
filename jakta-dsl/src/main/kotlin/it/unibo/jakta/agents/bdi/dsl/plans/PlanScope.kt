@@ -1,7 +1,8 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
+import it.unibo.jakta.agents.bdi.LiteratePrologParser.tanglePlanBody
+import it.unibo.jakta.agents.bdi.LiteratePrologParser.tangleStruct
 import it.unibo.jakta.agents.bdi.Prolog2Jakta
-import it.unibo.jakta.agents.bdi.dsl.LiteratePrologParser
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.Plan
@@ -34,7 +35,7 @@ data class PlanScope(
     infix fun onlyIf(literateGuard: String): PlanScope {
         val litGuard = literateGuard.trimIndent()
         literateGuards = litGuard
-        val parsedGuard = LiteratePrologParser.tangleStruct(litGuard)
+        val parsedGuard = tangleStruct(litGuard)
         guard = parsedGuard ?: Truth.TRUE
         return this
     }
@@ -46,7 +47,7 @@ data class PlanScope(
 
     infix fun then(literateBody: String): PlanScope {
         literateGoals = literateBody
-        val parsedGoals = LiteratePrologParser.tanglePlanBody(literateBody)
+        val parsedGoals = tanglePlanBody(literateBody)
         parsedGoals.forEach { goal -> goals += goal }
         return this
     }

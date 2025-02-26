@@ -1,12 +1,12 @@
 package it.unibo.jakta.agents.bdi
 
 import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
 import it.unibo.jakta.agents.bdi.impl.MasImpl
-import it.unibo.jakta.agents.bdi.logging.LoggingStrategy
+import it.unibo.jakta.agents.bdi.logging.LoggerFactory.createLogger
+import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 
 interface Mas {
@@ -14,8 +14,8 @@ interface Mas {
     val agents: Iterable<Agent>
     val executionStrategy: ExecutionStrategy
     val generationStrategy: GenerationStrategy?
-    val loggingStrategy: LoggingStrategy?
-    val logger: KLogger get() = logger("[MAS]")
+    val loggingConfig: LoggingConfig?
+    val logger: KLogger?
 
     fun start()
 
@@ -27,7 +27,7 @@ interface Mas {
             environment: Environment,
             agent: Agent,
             generationStrategy: GenerationStrategy? = null,
-            loggingStrategy: LoggingStrategy? = null,
+            loggingConfig: LoggingConfig? = null,
             vararg agents: Agent,
         ): Mas =
             of(
@@ -35,7 +35,7 @@ interface Mas {
                 environment,
                 agents.asIterable() + agent,
                 generationStrategy,
-                loggingStrategy,
+                loggingConfig,
             )
 
         fun of(
@@ -43,14 +43,19 @@ interface Mas {
             environment: Environment,
             agents: Iterable<Agent>,
             generationStrategy: GenerationStrategy? = null,
-            loggingStrategy: LoggingStrategy? = null,
-        ): Mas =
-            MasImpl(
+            loggingConfig: LoggingConfig? = null,
+        ): Mas {
+            val logger = loggingConfig?.let {
+                createLogger(loggingConfig, "mas")
+            }
+            return MasImpl(
                 executionStrategy,
                 environment,
                 agents,
                 generationStrategy,
-                loggingStrategy,
+                loggingConfig,
+                logger,
             )
+        }
     }
 }

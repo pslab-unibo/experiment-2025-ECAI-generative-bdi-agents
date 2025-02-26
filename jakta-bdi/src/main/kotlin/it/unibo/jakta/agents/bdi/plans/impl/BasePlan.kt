@@ -45,9 +45,5 @@ internal abstract class BasePlan(
 
     override fun toActivationRecord(): ActivationRecord = ActivationRecord.of(goals, trigger.value)
 
-    /**
-     * Abstract method to create a concrete plan instance.
-     * This allows subclasses to define their own creation logic.
-     */
     protected abstract fun createConcretePlan(trigger: Trigger, guard: Struct, goals: List<Goal>): Plan
 }

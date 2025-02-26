@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory
 object LoggerFactory {
     private val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
 
-    private fun createFileAppender(loggingStrategy: LoggingStrategy, loggerName: String): FileAppender<ILoggingEvent> =
+    private fun createFileAppender(loggingConfig: LoggingConfig, loggerName: String): FileAppender<ILoggingEvent> =
         FileAppender<ILoggingEvent>().apply {
             context = loggerContext
             name = loggerName
-            file = "${loggingStrategy.logDir}/$loggerName.json"
+            file = "${loggingConfig.logDir}/$loggerName.json"
             encoder = JsonEncoder()
             start()
         }
@@ -28,25 +28,25 @@ object LoggerFactory {
             name = loggerName
             encoder = PatternLayoutEncoder().apply {
                 context = loggerContext
-                pattern = "%highlight(%level) %yellow(%logger{36}) - %msg%n %kvp%n"
+                pattern = "%highlight(%level) %yellow(%logger{36}) - %msg%n" // %kvp%n
                 start()
             }
             start()
         }
 
-    fun createLogger(loggingStrategy: LoggingStrategy, loggerName: String): KLogger =
+    fun createLogger(loggingConfig: LoggingConfig, loggerName: String): KLogger =
         loggerContext.getLogger(loggerName).apply {
-            if (loggingStrategy.logToFile) {
-                val fileAppender = createFileAppender(loggingStrategy, loggerName)
+            if (loggingConfig.logToFile) {
+                val fileAppender = createFileAppender(loggingConfig, loggerName)
                 addAppender(fileAppender)
             }
 
-            if (loggingStrategy.logToConsole) {
+            if (loggingConfig.logToConsole) {
                 val stdOutAppender = createConsoleAppender(loggerName)
                 addAppender(stdOutAppender)
             }
 
-            level = loggingStrategy.logLevel
+            level = loggingConfig.logLevel
             isAdditive = false // Whether to send it to the root logger
         }.toKLogger()
 }

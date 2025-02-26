@@ -1,9 +1,16 @@
 package it.unibo.jakta.agents.bdi.logging.events
 
-import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.plans.GeneratedPlan
 
 data class GenerationEvent(
-    val generatedPlan: Plan,
+    val generatedPlan: GeneratedPlan,
 ) : LogEvent {
-    override val description: String = "Generated new plan $generatedPlan"
+    override val description: String = "Generated new plan with goals ${generatedPlan.goals}"
+
+    override val params = super.params + buildMap(capacity = 2) {
+        put("trigger", generatedPlan.trigger)
+        put("guard", generatedPlan.guard)
+        put("goals", generatedPlan.goals)
+        put("generationStrategy", generatedPlan.generationStrategy)
+    }
 }

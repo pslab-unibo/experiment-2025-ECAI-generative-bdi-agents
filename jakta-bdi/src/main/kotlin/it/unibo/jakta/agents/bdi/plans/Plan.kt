@@ -31,7 +31,7 @@ interface Plan {
     fun toActivationRecord(): ActivationRecord
 
     companion object {
-        private fun of(trigger: Trigger, guard: Struct, goals: List<Goal>): Plan =
+        fun of(trigger: Trigger, guard: Struct, goals: List<Goal>): Plan =
             PlanImpl(trigger, guard, goals)
 
         fun ofBeliefBaseAddition(

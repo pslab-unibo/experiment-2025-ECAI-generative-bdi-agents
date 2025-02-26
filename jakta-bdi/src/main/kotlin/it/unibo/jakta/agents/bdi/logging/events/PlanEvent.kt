@@ -7,7 +7,7 @@ sealed interface PlanEvent : LogEvent
 data class PlanSelected(
     val plan: Plan,
 ) : PlanEvent {
-    override val description = "Plan ${plan.trigger.value} selected"
+    override val description = "Selected plan ${plan.trigger.value}"
 
     override val params = super.params + buildMap(capacity = 2) {
         put("trigger", plan.trigger)

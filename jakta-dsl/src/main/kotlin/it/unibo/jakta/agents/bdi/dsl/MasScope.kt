@@ -5,7 +5,7 @@ import it.unibo.jakta.agents.bdi.Mas
 import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
-import it.unibo.jakta.agents.bdi.logging.LoggingStrategy
+import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 
 @JaktaDSL
@@ -14,7 +14,7 @@ class MasScope : Builder<Mas> {
     var agents: List<Agent> = emptyList()
     var executionStrategy = ExecutionStrategy.oneThreadPerMas()
     var generationStrategy: GenerationStrategy? = null
-    var loggingStrategy: LoggingStrategy? = null
+    var loggingConfig: LoggingConfig? = null
 
     fun environment(f: EnvironmentScope.() -> Unit): MasScope {
         env = EnvironmentScope().also(f).build()
@@ -46,6 +46,6 @@ class MasScope : Builder<Mas> {
         env,
         agents,
         generationStrategy,
-        loggingStrategy,
+        loggingConfig,
     )
 }

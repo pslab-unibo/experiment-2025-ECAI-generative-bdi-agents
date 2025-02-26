@@ -6,12 +6,19 @@ import it.unibo.jakta.agents.bdi.events.Trigger
 sealed interface BdiEvent : LogEvent {
     companion object {
         fun eventDescription(evt: Event, state: String): String = if (evt.isExternal()) {
-            "External event of type ${triggerDescription(evt.trigger)}" +
-                if (state.isNotEmpty()) " $state" else ""
+            if (state.isNotEmpty()) {
+                "$state "
+            } else {
+                ""
+            } + "external event of type ${triggerDescription(evt.trigger)}"
         } else {
-            "Internal event of type ${triggerDescription(evt.trigger)}" +
-                if (state.isNotEmpty()) {
-                    " $state"
+            if (state.isNotEmpty()) {
+                "$state "
+            } else {
+                ""
+            } + "internal event of type ${triggerDescription(evt.trigger)}" +
+                if (state.isEmpty()) {
+                    ""
                 } else {
                     "" +
                         "\n\twith intention ${evt.intention?.id?.id}"
@@ -26,5 +33,5 @@ sealed interface BdiEvent : LogEvent {
 data class EventSelected(
     val event: Event,
 ) : BdiEvent {
-    override val description: String = BdiEvent.Companion.eventDescription(event, "selected")
+    override val description: String = BdiEvent.Companion.eventDescription(event, "Selected")
 }

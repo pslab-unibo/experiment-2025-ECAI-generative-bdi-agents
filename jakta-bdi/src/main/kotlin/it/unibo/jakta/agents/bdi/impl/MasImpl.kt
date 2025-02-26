@@ -1,6 +1,6 @@
 package it.unibo.jakta.agents.bdi.impl
 
-import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.Mas
 import it.unibo.jakta.agents.bdi.actions.effects.AddData
@@ -18,42 +18,76 @@ import it.unibo.jakta.agents.bdi.actions.effects.UpdateData
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
-import it.unibo.jakta.agents.bdi.logging.LoggerFactory
-import it.unibo.jakta.agents.bdi.logging.LoggingStrategy
+import it.unibo.jakta.agents.bdi.logging.LoggerFactory.createLogger
+import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.logging.events.ActionAddition
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.plans.GeneratedPlan
+import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
+import java.util.UUID
 
 internal class MasImpl(
     override val executionStrategy: ExecutionStrategy,
     override var environment: Environment,
     override var agents: Iterable<Agent>,
     override val generationStrategy: GenerationStrategy? = null,
-    override val loggingStrategy: LoggingStrategy? = null,
+    override val loggingConfig: LoggingConfig? = null,
+    override val logger: KLogger? = null,
 ) : Mas {
     init {
-        agents = agents
-            .map { assignLoggerToAgent(it, loggingStrategy) }
-            .map { assignGenStrategyToAgent(it, generationStrategy) }
-            .map { assignGenStrategyToPlan(it) }
+        initializeAgents()
+        addAgentsToEnvironment()
+        logInitialState()
+    }
 
+    private fun initializeAgents() {
+        agents = agents.map { agent ->
+            val agentloggingConfig = loggingConfig?.copy(
+                logDir = "${loggingConfig.logDir}/${agent.name}",
+            )
+            agent
+                .assignLogger(agentloggingConfig)
+                .assignGenerationStrategy(generationStrategy)
+                .assignGenerationStrategyToPlans(agentloggingConfig)
+        }
+    }
+
+    private fun addAgentsToEnvironment() {
         agents.forEach { environment = environment.addAgent(it) }
+    }
 
-        environment.externalActions.values.forEach { act -> logger.implementation(ActionAddition(act)) }
-        agents.forEach { agt ->
-            agt.context.events.forEach { agt.logger?.implementation(EventChange(it, ADDITION)) }
-            agt.context.planLibrary.plans.forEach { agt.logger?.implementation(PlanChange(it, ADDITION)) }
-            agt.context.beliefBase.forEach { agt.logger?.implementation(BeliefChange(it, ADDITION)) }
-            agt.context.internalActions.values.forEach { agt.logger?.implementation(ActionAddition(it)) }
+    private fun logInitialState() {
+        logExternalActions()
+        agents.forEach { logAgentState(it) }
+    }
+
+    private fun logExternalActions() {
+        environment.externalActions.values.forEach { action ->
+            logger?.implementation(ActionAddition(action))
+        }
+    }
+
+    private fun logAgentState(agent: Agent) {
+        agent.context.events.forEach { event ->
+            agent.logger?.implementation(EventChange(event, ADDITION))
+        }
+        agent.context.planLibrary.plans.forEach { plan ->
+            agent.logger?.implementation(PlanChange(plan, ADDITION))
+        }
+        agent.context.beliefBase.forEach { belief ->
+            agent.logger?.implementation(BeliefChange(belief, ADDITION))
+        }
+        agent.context.internalActions.values.forEach { action ->
+            agent.logger?.implementation(ActionAddition(action))
         }
     }
 
     override fun start() = executionStrategy.dispatch(this)
 
     override fun applyEnvironmentEffects(effects: Iterable<EnvironmentChange>) = effects.forEach {
-        logger.implementation(it)
+        logger?.implementation(it)
         when (it) {
             is BroadcastMessage -> environment = environment.broadcastMessage(it.message)
             is RemoveAgent -> handleRemoveAgent(it)
@@ -79,32 +113,43 @@ internal class MasImpl(
     }
 
     companion object {
-        private fun assignGenStrategyToAgent(agent: Agent, generationStrategy: GenerationStrategy?) =
-            if (agent.generationStrategy == null) {
-                agent.copy(generationStrategy = generationStrategy)
-            } else {
-                agent
-            }
+        private fun Agent.assignLogger(loggingConfig: LoggingConfig?): Agent {
+            val logger = loggingConfig?.let { createLogger(it, this.name) }
+            return this.copy(logger = logger)
+        }
 
-        private fun assignGenStrategyToPlan(agent: Agent): Agent =
-            agent.generationStrategy?.let { genStrategy ->
-                val updatedPlans = agent.context.planLibrary.plans.map { plan ->
-                    if (plan is GeneratedPlan && plan.generationStrategy == null) {
-                        plan.withGenerationStrategy(generationStrategy = genStrategy)
-                    } else {
-                        plan
-                    }
-                }
-                agent.copy(planLibrary = PlanLibrary.of(updatedPlans))
-            } ?: agent
-
-        private fun assignLoggerToAgent(agent: Agent, loggingStrategy: LoggingStrategy?): Agent {
-            val logger = if (loggingStrategy != null) {
-                LoggerFactory.createLogger(loggingStrategy, agent.name)
+        private fun Agent.assignGenerationStrategy(masGenerationStrategy: GenerationStrategy?): Agent {
+            return if (this.generationStrategy == null && masGenerationStrategy != null) {
+                this.copy(generationStrategy = masGenerationStrategy.copy())
             } else {
-                logger(agent.name)
+                this
             }
-            return agent.copy(logger = logger)
+        }
+
+        private fun Agent.assignGenerationStrategyToPlans(loggingConfig: LoggingConfig?): Agent {
+            val agentGenerationStrategy = this.generationStrategy
+            val updatedPlans = this.context.planLibrary.plans.map { plan ->
+                plan.assignGenerationStrategyAndLogger(agentGenerationStrategy, loggingConfig)
+            }
+            return this.copy(planLibrary = PlanLibrary.of(updatedPlans))
+        }
+
+        private fun Plan.assignGenerationStrategyAndLogger(
+            agentGenerationStrategy: GenerationStrategy?,
+            loggingConfig: LoggingConfig?,
+        ): Plan {
+            return if (this is GeneratedPlan) {
+                val strategyToApply = agentGenerationStrategy ?: return this
+                val loggerName = UUID.randomUUID().toString()
+                val agentLogPath = loggingConfig?.logDir
+                val conversationLoggingConfig = loggingConfig?.copy(
+                    logDir = "$agentLogPath/chat",
+                )
+                val logger = conversationLoggingConfig?.let { createLogger(it, loggerName) }
+                this.withGenerationStrategy(strategyToApply.copy(logger = logger))
+            } else {
+                this
+            }
         }
     }
 }

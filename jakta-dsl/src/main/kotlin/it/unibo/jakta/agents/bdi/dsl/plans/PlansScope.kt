@@ -1,7 +1,7 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
+import it.unibo.jakta.agents.bdi.LiteratePrologParser.tangleStruct
 import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.agents.bdi.dsl.LiteratePrologParser
 import it.unibo.jakta.agents.bdi.events.AchievementGoalTrigger
 import it.unibo.jakta.agents.bdi.events.BeliefBaseRevision
 import it.unibo.jakta.agents.bdi.events.TestGoalTrigger
@@ -13,24 +13,29 @@ class PlansScope : Builder<Iterable<Plan>>, JaktaLogicProgrammingScope by JaktaL
 
     private val plans = mutableListOf<PlanScope>()
 
-    fun achieve(goal: String): PlanScope = parseGoal(goal, ::achieve)
-
-    fun achieve(goal: Struct, goalDescription: String = ""): PlanScope =
-        PlanScope(this, goal, AchievementGoalTrigger::class, goalDescription)
-
-    fun test(goal: String): PlanScope = parseGoal(goal, ::test)
-
-    fun test(goal: Struct, goalDescription: String = ""): PlanScope =
-        PlanScope(this, goal, TestGoalTrigger::class, goalDescription)
-
-    private fun parseGoal(goal: String, action: (Struct, String) -> PlanScope): PlanScope {
-        val parsedGoal = LiteratePrologParser.tangleStruct(goal)
+    fun achieve(goal: String): PlanScope {
+        val parsedGoal = tangleStruct(goal)
         return if (parsedGoal != null) {
-            action(parsedGoal, goal)
+            PlanScope(this, parsedGoal, AchievementGoalTrigger::class, goal)
         } else {
-            action(atomOf(goal), goal)
+            achieve(atomOf(goal))
         }
     }
+
+    fun achieve(goal: Struct): PlanScope =
+        PlanScope(this, goal, AchievementGoalTrigger::class)
+
+    fun test(goal: String): PlanScope {
+        val parsedGoal = tangleStruct(goal)
+        return if (parsedGoal != null) {
+            PlanScope(this, parsedGoal, TestGoalTrigger::class, goal)
+        } else {
+            test(atomOf(goal))
+        }
+    }
+
+    fun test(goal: Struct): PlanScope =
+        PlanScope(this, goal, TestGoalTrigger::class)
 
     operator fun String.unaryPlus(): PlanScope {
         val planScope = PlanScope(this@PlansScope, atomOf(this), BeliefBaseRevision::class)
