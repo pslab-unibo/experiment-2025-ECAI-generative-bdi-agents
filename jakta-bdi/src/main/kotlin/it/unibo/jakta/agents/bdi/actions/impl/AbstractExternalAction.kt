@@ -1,9 +1,11 @@
 package it.unibo.jakta.agents.bdi.actions.impl
 
 import it.unibo.jakta.agents.bdi.Agent
+import it.unibo.jakta.agents.bdi.LiteratePrologParser.tangleStruct
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.actions.ExternalRequest
 import it.unibo.jakta.agents.bdi.actions.ExternalResponse
+import it.unibo.jakta.agents.bdi.actions.LiterateSignature
 import it.unibo.jakta.agents.bdi.actions.effects.AddData
 import it.unibo.jakta.agents.bdi.actions.effects.BroadcastMessage
 import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
@@ -15,10 +17,14 @@ import it.unibo.jakta.agents.bdi.actions.effects.UpdateData
 import it.unibo.jakta.agents.bdi.messages.Message
 import it.unibo.tuprolog.solve.Signature
 
-abstract class AbstractExternalAction(override val signature: Signature) : ExternalAction,
+abstract class AbstractExternalAction(override val signature: LiterateSignature) : ExternalAction,
     AbstractAction<EnvironmentChange, ExternalResponse, ExternalRequest>(signature) {
 
-    constructor(name: String, arity: Int) : this(Signature(name, arity))
+    constructor(name: String, arity: Int) :
+        this(Signature((tangleStruct(name) ?: name).toString(), arity), name)
+
+    constructor(signature: Signature, description: String) :
+        this(LiterateSignature(signature, description))
 
     override fun addAgent(agent: Agent) {
         effects.add(SpawnAgent(agent))

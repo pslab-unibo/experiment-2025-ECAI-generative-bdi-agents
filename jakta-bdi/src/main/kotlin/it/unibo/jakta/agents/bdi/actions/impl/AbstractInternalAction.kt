@@ -1,8 +1,10 @@
 package it.unibo.jakta.agents.bdi.actions.impl
 
+import it.unibo.jakta.agents.bdi.LiteratePrologParser.tangleStruct
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalRequest
 import it.unibo.jakta.agents.bdi.actions.InternalResponse
+import it.unibo.jakta.agents.bdi.actions.LiterateSignature
 import it.unibo.jakta.agents.bdi.actions.effects.AgentChange
 import it.unibo.jakta.agents.bdi.actions.effects.BeliefChange
 import it.unibo.jakta.agents.bdi.actions.effects.EventChange
@@ -19,10 +21,14 @@ import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.solve.Signature
 
-abstract class AbstractInternalAction(override val signature: Signature) : InternalAction,
+abstract class AbstractInternalAction(override val signature: LiterateSignature) : InternalAction,
     AbstractAction<AgentChange, InternalResponse, InternalRequest>(signature) {
 
-    constructor(name: String, arity: Int) : this(Signature(name, arity))
+    constructor(name: String, arity: Int) :
+        this(Signature((tangleStruct(name)?.functor ?: name).toString(), arity), name)
+
+    constructor(signature: Signature, description: String) :
+        this(LiterateSignature(signature, description))
 
     override fun addBelief(belief: Belief) {
         effects.add(BeliefChange(belief, ADDITION))
