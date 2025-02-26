@@ -6,12 +6,12 @@ import it.unibo.jakta.agents.bdi.plans.LiteratePlan
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.core.Struct
 
-internal class LiteratePlanImpl(
+internal data class LiteratePlanImpl(
     override val trigger: Trigger,
     override val guard: Struct,
     override val goals: List<Goal>,
     override val literateTrigger: String?,
-    override val literateGuards: String?,
+    override val literateGuard: String?,
     override val literateGoals: String?,
 ) : BasePlan(trigger, guard, goals), LiteratePlan {
 
@@ -21,7 +21,7 @@ internal class LiteratePlanImpl(
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
     }

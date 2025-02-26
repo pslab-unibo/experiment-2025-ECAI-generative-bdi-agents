@@ -1,11 +1,15 @@
 package it.unibo.jakta.generationstrategies.lm
 
 import it.unibo.jakta.agents.bdi.dsl.Builder
+import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_CONNECT_TIMEOUT
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_LM_SERVER_URL
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_MAX_TOKENS
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_MODEL_ID
+import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_REQUEST_TIMEOUT
+import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_SOCKET_TIMEOUT
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_TEMPERATURE
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_TOKEN
+import kotlin.time.Duration
 
 @JvmInline
 value class Remark(val value: String)
@@ -15,18 +19,15 @@ data class LMGenScopeConfig(
     val lmGenCfg: LMGenerationConfig,
 )
 
-data class LMInitialConfig(
-    val lmServerUrl: String,
-    val lmServerToken: String,
-    val remarks: List<Remark> = emptyList(),
-)
-
 class LMGenScope : Builder<LMGenScopeConfig> {
     var model: String = DEFAULT_MODEL_ID
     var temperature: Double = DEFAULT_TEMPERATURE
     var maxTokens: Int = DEFAULT_MAX_TOKENS
     var url: String = DEFAULT_LM_SERVER_URL
     var token: String = DEFAULT_TOKEN
+    var requestTimeout: Duration = DEFAULT_REQUEST_TIMEOUT
+    var connectTimeout: Duration = DEFAULT_CONNECT_TIMEOUT
+    var socketTimeout: Duration = DEFAULT_SOCKET_TIMEOUT
 
     val remarks = mutableListOf<Remark>()
 
@@ -44,7 +45,14 @@ class LMGenScope : Builder<LMGenScopeConfig> {
 
     override fun build(): LMGenScopeConfig {
         return LMGenScopeConfig(
-            LMInitialConfig(url, token, remarks),
+            LMInitialConfig(
+                url,
+                token,
+                remarks,
+                requestTimeout,
+                connectTimeout,
+                socketTimeout,
+            ),
             LMGenerationConfig(model, temperature, maxTokens),
         )
     }

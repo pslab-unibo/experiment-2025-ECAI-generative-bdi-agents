@@ -15,7 +15,7 @@ import it.unibo.tuprolog.core.Truth
 
 interface LiteratePlan : Plan {
     val literateTrigger: String?
-    val literateGuards: String?
+    val literateGuard: String?
     val literateGoals: String?
 
     companion object {
