@@ -6,11 +6,13 @@ import it.unibo.jakta.agents.bdi.goals.impl.ActExternallyImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActInternallyImpl
 import it.unibo.jakta.agents.bdi.goals.impl.AddBeliefImpl
-import it.unibo.jakta.agents.bdi.goals.impl.GenerateImpl
+import it.unibo.jakta.agents.bdi.goals.impl.PlanExecutionTrackingGoalImpl
+import it.unibo.jakta.agents.bdi.goals.impl.PlanGenerationStepGoalImpl
 import it.unibo.jakta.agents.bdi.goals.impl.RemoveBeliefImpl
 import it.unibo.jakta.agents.bdi.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TestImpl
 import it.unibo.jakta.agents.bdi.goals.impl.UpdateBeliefImpl
+import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 import it.unibo.tuprolog.core.Truth
@@ -105,9 +107,19 @@ interface ActExternally : ActionGoal {
     }
 }
 
-interface Generate : Goal {
+sealed interface PlanGoal : Goal {
+    val planID: PlanID
+}
+
+interface PlanGenerationStepGoal : PlanGoal {
     val goal: Goal
     companion object {
-        fun of(goal: Goal): Generate = GenerateImpl(goal)
+        fun of(planID: PlanID, goal: Goal): PlanGenerationStepGoal = PlanGenerationStepGoalImpl(planID, goal)
+    }
+}
+
+interface PlanExecutionTrackingGoal : PlanGoal {
+    companion object {
+        fun of(planID: PlanID): PlanExecutionTrackingGoal = PlanExecutionTrackingGoalImpl(planID)
     }
 }

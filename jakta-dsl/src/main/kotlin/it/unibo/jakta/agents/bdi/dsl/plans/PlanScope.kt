@@ -6,6 +6,7 @@ import it.unibo.jakta.agents.bdi.Prolog2Jakta
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.plans.PlanFactory
 import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
@@ -19,9 +20,9 @@ data class PlanScope(
     private val triggerDescription: String? = null,
 ) {
     private var guard: Struct = Truth.TRUE
-    private var literateGuards: String? = null
+    private var literateGuard: String? = null
     private var generate = false
-    private var genStrategy: GenerationStrategy? = null
+    private var generationStrategy: GenerationStrategy? = null
     private var goals: List<Goal> = mutableListOf()
     private var literateGoals: String? = null
     var failure: Boolean = false
@@ -34,7 +35,7 @@ data class PlanScope(
 
     infix fun onlyIf(literateGuard: String): PlanScope {
         val litGuard = literateGuard.trimIndent()
-        literateGuards = litGuard
+        this.literateGuard = litGuard
         val parsedGuard = tangleStruct(litGuard)
         guard = parsedGuard ?: Truth.TRUE
         return this
@@ -55,7 +56,7 @@ data class PlanScope(
     infix fun given(given: PlanGenerationScope.() -> Unit): PlanScope {
         val planGenCfg = PlanGenerationScope().also(given).build()
         generate = planGenCfg.generate
-        genStrategy = planGenCfg.generationStrategy
+        generationStrategy = planGenCfg.generationStrategy
         return this
     }
 
@@ -64,11 +65,11 @@ data class PlanScope(
             trigger = trigger,
             goals = goals,
             guard = guard,
-            genStrategy = genStrategy,
+            generationStrategy = generationStrategy,
             generate = generate,
             failure = failure,
-            triggerDescription = triggerDescription,
-            literateGuards = literateGuards,
+            literateTrigger = triggerDescription,
+            literateGuard = literateGuard,
             literateGoals = literateGoals,
             triggerType = triggerType,
         ).build()

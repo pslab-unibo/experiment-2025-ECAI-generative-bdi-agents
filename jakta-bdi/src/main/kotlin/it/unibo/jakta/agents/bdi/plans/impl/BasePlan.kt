@@ -6,6 +6,9 @@ import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.plans.PlanID
+import it.unibo.jakta.agents.bdi.plans.feedback.GuardFlatteningVisitor.Companion.flattenAnd
+import it.unibo.jakta.agents.bdi.plans.feedback.PlanApplicabilityResult
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.unify.Unificator.Companion.mguWith
 
@@ -13,7 +16,22 @@ internal abstract class BasePlan(
     override val trigger: Trigger,
     override val guard: Struct,
     override val goals: List<Goal>,
+    override val id: PlanID,
 ) : Plan {
+    override fun checkApplicability(event: Event, beliefBase: BeliefBase): PlanApplicabilityResult {
+        return if (isRelevant(event)) {
+            val mgu = event.trigger.value mguWith this.trigger.value
+            val actualGuard = guard.apply(mgu).castToStruct()
+            val guards = actualGuard
+                .flattenAnd()
+                .associate { it.castToStruct() to beliefBase.solve(it.castToStruct()).isYes }
+            PlanApplicabilityResult(event.trigger, guards)
+        } else {
+            PlanApplicabilityResult(
+                error = "could not check applicability since the provided plan is not relevant",
+            )
+        }
+    }
 
     override fun isApplicable(event: Event, beliefBase: BeliefBase): Boolean {
         val mgu = event.trigger.value mguWith this.trigger.value
@@ -21,7 +39,15 @@ internal abstract class BasePlan(
         return isRelevant(event) && beliefBase.solve(actualGuard).isYes
     }
 
-    override fun applicablePlan(event: Event, beliefBase: BeliefBase): Plan {
+    override fun isRelevant(event: Event): Boolean =
+        event.trigger::class == this.trigger::class && (trigger.value mguWith event.trigger.value).isSuccess
+
+    override fun toActivationRecord(): ActivationRecord = ActivationRecord.of(goals, id)
+
+    protected fun createApplicablePlan(
+        event: Event,
+        beliefBase: BeliefBase,
+    ): Pair<Struct, List<Goal>>? {
         return if (isApplicable(event, beliefBase)) {
             val mgu = event.trigger.value mguWith this.trigger.value
             val actualGuard = guard.apply(mgu).castToStruct()
@@ -34,16 +60,9 @@ internal abstract class BasePlan(
                         .castToStruct(),
                 )
             }
-            createConcretePlan(event.trigger, actualGuard, actualGoals)
+            Pair(actualGuard, actualGoals)
         } else {
-            this
+            null
         }
     }
-
-    override fun isRelevant(event: Event): Boolean =
-        event.trigger::class == this.trigger::class && (trigger.value mguWith event.trigger.value).isSuccess
-
-    override fun toActivationRecord(): ActivationRecord = ActivationRecord.of(goals, trigger.value)
-
-    protected abstract fun createConcretePlan(trigger: Trigger, guard: Struct, goals: List<Goal>): Plan
 }

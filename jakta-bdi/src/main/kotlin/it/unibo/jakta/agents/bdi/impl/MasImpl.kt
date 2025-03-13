@@ -146,7 +146,16 @@ internal class MasImpl(
                     logDir = "$agentLogPath/chat",
                 )
                 val logger = conversationLoggingConfig?.let { createLogger(it, loggerName) }
-                this.withGenerationStrategy(strategyToApply.copy(logger = logger))
+                GeneratedPlan.of(
+                    this.id,
+                    this.trigger,
+                    this.guard,
+                    this.goals,
+                    generationStrategy = strategyToApply.copy(logger = logger),
+                    this.literateTrigger,
+                    this.literateGuard,
+                    this.literateGoals,
+                )
             } else {
                 this
             }

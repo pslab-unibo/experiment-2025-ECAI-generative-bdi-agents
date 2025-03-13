@@ -20,114 +20,131 @@ interface LiteratePlan : Plan {
 
     companion object {
         fun of(
+            id: PlanID? = null,
             trigger: Trigger,
             guard: Struct,
             goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
-        ): LiteratePlan = LiteratePlanImpl(
-            trigger,
-            guard,
-            goals,
-            literateTrigger,
-            literateGuards,
-            literateGoals,
-        )
+        ): LiteratePlan {
+            val id = id ?: PlanID.of(trigger)
+            return LiteratePlanImpl(
+                id,
+                trigger,
+                guard,
+                goals,
+                literateTrigger,
+                literateGuard,
+                literateGoals,
+            )
+        }
 
         fun ofBeliefBaseAddition(
             belief: Belief,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
+            goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): LiteratePlan = of(
+            id,
             BeliefBaseAddition(belief),
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofBeliefBaseRemoval(
             belief: Belief,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
+            goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): LiteratePlan = of(
+            id,
             BeliefBaseRemoval(belief),
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofAchievementGoalInvocation(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
+            goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): LiteratePlan = of(
+            id,
             AchievementGoalInvocation(value),
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofAchievementGoalFailure(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
+            goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): LiteratePlan = of(
+            id,
             AchievementGoalFailure(value),
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofTestGoalInvocation(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
+            goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): LiteratePlan = of(
+            id,
             TestGoalInvocation(value),
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofTestGoalFailure(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
+            goals: List<Goal>,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): LiteratePlan = of(
+            id,
             TestGoalFailure(value),
             guard,
             goals,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
     }

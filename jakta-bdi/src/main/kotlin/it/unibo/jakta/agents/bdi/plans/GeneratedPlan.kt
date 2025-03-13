@@ -17,132 +17,147 @@ import it.unibo.tuprolog.core.Truth
 interface GeneratedPlan : LiteratePlan {
     val generationStrategy: GenerationStrategy?
 
-    fun withGenerationStrategy(generationStrategy: GenerationStrategy): GeneratedPlan
-
     companion object {
         fun of(
+            id: PlanID? = null,
             trigger: Trigger,
             guard: Struct,
             goals: List<Goal>,
-            genStrategy: GenerationStrategy? = null,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
-        ): GeneratedPlan = GeneratedPlanImpl(
-            trigger,
-            guard,
-            goals,
-            genStrategy,
-            literateTrigger,
-            literateGuards,
-            literateGoals,
-        )
+        ): GeneratedPlan {
+            val id = id ?: PlanID.of(trigger)
+            return GeneratedPlanImpl(
+                id,
+                trigger,
+                guard,
+                goals,
+                generationStrategy,
+                literateTrigger,
+                literateGuard,
+                literateGoals,
+            )
+        }
 
         fun ofBeliefBaseAddition(
             belief: Belief,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            genStrategy: GenerationStrategy? = null,
+            goals: List<Goal>,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): GeneratedPlan = of(
+            id,
             BeliefBaseAddition(belief),
             guard,
             goals,
-            genStrategy,
+            generationStrategy,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofBeliefBaseRemoval(
             belief: Belief,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            genStrategy: GenerationStrategy? = null,
+            goals: List<Goal>,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): GeneratedPlan = of(
+            id,
             BeliefBaseRemoval(belief),
             guard,
             goals,
-            genStrategy,
+            generationStrategy,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofAchievementGoalInvocation(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.Companion.TRUE,
-            genStrategy: GenerationStrategy? = null,
+            goals: List<Goal>,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): GeneratedPlan = of(
+            id,
             AchievementGoalInvocation(value),
             guard,
             goals,
-            genStrategy,
+            generationStrategy,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofAchievementGoalFailure(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.Companion.TRUE,
-            genStrategy: GenerationStrategy? = null,
+            goals: List<Goal>,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): GeneratedPlan = of(
+            id,
             AchievementGoalFailure(value),
             guard,
             goals,
-            genStrategy,
+            generationStrategy,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofTestGoalInvocation(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            genStrategy: GenerationStrategy? = null,
+            goals: List<Goal>,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): GeneratedPlan = of(
+            id,
             TestGoalInvocation(value),
             guard,
             goals,
-            genStrategy,
+            generationStrategy,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
 
         fun ofTestGoalFailure(
             value: Struct,
-            goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            genStrategy: GenerationStrategy? = null,
+            goals: List<Goal>,
+            generationStrategy: GenerationStrategy? = null,
             literateTrigger: String? = null,
-            literateGuards: String? = null,
+            literateGuard: String? = null,
             literateGoals: String? = null,
+            id: PlanID? = null,
         ): GeneratedPlan = of(
+            id,
             TestGoalFailure(value),
             guard,
             goals,
-            genStrategy,
+            generationStrategy,
             literateTrigger,
-            literateGuards,
+            literateGuard,
             literateGoals,
         )
     }

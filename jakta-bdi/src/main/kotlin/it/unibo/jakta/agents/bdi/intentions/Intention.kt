@@ -4,7 +4,7 @@ import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.intentions.impl.IntentionImpl
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.tuprolog.core.Struct
+import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.tuprolog.core.Substitution
 
 interface Intention {
@@ -15,11 +15,11 @@ interface Intention {
     val id: IntentionID
 
     fun nextGoal(): Goal = recordStack.first().goalQueue.first()
-    fun currentPlan(): Struct = recordStack.first().plan
+    fun currentPlan(): PlanID = recordStack.first().plan
 
     /**
      * Removes the first goal to be executed from the first activation record. If the goal is the last one,
-     * then the whole activation record is removed from the records stack.
+     * then the whole activation record is removed from the record stack.
      */
     fun pop(): Intention
 

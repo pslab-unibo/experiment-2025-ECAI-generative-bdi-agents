@@ -2,13 +2,12 @@ package it.unibo.jakta.agents.bdi.plans
 
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.impl.ActivationRecordImpl
-import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 
 interface ActivationRecord {
     val goalQueue: List<Goal>
 
-    val plan: Struct
+    val plan: PlanID
 
     fun pop(): ActivationRecord
 
@@ -17,6 +16,6 @@ interface ActivationRecord {
     fun isLastGoal(): Boolean
 
     companion object {
-        fun of(goals: List<Goal>, plan: Struct): ActivationRecord = ActivationRecordImpl(goals, plan)
+        fun of(goals: List<Goal>, plan: PlanID): ActivationRecord = ActivationRecordImpl(goals, plan)
     }
 }
