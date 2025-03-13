@@ -23,7 +23,7 @@ data class ActionAddition(
     val actionName = action.signature.name
 
     override val description =
-        "$actionType action `$actionName` added"
+        "Added $actionType action `$actionName`"
 
     override val params = super.params + buildMap {
         put("name", actionName)
@@ -35,12 +35,12 @@ data class ActionTriggered(
     val action: Action<*, *, *>,
 ) : ActionEvent {
     override val description =
-        "${actionType(action)} action `${action.signature.name}` triggered"
+        "Triggered ${actionType(action)} action `${action.signature.name}`"
 }
 
 data class ActionFinished(
     val action: Action<*, *, *>,
 ) : ActionEvent {
     override val description =
-        "${actionType(action)} action `${action.signature.name}` finished"
+        "Finished ${actionType(action)} action `${action.signature.name}`"
 }

@@ -7,7 +7,7 @@ data class GenerationEvent(
 ) : LogEvent {
     override val description: String = "Generated new plan with goals ${generatedPlan.goals}"
 
-    override val params = super.params + buildMap(capacity = 2) {
+    override val params = super.params + buildMap {
         put("trigger", generatedPlan.trigger)
         put("guard", generatedPlan.guard)
         put("goals", generatedPlan.goals)
