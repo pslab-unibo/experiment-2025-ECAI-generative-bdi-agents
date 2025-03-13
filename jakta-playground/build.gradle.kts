@@ -20,11 +20,11 @@ dependencies {
 }
 
 tasks.register<JavaExec>("runExperiment") {
-    description = "Run a MAS with the given experimental config."
+    description = "Run a multi-agent system with the given experimental config."
     group = "application"
 
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "${project.group}.playground.experimentrunner.ExperimentRunnerKt"
+    mainClass = "${project.group}.playground.ExperimentRunnerKt"
 }
 
 fun findExecutablePath(

@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground
+package it.unibo.jakta.playground.experiment
 
 import ch.qos.logback.classic.Level
 

@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground
+package it.unibo.jakta.playground.experiment
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
@@ -16,14 +16,17 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.mordant.rendering.AnsiLevel
 import com.github.ajalt.mordant.terminal.Terminal
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import it.unibo.jakta.agents.bdi.dsl.MasScope
+import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
 import it.unibo.jakta.agents.bdi.dsl.mas
+import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_LM_SERVER_URL
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_MAX_TOKENS
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_TEMPERATURE
 import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_TOKEN
 import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy
-import it.unibo.jakta.playground.BlocksWorldLiterate.gripperOperator
+import it.unibo.jakta.playground.guardLit
 import kotlinx.coroutines.runBlocking
 import kotlin.text.matches
 
@@ -88,9 +91,14 @@ class ExperimentRunner : CliktCommand() {
             while lower values like 0.2 will make it more focused and deterministic.
             """.trimIndent(),
         )
-        .check("value must be positive number") {
+        .check("value must be positive number, between $MIN_TEMPERATURE and $MAX_TEMPERATURE") {
             it >= MIN_TEMPERATURE && it <= MAX_TEMPERATURE
         }
+
+    val timeout: Int by option()
+        .int()
+        .default(DEFAULT_TIMEOUT)
+        .help("How many seconds the MAS can run before being shutdown.")
 
     override fun run() =
         runBlocking {
@@ -114,9 +122,12 @@ class ExperimentRunner : CliktCommand() {
             }
             expRunnerLogger.info { genStrat }
             mas {
+                executionStrategy = ExecutionStrategy.oneThreadPerAgent()
                 loggingConfig = logConfig
                 generationStrategy = genStrat
-                gripperOperator()
+                guardLit()
+                timeout(timeout)
+                environment { actions { removeAgents(agents.map { it.name }) } }
             }.start()
 
             expRunnerLogger.info { "Experiment terminated" }
@@ -124,6 +135,7 @@ class ExperimentRunner : CliktCommand() {
         }
     companion object {
         val DEFAULT_LOG_LEVEL = LogbackLogLevel.DEBUG
+        const val DEFAULT_TIMEOUT = 10
         const val MIN_TEMPERATURE = 0.0
         const val MAX_TEMPERATURE = 2.0
         const val DEFAULT_LOG_SERVER_URL = "http://localhost:8081"
@@ -133,3 +145,25 @@ class ExperimentRunner : CliktCommand() {
 fun main(args: Array<String>): Unit = ExperimentRunner()
     .context { terminal = Terminal(ansiLevel = AnsiLevel.TRUECOLOR, interactive = true) }
     .main(args)
+
+fun EnvironmentScope.removeAgents(agentIds: List<String>) =
+    actions {
+        action("removeAgents", 0) {
+            agentIds.forEach {
+                println("[$sender] Removed $it")
+                removeAgent(it)
+            }
+        }
+    }
+
+fun MasScope.timeout(timeoutSeconds: Int) =
+    agent("timeout") {
+        goals { achieve("timeout"(timeoutSeconds * 1000)) }
+        plans {
+            +achieve("timeout"(N)) then {
+                execute("print"("Sleeping for", N))
+                execute("sleep"(N))
+                execute("removeAgents")
+            }
+        }
+    }

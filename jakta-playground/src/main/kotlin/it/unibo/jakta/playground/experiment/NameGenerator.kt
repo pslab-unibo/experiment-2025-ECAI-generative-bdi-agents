@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground
+package it.unibo.jakta.playground.experiment
 
 import kotlin.random.Random
 
