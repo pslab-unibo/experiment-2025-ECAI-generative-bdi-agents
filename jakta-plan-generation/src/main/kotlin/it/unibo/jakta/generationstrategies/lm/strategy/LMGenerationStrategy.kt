@@ -16,22 +16,29 @@ import it.unibo.jakta.generationstrategies.lm.LMGenScope
 import it.unibo.jakta.generationstrategies.lm.LMGenerationConfig
 import it.unibo.jakta.generationstrategies.lm.LMGenerationState
 import it.unibo.jakta.generationstrategies.lm.pipeline.PromptGenerator
-import it.unibo.jakta.generationstrategies.lm.pipeline.PromptGeneratorImpl
 import it.unibo.jakta.generationstrategies.lm.pipeline.RequestGenerator
-import it.unibo.jakta.generationstrategies.lm.pipeline.RequestGeneratorImpl
 import it.unibo.jakta.generationstrategies.lm.pipeline.ResponseParser
-import it.unibo.jakta.generationstrategies.lm.pipeline.ResponseParserImpl
+import it.unibo.jakta.generationstrategies.lm.pipeline.formatter.FeedbackFormatter
 import kotlinx.serialization.json.Json
 
 interface LMGenerationStrategy : GenerationStrategy {
-    override val genCfg: LMGenerationConfig
-    override val genState: LMGenerationState
-    val promptGen: PromptGenerator
-    val reqGen: RequestGenerator
+    override val generationConfig: LMGenerationConfig
+    override val generationState: LMGenerationState
+    val promptGenerator: PromptGenerator
+    val requestGenerator: RequestGenerator
     val responseParser: ResponseParser
+    val feedbackFormatter: FeedbackFormatter
     override val logger: KLogger?
 
-    override fun copy(logger: KLogger?): GenerationStrategy
+    fun copy(
+        generationConfig: LMGenerationConfig = this.generationConfig,
+        generationState: LMGenerationState = this.generationState,
+        promptGenerator: PromptGenerator = this.promptGenerator,
+        requestGenerator: RequestGenerator = this.requestGenerator,
+        responseParser: ResponseParser = this.responseParser,
+        feedbackFormatter: FeedbackFormatter = this.feedbackFormatter,
+        logger: KLogger? = this.logger,
+    ): LMGenerationStrategy
 
     override fun requestPlanGeneration(
         generatedPlan: GeneratedPlan,
@@ -61,9 +68,10 @@ interface LMGenerationStrategy : GenerationStrategy {
             return ReactGenerationStrategy(
                 lmGenScopeCfg.lmGenCfg,
                 LMGenerationState(),
-                PromptGeneratorImpl(lmInitCfg.remarks),
-                RequestGeneratorImpl(api),
-                ResponseParserImpl(),
+                PromptGenerator.of(lmInitCfg.remarks),
+                RequestGenerator.of(api),
+                ResponseParser.of(),
+                FeedbackFormatter.of(),
             )
         }
     }

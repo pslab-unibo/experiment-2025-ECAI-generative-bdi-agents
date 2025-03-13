@@ -3,21 +3,29 @@ package it.unibo.jakta.playground
 import it.unibo.jakta.agents.bdi.dsl.AgentScope
 import it.unibo.jakta.agents.bdi.dsl.MasScope
 import it.unibo.jakta.agents.bdi.dsl.mas
-import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy
 import it.unibo.jakta.playground.BlocksWorldLiterate.gripperOperator
+import it.unibo.jakta.playground.Literals.Block
+import kotlin.reflect.KProperty
 
-fun main() = mas {
-    gripperOperator()
-    loggingConfig = LoggingConfig(logToConsole = true, logToFile = true)
-    generationStrategy = LMGenerationStrategy.react {}
-}.start()
+object OwnName {
+    operator fun getValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+    ) = property.name
+}
+
+object Literals {
+    val Block: String by OwnName
+}
 
 const val GOAL = """
-    The goal is to use the gripper to arrange the blocks such that:
-
-    - block red is on top of block orange,
-    - block green is on top of block red.
+    - `ontable(a)`
+    - `on(d, a)`
+    - `on(c, d)`
+    - `clear(c)`
+    - `ontable(b)`
+    - `clear(b)`
     """
 
 object BlocksWorldLiterate {
@@ -25,97 +33,69 @@ object BlocksWorldLiterate {
         agent("gripperOperator") {
             goals { achieve(GOAL) }
             beliefs {
-                fact { "ontable"("red") }
-                fact { "on"("green", "red") }
-                fact { "on"("blue", "green") }
-                fact { "clear"("blue") }
-                fact { "ontable"("orange") }
-                fact { "on"("purple", "orange") }
-                fact { "on"("yellow", "purple") }
-                fact { "clear"("yellow") }
-                fact { "gripperEmpty" }
-
-                fact { "block"("red") }
-                fact { "block"("green") }
-                fact { "block"("blue") }
-                fact { "block"("orange") }
-                fact { "block"("purple") }
-                fact { "block"("yellow") }
+                fact { "on"("b", "a") }
+                fact { "ontable"("a") }
+                fact { "on"("c", "b") }
+                fact { "clear"("c") }
+                fact { "holding"("d") }
             }
             plans { plans() }
         }
 
     fun AgentScope.plans() = plans {
-        +achieve("[pickup(@block)]") onlyIf (
-            """
-            To pick up [@block], three conditions must hold:
+        +achieve("pickup"(Block)) onlyIf {
+            "ontable"(Block).fromSelf and
+                "gripperEmpty".fromSelf and
+                "clear"(Block).fromSelf
+        } then {
+            add("holding"(Block))
+            remove("gripperEmpty".fromSelf)
+            remove("clear"(Block).fromSelf)
+            remove("ontable"(Block).fromSelf)
+        }
 
-            - make sure that [ontable(@block)] is true;
-            - nothing can be on top of it (check [clear(@block)]);
-            - the gripper has to be empty, so [gripperEmpty] must hold.
+        +achieve("unstack"(X, Y)) onlyIf {
+            "on"(X, Y).fromSelf and
+                "gripperEmpty".fromSelf and
+                "clear"(X).fromSelf
+        } then {
+            add("holding"(X).fromSelf)
+            remove("gripperEmpty".fromSelf)
+            remove("clear"(X).fromSelf)
+            add("clear"(Y).fromSelf)
+            remove("on"(X, Y).fromSelf)
+        }
 
-            If all that checks out, the gripper can grab the [@block].
-            """
-            ) then (
-            """
-            Once the gripper grabs the [@block]:
+        +achieve("putdown"(Block)) onlyIf {
+            "holding"(Block).fromSelf
+        } then {
+            add("ontable"(Block).fromSelf)
+            remove("holding"(Block).fromSelf)
+            add("gripperEmpty".fromSelf)
+            add("clear"(Block).fromSelf)
+        }
 
-            - the gripper is now holding it, so [holding(@block)] becomes true;
-            - the gripper isn't empty anymore [not(handempty))];
-            - since the gripper is holding it, [not(clear(@block))] holds;
-            - the block is no longer on the table so, [not(ontable(@block))].
-            """
-            )
-
-        +achieve("[unstack(@x, @y)] to unstack block [@x] from block [@y]") onlyIf (
-            """
-            If [on(@x, @y)], the gripper can pick [@x] up as long as:
-
-            - [gripperEmpty] holds;
-            - there's nothing on top of the block the gripper will grab ([clear(@x)]).
-            """
-            ) then (
-            """
-            Once the gripper lifts block [@x]:
-
-            - the gripper is now [holding(@x)];
-            - the gripper is no longer empty [!gripperEmpty];
-            - [@x] is no longer clear because it’s hold by the gripper [!clear(@x)].
-            - [clear(@y)] since nothing is on top of it anymore.
-            - [@x] is no longer stacked on [@y], so [!on(@x, @y)].
-            """
-            )
-
-        +achieve("[putdown(@block)]") onlyIf (
-            "If the gripper is [@holding(@block)], it can put [@block] down on the table."
-            ) then (
-            """
-            When the gripper puts [@block] down on the table:
-
-            - [ontable(@block)];
-            - the gripper is no longer [!holding(@block)];
-            - [gripperEmpty];
-            - [clear(@block)], meaning another block can be placed on top of it.
-            """
-            )
-
-        +achieve("[stack(@x, @y)] to stack block [@x] on top of block [@y]") onlyIf (
-            """
-            If the gripper is [holding(@x)], it can stack block [@x] onto block [@y]
-             as long as [clear(@x)] holds.
-            """
-            ) then (
-            """
-            When the gripper stacks [@x] on top of [@y]:
-
-            - [on(@x, @y)] becomes true.
-            - [!holding(@x)].
-            - [gripperEmpty] again.
-            - [!clear(@y)], since something is now on top of it.
-            - [clear(@x)], since nothing is on top of it yet.
-            """
-            )
+        +achieve("stack"(X, Y)) onlyIf {
+            "holding"(X).fromSelf and "clear"(Y).fromSelf
+        } then {
+            add("on"(X, Y).fromSelf)
+            remove("holding"(X).fromSelf)
+            add("gripperEmpty".fromSelf)
+            remove("clear"(Y).fromSelf)
+            add("clear"(X).fromSelf)
+        }
 
         +achieve(GOAL) given { generate = true }
     }
 }
+
+fun main() =
+    mas {
+        gripperOperator()
+        generationStrategy = LMGenerationStrategy.react {
+            remark(
+                "Let's say you want to unstack block a from block b," +
+                    " then you'll say to me: `achieve(unstack(a, b))`.",
+            )
+        }
+    }.start()

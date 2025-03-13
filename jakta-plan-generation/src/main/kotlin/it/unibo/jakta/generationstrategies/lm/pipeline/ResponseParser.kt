@@ -7,4 +7,8 @@ interface ResponseParser {
     fun parseStruct(response: String): Struct?
 
     fun parseGoal(response: String): Goal?
+
+    companion object {
+        fun of() = ResponseParserImpl()
+    }
 }

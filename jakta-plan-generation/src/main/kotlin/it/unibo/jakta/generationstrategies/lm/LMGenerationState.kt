@@ -8,7 +8,7 @@ import it.unibo.jakta.agents.bdi.plans.generation.GenerationState
 data class LMGenerationState(
     val history: List<ChatMessage> = emptyList(),
     val startedGeneration: Boolean = false,
-//    val finishedGeneration: Boolean = false,
+    val failedGenerations: Int = 0,
     override val externalActions: List<ExternalAction> = emptyList(),
     override val context: AgentContext? = null,
 ) : GenerationState

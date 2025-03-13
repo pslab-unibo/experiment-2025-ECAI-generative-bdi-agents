@@ -13,24 +13,33 @@ import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
 import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.Tuple
+import it.unibo.tuprolog.core.Term
 import it.unibo.tuprolog.core.parsing.ParseException
 
 object LiteratePrologParser {
-    private val prologFragmentRegex = "\\[([^]]+)]".toRegex()
-    private val expressionRegex = "@(\\w+)".toRegex()
+    val expressionRegex = "@(\\w+)".toRegex()
+    val roundParenthesesRegex = """\((.+)\)""".toRegex()
 
-    private fun tangleProlog(input: String): List<String> {
-        val terms = prologFragmentRegex.findAll(input).map { it.groupValues[1] }.toList()
+    private fun tangleProlog(
+        input: String,
+        delimiterType: DelimiterType = DelimiterType.BACKTICKS,
+    ): List<String> {
+        val delimiterRegex = when (delimiterType) {
+            DelimiterType.SQUARE_BRACKETS -> "\\[([^]]+)]".toRegex()
+            DelimiterType.BACKTICKS -> "`([^`]+)`".toRegex()
+        }
+        val terms = delimiterRegex.findAll(input).map { it.groupValues[1] }.toList()
         val termsWithoutAt = terms.filterNot { it.startsWith("@") }
         return termsWithoutAt.map {
             it.replace(expressionRegex) { match -> match.groupValues[1].capitalize() }
         }
     }
 
-    private fun extractContentInsideParens(input: String): String {
-        val regex = """\((.+)\)""".toRegex()
-        val res = regex.find(input)?.groupValues?.get(1) ?: input
+    fun extractContentInsideParens(
+        input: String,
+        parensRegex: Regex = roundParenthesesRegex,
+    ): String {
+        val res = parensRegex.find(input)?.groupValues?.get(1) ?: input
         return "$res."
     }
 
@@ -85,10 +94,35 @@ object LiteratePrologParser {
             } else if (structs.size == 1) {
                 structs[0]
             } else {
-                Tuple.Companion.wrapIfNeeded(structs).castToStruct()
+                structs.toLeftNestedAnd()?.castToStruct()
+//                Tuple.Companion.wrapIfNeeded(structs).castToStruct()
             }
         }
     }
+
+    fun List<Term>.toLeftNestedAnd(): Term? {
+        return when (this.size) {
+            0 -> null
+            1 -> this[0]
+            else -> {
+                // Fold the list into a nested structure
+                this.drop(1).fold(this[0]) { acc, term ->
+                    Struct.of("&", acc, term)
+                }
+            }
+        }
+    }
+
+    enum class DelimiterType {
+        SQUARE_BRACKETS,
+        BACKTICKS,
+    }
+
+    fun String.wrapWithDelimiters(delimiterType: DelimiterType = DelimiterType.BACKTICKS): String =
+        when (delimiterType) {
+            DelimiterType.SQUARE_BRACKETS -> "[$this]"
+            DelimiterType.BACKTICKS -> "`$this`"
+        }
 }
 
 data class ParseResult(
