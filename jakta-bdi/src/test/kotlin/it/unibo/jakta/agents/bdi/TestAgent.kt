@@ -148,7 +148,6 @@ class TestAgent : DescribeSpec({
                 }
             }
             val newAgent = agent.copy(
-                internalActions = agent.context.internalActions + (ADDBELIEF.signature.name to ADDBELIEF),
                 planLibrary = PlanLibrary.of(
                     Plan.ofAchievementGoalInvocation(
                         value = start,
@@ -164,6 +163,7 @@ class TestAgent : DescribeSpec({
                         ),
                     ),
                 ),
+                internalActions = agent.context.internalActions + (ADDBELIEF.signature.name to ADDBELIEF),
             )
             Mas.of(ExecutionStrategy.oneThreadPerAgent(), environment, newAgent).start()
         }

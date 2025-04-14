@@ -62,5 +62,11 @@ fun main() {
         ),
     )
 
-    Mas.of(ExecutionStrategy.oneThreadPerAgent(), env, sender, alice, alice.copy()).start()
+    Mas.of(
+        ExecutionStrategy.oneThreadPerAgent(),
+        env,
+        sender,
+        alice,
+        alice.copy(),
+    ).start()
 }

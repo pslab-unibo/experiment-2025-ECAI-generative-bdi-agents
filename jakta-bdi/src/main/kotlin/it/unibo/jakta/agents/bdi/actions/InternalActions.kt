@@ -6,7 +6,7 @@ import it.unibo.tuprolog.core.Substitution
 object InternalActions {
     object Print : AbstractInternalAction(
         """
-        `print(@message, @payload)` prints a `@message` and its `@payload`
+        `print [message] [payload]` prints a [message] and its [payload]
         """,
         arity = 2,
     ) {
@@ -56,7 +56,7 @@ object InternalActions {
 
     object Sleep : AbstractInternalAction(
         """
-        `sleep(@time)` makes the agent sleep for `@time` milliseconds
+        `sleep [time]` makes the agent sleep for [time] milliseconds
         """,
         arity = 1,
     ) {

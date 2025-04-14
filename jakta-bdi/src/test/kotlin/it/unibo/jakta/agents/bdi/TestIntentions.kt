@@ -4,11 +4,13 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.AddBelief
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
+import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
@@ -22,7 +24,7 @@ class TestIntentions : DescribeSpec({
 
     val activationRecord = ActivationRecord.of(
         listOf(AddBelief.of(buySomething), AddBelief.of(eatSomething)),
-        Struct.of("test"),
+        PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
     )
     val intention = Intention.of(listOf(activationRecord))
 
@@ -44,7 +46,7 @@ class TestIntentions : DescribeSpec({
         it("should add on top of the record stack after a push() invocation") {
             val newActivationRecord = ActivationRecord.of(
                 listOf(Achieve.of(Atom.of("clean"))),
-                Struct.of("test"),
+                PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
             )
             val updatedIntention = intention.push(newActivationRecord)
             updatedIntention.nextGoal() shouldBe Achieve.of(Atom.of("clean"))
@@ -58,7 +60,7 @@ class TestIntentions : DescribeSpec({
                 intention.recordStack +
                     ActivationRecord.of(
                         listOf(Achieve.of(Struct.of("clean", X))),
-                        Struct.of("test"),
+                        PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
                     ),
             )
             newIntention.recordStack.size shouldBe 2
@@ -80,7 +82,7 @@ class TestIntentions : DescribeSpec({
                     listOf(
                         Achieve.of(Struct.of("clean", Atom.of("home"))),
                     ),
-                    Struct.of("test"),
+                    PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
                 ),
             ),
         )

@@ -25,8 +25,6 @@ sealed interface InternalChange : AgentChange {
         }
 }
 
-sealed interface ActivityChange : AgentChange
-
 data class BeliefChange(
     val belief: Belief,
     override val changeType: ContextUpdate,
@@ -60,7 +58,7 @@ data class EventChange(
     override val description =
         "$changeTypeDescription ${eventType(event)} event ${triggerDescription(event.trigger)}"
 
-    override val params = super.params + buildMap {
+    override val metadata = super.metadata + buildMap {
         put("changeType", changeType)
         put("trigger", event.trigger)
         put("intention", event.intention)
@@ -77,13 +75,15 @@ data class PlanChange(
         plan.trigger.value,
     )} to the plan library"
 
-    override val params = super.params + buildMap {
+    override val metadata = super.metadata + buildMap {
         put("changeType", changeType)
         put("trigger", plan.trigger)
         put("guard", plan.guard)
         put("goals", plan.goals)
     }
 }
+
+sealed interface ActivityChange : AgentChange
 
 data class Sleep(val millis: Long) : ActivityChange {
     override val description = "Agent's controller entered sleep state for $millis ms"

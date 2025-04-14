@@ -1,6 +1,7 @@
 package it.unibo.jakta.agents.bdi.beliefs
 
 import it.unibo.jakta.agents.bdi.beliefs.impl.BeliefBaseImpl
+import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.solve.Solution
 
@@ -35,6 +36,15 @@ interface BeliefBase : Iterable<Belief> {
     fun removeAll(beliefs: BeliefBase): RetrieveResult
 
     fun update(belief: Belief): RetrieveResult
+
+    /*
+     * Beliefs expressed in a controlled natural language
+     */
+    fun add(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult
+
+    fun remove(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult
+
+    fun update(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult
 
     fun solve(struct: Struct): Solution
 

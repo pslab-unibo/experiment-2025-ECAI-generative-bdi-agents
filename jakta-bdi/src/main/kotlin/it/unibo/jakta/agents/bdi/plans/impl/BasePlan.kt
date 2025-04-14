@@ -4,11 +4,10 @@ import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
+import it.unibo.jakta.agents.bdi.plangeneration.feedback.GuardFlatteningVisitor.Companion.flattenAnd
+import it.unibo.jakta.agents.bdi.plangeneration.feedback.PlanApplicabilityResult
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.PlanID
-import it.unibo.jakta.agents.bdi.plans.feedback.GuardFlatteningVisitor.Companion.flattenAnd
-import it.unibo.jakta.agents.bdi.plans.feedback.PlanApplicabilityResult
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.unify.Unificator.Companion.mguWith
 
@@ -16,7 +15,6 @@ internal abstract class BasePlan(
     override val trigger: Trigger,
     override val guard: Struct,
     override val goals: List<Goal>,
-    override val id: PlanID,
 ) : Plan {
     override fun checkApplicability(event: Event, beliefBase: BeliefBase): PlanApplicabilityResult {
         return if (isRelevant(event)) {
@@ -24,7 +22,7 @@ internal abstract class BasePlan(
             val actualGuard = guard.apply(mgu).castToStruct()
             val guards = actualGuard
                 .flattenAnd()
-                .associate { it.castToStruct() to beliefBase.solve(it.castToStruct()).isYes }
+                .associate { it to beliefBase.solve(it).isYes }
             PlanApplicabilityResult(event.trigger, guards)
         } else {
             PlanApplicabilityResult(

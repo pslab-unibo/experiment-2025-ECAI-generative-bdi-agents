@@ -8,17 +8,8 @@ import it.unibo.tuprolog.core.Substitution
 abstract class BaseIntention(
     override val recordStack: List<ActivationRecord>,
     override val isSuspended: Boolean = false,
-    override val id: IntentionID = IntentionID(),
+    override val id: IntentionID,
 ) : Intention {
-
-    override fun pop(): Intention {
-        val record = recordStack.first()
-        return if (record.isLastGoal()) {
-            this.copy(recordStack = recordStack - record)
-        } else {
-            this.copy(recordStack = listOf(record.pop()) + recordStack - record)
-        }
-    }
 
     override fun push(activationRecord: ActivationRecord): Intention {
         return this.copy(recordStack = listOf(activationRecord) + recordStack)
@@ -28,6 +19,4 @@ abstract class BaseIntention(
         val record = recordStack.first()
         return this.copy(recordStack = listOf(record.applySubstitution(substitution)) + recordStack - record)
     }
-
-    override fun toString(): String = "$id { \n ${recordStack.joinToString(separator = "\n", prefix = "\t")} \n }"
 }

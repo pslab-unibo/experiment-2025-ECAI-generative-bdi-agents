@@ -1,7 +1,7 @@
 package it.unibo.jakta.agents.bdi.actions.impl
 
 import it.unibo.jakta.agents.bdi.Agent
-import it.unibo.jakta.agents.bdi.LiteratePrologParser.tangleStruct
+import it.unibo.jakta.agents.bdi.LiteratePrologParser.tangleStructs
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.actions.ExternalRequest
 import it.unibo.jakta.agents.bdi.actions.ExternalResponse
@@ -21,7 +21,13 @@ abstract class AbstractExternalAction(override val signature: LiterateSignature)
     AbstractAction<EnvironmentChange, ExternalResponse, ExternalRequest>(signature) {
 
     constructor(name: String, arity: Int) :
-        this(Signature((tangleStruct(name) ?: name).toString(), arity), name)
+        this(
+            Signature(
+                (tangleStructs(name).firstOrNull()?.functor ?: name).toString(),
+                arity,
+            ),
+            name,
+        )
 
     constructor(signature: Signature, description: String) :
         this(LiterateSignature(signature, description))

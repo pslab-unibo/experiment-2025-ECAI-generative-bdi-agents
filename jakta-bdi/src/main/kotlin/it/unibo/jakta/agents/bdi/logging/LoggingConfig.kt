@@ -13,11 +13,11 @@ data class LoggingConfig(
 )
 
 fun KLogger.implementation(event: LogEvent) =
-    if (event.params.isEmpty()) {
+    if (event.metadata.isEmpty()) {
         this.info { event.description } // [${event.name}]
     } else {
         this.atInfo {
             message = event.description // "[${event.name}] ${event.description}"
-            payload = event.params
+            payload = event.metadata
         }
     }

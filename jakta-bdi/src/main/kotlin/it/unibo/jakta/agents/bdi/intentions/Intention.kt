@@ -34,7 +34,7 @@ interface Intention {
     ): Intention = of(recordStack, isSuspended, id)
 
     companion object {
-        fun of(plan: Plan): Intention = IntentionImpl(listOf(plan.toActivationRecord()))
+        fun of(plan: Plan): Intention = of(listOf(plan.toActivationRecord()))
 
         fun of(
             recordStack: List<ActivationRecord> = emptyList(),

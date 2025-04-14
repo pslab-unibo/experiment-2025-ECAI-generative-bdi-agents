@@ -47,6 +47,6 @@ object LoggerFactory {
             }
 
             level = loggingConfig.logLevel
-            isAdditive = false // Whether to send it to the root logger
+            isAdditive = false // Whether to send logs to the root logger
         }.toKLogger()
 }

@@ -7,5 +7,5 @@ import it.unibo.jakta.agents.bdi.perception.Perception
 internal data class PerceptionImpl(
     val beliefs: Iterable<Belief> = emptyList(),
 ) : Perception {
-    override fun percept(): BeliefBase = BeliefBase.of(beliefs)
+    override fun percept(): BeliefBase = BeliefBase.of(beliefs = beliefs)
 }
