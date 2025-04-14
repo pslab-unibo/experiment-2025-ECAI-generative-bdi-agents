@@ -26,7 +26,7 @@ interface GoalGenerationStrategy {
         fun of(
             logger: KLogger? = null,
             loggingConfig: LoggingConfig? = null,
-            genResProcessor: GenerationResultProcessor = GenerationResultProcessor.Companion.of(logger),
+            genResProcessor: GenerationResultBuilder = GenerationResultBuilder.Companion.of(logger),
         ) = GoalGenerationStrategyImpl(genResProcessor, loggingConfig, logger)
     }
 }

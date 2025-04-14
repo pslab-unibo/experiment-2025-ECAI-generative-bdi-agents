@@ -5,7 +5,7 @@ import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Generate
 import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.goals.TrackGoal
+import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
@@ -25,7 +25,7 @@ internal data class PartialPlanImpl(
 ) : BasePlan(trigger, guard, goals), PartialPlan {
 
     /**
-     * In a [PartialPlanImpl], intentions only pick goals of type [TrackGoal] or [Generate]
+     * In a [PartialPlanImpl], intentions only pick goals of type [TrackGoalExecution] or [Generate]
      */
     override fun toActivationRecord(): ActivationRecord =
         ActivationRecord.of(
@@ -36,8 +36,8 @@ internal data class PartialPlanImpl(
              * Only when the [Generate] is executed and [TrackGoal]s start to be added
              * to the plan, then it becomes incomplete.
              */
-            if (goals.any { it is TrackGoal }) {
-                goals.filter { it is TrackGoal || it is Generate }
+            if (goals.any { it is TrackGoalExecution }) {
+                goals.filter { it is TrackGoalExecution || it is Generate }
             } else {
                 goals
             },

@@ -18,7 +18,7 @@ class GoalTrackingStrategyImpl(
 ) : GoalTrackingStrategy {
 
     /**
-     * Replace the previous intention's [TrackGoal] with the goal being tracked.
+     * Replace the previous intention's [TrackGoalExecution] with the goal being tracked.
      * If the execution is successful, also update the plan library by un-tracking the goal.
      */
     override fun trackGoalExecution(
@@ -38,7 +38,7 @@ class GoalTrackingStrategyImpl(
         val updatedRes = if (result.feedback is FailureFeedback) {
             result
         } else {
-            val updatedPlanLibrary = goal.untrack(result.newAgentContext.planLibrary)
+            val updatedPlanLibrary = goal.untrack(intention.currentPlan(), result.newAgentContext.planLibrary)
             result.copy(
                 newAgentContext = result.newAgentContext.copy(
                     planLibrary = updatedPlanLibrary,
@@ -47,7 +47,9 @@ class GoalTrackingStrategyImpl(
         }
 
         return if (updatedRes.feedback is FailureFeedback && intention is DeclarativeIntention) {
-            invalidationStrategy.invalidate(intention, updatedRes.newAgentContext)
+            invalidationStrategy.invalidate(intention, updatedRes.newAgentContext).copy(
+                feedback = updatedRes.feedback,
+            )
         } else {
             updatedRes
         }

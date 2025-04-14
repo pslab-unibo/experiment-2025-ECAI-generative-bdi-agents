@@ -3,25 +3,10 @@ package it.unibo.jakta.agents.bdi.plangeneration.feedback
 import it.unibo.jakta.agents.bdi.Jakta.formatter
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.PlanID
 
 sealed interface SuccessFeedback : ExecutionFeedback
 
-data class PlanExecutionCompleted(
-    val planID: PlanID,
-    val goalsAchieved: List<Goal> = emptyList(),
-) : SuccessFeedback {
-    val trigger = formatter.format(planID.trigger.value)
-
-    override val description = "Completed plan that branched from $trigger"
-
-    override val metadata = super.metadata + buildMap {
-        put("trigger", planID.trigger)
-        put("guard", planID.guard)
-    }
-}
-
-data class GenerationExecuted(
+data class GenerationStepExecuted(
     val msg: String,
     override val description: String = msg,
 ) : SuccessFeedback

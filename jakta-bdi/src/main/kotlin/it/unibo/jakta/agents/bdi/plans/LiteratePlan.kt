@@ -12,7 +12,7 @@ interface LiteratePlan : Plan {
 
     companion object {
         fun of(
-            id: PlanID,
+            id: PlanID? = null,
             trigger: Trigger,
             guard: Struct,
             goals: List<Goal>,
@@ -21,7 +21,7 @@ interface LiteratePlan : Plan {
             literateGoals: String? = null,
         ): LiteratePlan {
             return LiteratePlanImpl(
-                id,
+                id ?: PlanID.of(trigger, guard),
                 trigger,
                 guard,
                 goals,

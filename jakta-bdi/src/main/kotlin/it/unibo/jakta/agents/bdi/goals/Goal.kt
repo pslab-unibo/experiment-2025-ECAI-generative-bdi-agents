@@ -12,7 +12,6 @@ import it.unibo.jakta.agents.bdi.goals.impl.RemoveBeliefImpl
 import it.unibo.jakta.agents.bdi.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TestImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TrackGoalExecutionImpl
-import it.unibo.jakta.agents.bdi.goals.impl.TrackPlanExecutionImpl
 import it.unibo.jakta.agents.bdi.goals.impl.UpdateBeliefImpl
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.PlanID
@@ -86,6 +85,7 @@ interface Test : Goal {
 
 interface Spawn : Goal {
     val goal: Goal
+
     companion object {
         fun of(goal: Goal): Spawn = SpawnImpl(goal)
     }
@@ -125,22 +125,19 @@ interface Generate : DeclarativeGoal {
     }
 }
 
-sealed interface TrackGoal : Goal {
-    val planID: PlanID
-}
-
-interface TrackGoalExecution : TrackGoal {
+interface TrackGoalExecution : Goal {
     val goal: Goal
+
     companion object {
-        fun of(planID: PlanID, goal: Goal): TrackGoalExecution = TrackGoalExecutionImpl(planID, goal)
+        fun of(goal: Goal): TrackGoalExecution = TrackGoalExecutionImpl(goal)
     }
 
     /**
      * Replace the first [TrackGoalExecution] found with the goal it is tracking.
      */
-    fun untrack(planLibrary: PlanLibrary): PlanLibrary {
+    fun untrack(planID: PlanID, planLibrary: PlanLibrary): PlanLibrary {
         val genPlan = planLibrary.plans
-            .firstOrNull { it.id == this.planID } as? PartialPlan
+            .firstOrNull { it.id == planID } as? PartialPlan
             ?: return planLibrary
 
         val r = genPlan.goals.filterIsInstance<TrackGoalExecution>().first()
@@ -153,11 +150,5 @@ interface TrackGoalExecution : TrackGoal {
         return planLibrary
             .removePlan(genPlan)
             .addPlan(planWithUntrackedGoal)
-    }
-}
-
-interface TrackPlanExecution : TrackGoal {
-    companion object {
-        fun of(planID: PlanID): TrackPlanExecution = TrackPlanExecutionImpl(planID)
     }
 }

@@ -2,7 +2,6 @@ package it.unibo.jakta.agents.bdi.impl
 
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.AgentLifecycle
-import it.unibo.jakta.agents.bdi.Jakta.formatter
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.actions.ExternalRequest
 import it.unibo.jakta.agents.bdi.actions.InternalAction
@@ -45,10 +44,8 @@ import it.unibo.jakta.agents.bdi.goals.RemoveBelief
 import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
-import it.unibo.jakta.agents.bdi.goals.TrackPlanExecution
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
 import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention
-import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention.Companion.append
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.logging.events.BdiEvent.EventSelected
@@ -62,15 +59,15 @@ import it.unibo.jakta.agents.bdi.logging.events.PlanEvent.PlanSelected
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.messages.Tell
 import it.unibo.jakta.agents.bdi.plangeneration.InfiniteRecursionGuardConfig.MAX_ACHIEVED_GOALS_AMOUNT
-import it.unibo.jakta.agents.bdi.plangeneration.InfiniteRecursionGuardConfig.MAX_GOALS_PER_PARTIAL_PLANS_AMOUNT
 import it.unibo.jakta.agents.bdi.plangeneration.InfiniteRecursionGuardConfig.MAX_PARTIAL_PLANS_AMOUNT
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.ActionNotFound
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.ActionSubstitutionFailure
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.FailureFeedback
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.FeedbackUpdater.updateGenerationStateWithFeedback
+import it.unibo.jakta.agents.bdi.plangeneration.feedback.GenerationStepExecuted
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.GoalExecutionSuccess
+import it.unibo.jakta.agents.bdi.plangeneration.feedback.InfiniteRecursion
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.InvalidActionArityError
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.PlanExecutionCompleted
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.SuccessFeedback
 import it.unibo.jakta.agents.bdi.plangeneration.feedback.TestGoalFailureFeedback
 import it.unibo.jakta.agents.bdi.plangeneration.manager.GenerationManager
@@ -238,7 +235,7 @@ internal data class AgentLifecycleImpl(
                         val goalsAchieved = getGoalsAchieved(intention, context)
                         val feedback = ActionNotFound(
                             context.internalActions.map { it.value.signature },
-                            nextGoal.action.functor.toString(),
+                            nextGoal.action.functor,
                             goalsAchieved,
                         )
                         ExecutionResult(failAchievementGoal(intention, context), feedback)
@@ -254,7 +251,7 @@ internal data class AgentLifecycleImpl(
                         val goalsAchieved = getGoalsAchieved(intention, context)
                         val feedback = ActionNotFound(
                             environment.externalActions.map { it.value.signature },
-                            nextGoal.action.functor.toString(),
+                            nextGoal.action.functor,
                             goalsAchieved,
                         )
                         ExecutionResult(failAchievementGoal(intention, context), feedback)
@@ -271,7 +268,7 @@ internal data class AgentLifecycleImpl(
                         val goalsAchieved = getGoalsAchieved(intention, context)
                         val feedback = ActionNotFound(
                             availableActions.map { it.value.signature },
-                            nextGoal.action.functor.toString(),
+                            nextGoal.action.functor,
                             goalsAchieved,
                         )
                         ExecutionResult(failAchievementGoal(intention, context), feedback)
@@ -302,13 +299,7 @@ internal data class AgentLifecycleImpl(
             }
 
             is Achieve -> {
-                val newIntention = if (intention is DeclarativeIntention) {
-                    val trackingGoal = TrackPlanExecution.of(intention.currentPlan())
-                    intention.append(intention.nextGoal(), trackingGoal)
-                } else {
-                    intention
-                }
-                val newEvent = Event.ofAchievementGoalInvocation(nextGoal, newIntention)
+                val newEvent = Event.ofAchievementGoalInvocation(nextGoal, intention)
                 ExecutionResult(
                     context.copy(
                         intentions = IntentionPool.of(context.intentions - intention.id),
@@ -387,12 +378,6 @@ internal data class AgentLifecycleImpl(
                         environment,
                         ::runIntention,
                     )
-            }
-
-            is TrackPlanExecution -> {
-                generationManager
-                    .planTrackingStrategy
-                    .trackPlanExecution(nextGoal, intention, agent.context)
             }
         }
 
@@ -511,12 +496,11 @@ internal data class AgentLifecycleImpl(
         var newPlanLibrary = this.agent.context.planLibrary
         var newEvents = this.agent.context.events
         var newIntentionPool = agent.context.intentions
-        var newGenRequests = agent.context.generationRequests
+        var newGenRequests = agent.context.generationProcesses
         val selectedEvent = selectEvent(this.agent.context.events)
 
         if (selectedEvent != null) {
             agent.logger?.implementation(EventSelected(selectedEvent))
-            newEvents = newEvents - selectedEvent
 
             // STEP6: Retrieving all Relevant Plans.
             val relevantPlans = selectRelevantPlans(selectedEvent, agent.context.planLibrary)
@@ -543,70 +527,46 @@ internal data class AgentLifecycleImpl(
                     agent.logger?.implementation(PlanSelected(selectedPlan))
                 }
             } else {
-                if (relevantPlans.plans.isEmpty()) {
-                    agent.logger?.info {
-                        StringBuilder().apply {
-                            append("There's no relevant plan for the event: ")
-                            if (selectedEvent.trigger is AchievementGoalFailure ||
-                                selectedEvent.trigger is TestGoalFailure
-                            ) {
-                                append("failure of ")
-                            }
-                            append(formatter.format(selectedEvent.trigger.value))
-                        }
-                    }
-                } else if (applicablePlans.isEmpty()) {
-                    agent.logger?.info {
-                        StringBuilder().apply {
-                            append("There's no applicable plan for the event: ")
-                            if (selectedEvent.trigger is AchievementGoalFailure ||
-                                selectedEvent.trigger is TestGoalFailure
-                            ) {
-                                append("failure of ")
-                            }
-                            append(formatter.format(selectedEvent.trigger.value))
-                        }
-                    }
-                }
+                // Invalidate plans if in a generation process and/or start a new generation process.
+                val res = generationManager.unavailablePlanStrategy.handleUnavailablePlans(
+                    selectedEvent,
+                    relevantPlans.plans,
+                    applicablePlans.isEmpty(),
+                    agent.context,
+                    agent.generationStrategy,
+                )
 
+                // Add feedback to the current generation process.
                 val intention = selectedEvent.intention
-                if (intention != null && intention is DeclarativeIntention) {
-                    val res = generationManager.unavailablePlanStrategy.handleUnavailablePlans(
-                        selectedEvent,
-                        relevantPlans.plans,
-                        applicablePlans.isEmpty(),
-                        intention,
-                        agent.context,
-                    )
-                    if (res != null) {
-                        val updatedRes = updateGenerationStateWithFeedback(
-                            intention.generatingPlans.firstOrNull(),
-                            res,
-                            agent.logger,
-                        ) {
-                            res.feedback is FailureFeedback
-                        }.also {
-                            res.feedback?.let { agent.logger?.implementation(it) }
-                        }
-
-                        val newContext = updatedRes.newAgentContext
-
-                        newIntentionPool = newContext.intentions
-                        newPlanLibrary = newContext.planLibrary
-                        newGenRequests = newContext.generationRequests
+                val updatedRes = if (intention != null &&
+                    intention is DeclarativeIntention &&
+                    res.feedback is FailureFeedback
+                ) {
+                    updateGenerationStateWithFeedback(
+                        intention.generatingPlans.firstOrNull(),
+                        res,
+                        agent.logger,
+                    ).also {
+                        res.feedback.let { agent.logger?.implementation(it) }
                     }
-                } else if (selectedEvent.isInternal()) {
-                    val intentionToRemove = selectedEvent.intention!!
-                    newIntentionPool = newIntentionPool.deleteIntention(intentionToRemove.id).also {
-                        agent.logger?.implementation(IntentionChange(intentionToRemove, REMOVAL))
-                    }
+                } else {
+                    res
                 }
+
+                val newContext = updatedRes.newAgentContext
+
+                newEvents = newContext.events
+                newIntentionPool = newContext.intentions
+                newPlanLibrary = newContext.planLibrary
+                newGenRequests = newContext.generationProcesses
             }
+
+            newEvents = newEvents - selectedEvent
         }
 
         // Select intention to execute
         this.agent = this.agent.copy(
-            generationRequests = newGenRequests,
+            generationProcess = newGenRequests,
             events = newEvents,
             planLibrary = newPlanLibrary,
             intentions = newIntentionPool,
@@ -632,76 +592,87 @@ internal data class AgentLifecycleImpl(
                     scheduledIntention,
                     this.agent.context.copy(intentions = newIntentionPool),
                     environment,
-                ).also {
-                        r ->
-                    r.feedback?.let { agent.logger?.implementation(it) }
-                }
+                ).also { r -> r.feedback?.let { agent.logger?.implementation(it) } }
 
                 if (scheduledIntention is DeclarativeIntention) {
-                    // add feedback to the generation state
-                    executionResult = updateGenerationStateWithFeedback(
-                        scheduledIntention.generatingPlans.firstOrNull(),
-                        executionResult,
-                        agent.logger,
-                    ) {
-                        executionResult.feedback is FailureFeedback
-                        executionResult.feedback is PlanExecutionCompleted
+                    // Add feedback to the generation state.
+                    if (executionResult.feedback is FailureFeedback) {
+                        executionResult = updateGenerationStateWithFeedback(
+                            scheduledIntention.generatingPlans.firstOrNull(),
+                            executionResult,
+                            agent.logger,
+                        )
                     }
 
-                    // add achieved goals to the generation state
+                    // Add achieved goals to the generation state.
                     val state = executionResult
                         .newAgentContext
-                        .generationRequests[scheduledIntention.currentGeneratingPlan()]
+                        .generationProcesses[scheduledIntention.currentGeneratingPlan()]
 
-                    val updatedState = if (executionResult.feedback is SuccessFeedback && state != null) {
-                        val achievedGoal = scheduledIntention.nextGoal()
+                    val updatedState = if (executionResult.feedback is SuccessFeedback &&
+                        state != null &&
+                        executionResult.feedback !is GenerationStepExecuted
+                    ) {
+                        val achievedGoal = scheduledIntention.nextGoal().let {
+                            if (it is TrackGoalExecution) it.goal else it
+                        }
                         state.copy(
                             achievedGoalsHistory = state.achievedGoalsHistory + achievedGoal,
-                            achievedGoalsBuffer = state.achievedGoalsBuffer + achievedGoal,
                         )
                     } else {
                         state
                     }
 
-                    // check for recursion and reset the generation process if it is detected
+                    // Check for recursion and reset the generation process if it is detected.
                     if (updatedState != null) {
                         val generatingPlanID = scheduledIntention.currentGeneratingPlan()
                         if (generatingPlanID != null) {
                             executionResult = executionResult.copy(
                                 executionResult.newAgentContext.copy(
-                                    generationRequests = executionResult
+                                    generationProcess = executionResult
                                         .newAgentContext
-                                        .generationRequests
-                                        .updateRequest(
+                                        .generationProcesses
+                                        .updateGenerationProcess(
                                             generatingPlanID,
                                             updatedState,
                                         ),
                                 ),
                             )
 
-                            if (executionResult.newAgentContext.planLibrary.plans.filterIsInstance<PartialPlan>().size
-                                > MAX_PARTIAL_PLANS_AMOUNT ||
-                                updatedState.achievedGoalsHistory.size > MAX_ACHIEVED_GOALS_AMOUNT ||
-                                updatedState.achievedGoalsBuffer.size > MAX_GOALS_PER_PARTIAL_PLANS_AMOUNT
+                            val nPartialPlans = executionResult
+                                .newAgentContext
+                                .planLibrary
+                                .plans
+                                .filterIsInstance<PartialPlan>()
+                                .size
+
+                            if (nPartialPlans > MAX_PARTIAL_PLANS_AMOUNT ||
+                                updatedState.achievedGoalsHistory.size > MAX_ACHIEVED_GOALS_AMOUNT
                             ) {
-                                executionResult = generationManager.invalidationStrategy.invalidate(
+                                val res = generationManager.invalidationStrategy.invalidate(
                                     scheduledIntention,
                                     executionResult.newAgentContext.copy(
-                                        generationRequests = executionResult
+                                        generationProcess = executionResult
                                             .newAgentContext
-                                            .generationRequests
-                                            .updateRequest(
+                                            .generationProcesses
+                                            .updateGenerationProcess(
                                                 generatingPlanID,
                                                 updatedState.reset().copy(
-                                                    failedGenerationRequests =
-                                                    updatedState.failedGenerationRequests + 1,
+                                                    failedGenerationProcess =
+                                                    updatedState.failedGenerationProcess + 1,
                                                 ),
                                             ),
                                     ),
                                     isPotentialInfiniteRecursion = true,
-                                ).also {
-                                    agent.logger?.warn { "Terminated the generation process due to detected recursion" }
-                                }
+                                ).copy(
+                                    feedback = InfiniteRecursion(updatedState.achievedGoalsHistory),
+                                )
+
+                                executionResult = updateGenerationStateWithFeedback(
+                                    scheduledIntention.generatingPlans.firstOrNull(),
+                                    res,
+                                    agent.logger,
+                                ).also { r -> r.feedback?.let { agent.logger?.implementation(it) } }
                             }
                         }
                     }

@@ -1,54 +1,13 @@
 package it.unibo.jakta.agents.bdi
 
-import it.unibo.tuprolog.core.Clause
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.TermFormatter
 import it.unibo.tuprolog.core.operators.Operator
 import it.unibo.tuprolog.core.operators.OperatorSet
 import it.unibo.tuprolog.core.operators.Specifier
-import it.unibo.tuprolog.core.parsing.TermParser
 import java.util.Locale
 
 object Jakta {
-
-    enum class JaktaTriggerKeyword {
-        Achieve, AchieveFailure, Test, TestFailure, AddBelief, RemoveBelief, UpdateBelief;
-
-        companion object {
-            fun extractTriggerType(input: String): JaktaTriggerKeyword? =
-                when {
-                    input.startsWith("achieve") -> Achieve
-                    input.startsWith("achieve failure") -> AchieveFailure
-                    input.startsWith("test") -> Test
-                    input.startsWith("test failure") -> TestFailure
-                    input.startsWith("belief addition") -> AddBelief
-                    input.startsWith("belief removal") -> RemoveBelief
-                    input.startsWith("belief update") -> UpdateBelief
-                    else -> null
-                }
-        }
-    }
-
-    enum class JaktaGoalKeyword {
-        Achieve, Test, Spawn, Generate, Add, Remove, Update, Execute, Iact;
-
-        companion object {
-            fun extractGoalType(input: String): JaktaGoalKeyword? =
-                when {
-                    input.startsWith("achieve") -> Achieve
-                    input.startsWith("test") -> Test
-                    input.startsWith("spawn") -> Spawn
-                    input.startsWith("generate") -> Generate
-                    input.startsWith("add") -> Add
-                    input.startsWith("remove") -> Remove
-                    input.startsWith("update") -> Update
-                    input.startsWith("execute") -> Execute
-                    input.startsWith("iact") -> Iact
-                    else -> null
-                }
-        }
-    }
-
     // fun convert1(struct: Struct): Term = struct.accept(jasonTo2p)
 
     val operators = OperatorSet(
@@ -58,14 +17,8 @@ object Jakta {
     )
 
     val formatter: TermFormatter = TermFormatter.prettyExpressions(
-        operatorSet = OperatorSet.DEFAULT + Jakta.operators,
+        operatorSet = OperatorSet.DEFAULT + operators,
     )
-
-    private val parser = TermParser.withOperators(OperatorSet.DEFAULT + operators)
-
-    fun parseStruct(string: String): Struct = parser.parseStruct(string)
-
-    fun parseClause(string: String): Clause = parser.parseClause(string)
 
     fun printAslSyntax(agent: Agent, prettyFormatted: Boolean = true) {
         println("% ${agent.name}")
@@ -105,14 +58,6 @@ object Jakta {
         }
     }
 
-    fun String.wrapWithDelimiters(): String = "`$this`"
-
-    fun camelCase(input: String): String {
-        return input.split(' ').mapIndexed { index, word ->
-            if (index == 0) word.lowercase() else word.replaceFirstChar { it.uppercase() }
-        }.joinToString("").replace("'", "")
-    }
-
     /**
      * Creates a novel [Struct] which is a copy of the current one, except that
      * it has one argument less. The removed argument is the first of the old
@@ -122,7 +67,7 @@ object Jakta {
      * whose arity is less than the current one and which has not the first
      * argument of the old [Struct]
      */
-    fun Struct.removeFirst(condition: ((Struct) -> Boolean)? = null): Struct =
+    private fun Struct.removeFirst(condition: ((Struct) -> Boolean)? = null): Struct =
         if (this.arity >= 1) {
             if (condition != null && condition(this)) {
                 Struct.of(this.functor, this.args.subList(1, this.args.count()))
@@ -139,4 +84,6 @@ object Jakta {
         this.removeFirst {
             this[0].let { it is Struct && it.arity == 1 && it.functor == "source" }
         }
+
+    fun String.wrapWithDelimiters(): String = "`$this`"
 }

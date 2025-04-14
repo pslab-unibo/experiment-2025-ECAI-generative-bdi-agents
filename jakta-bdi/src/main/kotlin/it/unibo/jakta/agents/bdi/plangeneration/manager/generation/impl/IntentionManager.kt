@@ -7,16 +7,16 @@ import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.plangeneration.PlanGenerationResult
 import it.unibo.jakta.agents.bdi.plans.PlanID
 
-class IntentionUpdater(private val logger: KLogger?) {
+class IntentionManager(private val logger: KLogger?) {
     fun updateIntention(
         intention: DeclarativeIntention,
         planID: PlanID,
         planGenResult: PlanGenerationResult,
     ): Intention {
-        return if (!planGenResult.generationState.isGenerationEndConfirmed) {
-            intention
-        } else {
+        return if (planGenResult.generationState.isGenerationEndConfirmed) {
             handleCompletedGeneration(intention, planID)
+        } else {
+            intention
         }
     }
 
@@ -28,11 +28,11 @@ class IntentionUpdater(private val logger: KLogger?) {
         val updatedIntention = intention.copy(generatingPlans = intention.generatingPlans - planID)
 
         // If no generating plans remain, convert back to normal intention.
-        if (updatedIntention.generatingPlans.isEmpty()) {
+        return if (updatedIntention.generatingPlans.isEmpty()) {
             logger?.info { "No other generation processes are running" }
-            return updatedIntention.toIntention().pop()
-        }
-
-        return updatedIntention
+            updatedIntention.toIntention()
+        } else {
+            updatedIntention
+        }.pop()
     }
 }

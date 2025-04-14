@@ -26,11 +26,11 @@ class GenerationStateManager(
         genGoal: Generate,
         environment: Environment,
     ): GenerationState {
-        val generationRequest = context.generationRequests[plan.id]
+        val generationProcess = context.generationProcesses[plan.id]
         val updatedPlanLibrary = createCleanPlanLibrary(context, intention, plan)
 
-        return generationRequest?.also {
-            logger?.info { "Reusing generation request for goal: ${it.goal}" }
+        return generationProcess?.also {
+            logger?.info { "Reusing generation process for goal: ${it.goal}" }
         } ?: generationStrategy.initializeGeneration(
             genGoal,
             plan.id,
@@ -38,7 +38,7 @@ class GenerationStateManager(
             environment.externalActions.values.toList(),
             loggingConfig,
         ).also {
-            logger?.info { "Creating new generation request for goal: ${formatter.format(genGoal.value)}" }
+            logger?.info { "Creating new generation process for goal: ${formatter.format(genGoal.value)}" }
         }
     }
 

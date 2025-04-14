@@ -14,7 +14,6 @@ interface GenerationManager {
     val loggingConfig: LoggingConfig?
     val goalGenerationStrategy: GoalGenerationStrategy
     val goalTrackingStrategy: GoalTrackingStrategy
-    val planTrackingStrategy: PlanTrackingStrategy
     val invalidationStrategy: InvalidationStrategy
     val unavailablePlanStrategy: UnavailablePlanStrategy
 
@@ -26,7 +25,6 @@ interface GenerationManager {
                 loggingConfig = loggingConfig,
                 logger = logger,
             ),
-            planTrackingStrategy: PlanTrackingStrategy = PlanTrackingStrategy.of(logger),
             invalidationStrategy: InvalidationStrategy = InvalidationStrategy.of(logger),
             goalTrackingStrategy: GoalTrackingStrategy = GoalTrackingStrategy.of(invalidationStrategy, logger),
             unavailablePlanStrategy: UnavailablePlanStrategy =
@@ -36,7 +34,6 @@ interface GenerationManager {
             loggingConfig,
             goalGenerationStrategy,
             goalTrackingStrategy,
-            planTrackingStrategy,
             invalidationStrategy,
             unavailablePlanStrategy,
         )
@@ -47,8 +44,8 @@ interface GenerationManager {
         ): List<Goal> =
             if (intention is DeclarativeIntention) {
                 context
-                    .generationRequests[intention.currentGeneratingPlan()]
-                    ?.achievedGoalsBuffer
+                    .generationProcesses[intention.currentGeneratingPlan()]
+                    ?.achievedGoalsHistory
                     ?: emptyList()
             } else {
                 emptyList()

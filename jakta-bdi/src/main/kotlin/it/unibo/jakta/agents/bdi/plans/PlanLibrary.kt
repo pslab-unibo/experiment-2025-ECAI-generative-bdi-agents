@@ -31,9 +31,12 @@ interface PlanLibrary {
 
     fun updatePlan(plan: Plan): PlanLibrary
 
-    // Do not add plans with the same context as previous ones.
+    /*
+     * If duplicate plans with the same context are found, the ones
+     * from the other plan library take precedence.
+     */
     operator fun plus(other: PlanLibrary) =
-        of((this.plans + other.plans).distinctBy { it.id })
+        of((other.plans + this.plans).distinctBy { it.id })
 
     companion object {
         fun of(plans: List<Plan>): PlanLibrary = PlanLibraryImpl(plans)

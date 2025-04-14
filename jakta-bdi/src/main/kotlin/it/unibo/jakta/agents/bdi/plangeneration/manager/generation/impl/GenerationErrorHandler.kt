@@ -9,7 +9,7 @@ import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.GoalGeneratio
 
 class GenerationErrorHandler {
 
-    fun handleMaxConcurrentGenerationRequestExceeded(
+    fun handleMaxConcurrentGenerationProcessesExceeded(
         intention: Intention,
         context: AgentContext,
     ): ExecutionResult {

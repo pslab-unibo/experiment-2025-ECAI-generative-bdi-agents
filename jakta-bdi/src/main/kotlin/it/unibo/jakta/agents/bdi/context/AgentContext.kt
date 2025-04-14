@@ -7,10 +7,10 @@ import it.unibo.jakta.agents.bdi.context.impl.AgentContextImpl
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
-import it.unibo.jakta.agents.bdi.plangeneration.pool.GenerationRequestPool
+import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
+import it.unibo.jakta.agents.bdi.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
-import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
 
 /**
  * The Context is the actual state of a BDI Agent's structures.
@@ -28,7 +28,7 @@ interface AgentContext {
 
     val internalActions: Map<String, InternalAction>
 
-    val generationRequests: GenerationRequestPool
+    val generationProcesses: GenerationProcessRegistry
 
     val intentions: IntentionPool
 
@@ -39,7 +39,7 @@ interface AgentContext {
         events: EventQueue = this.events,
         planLibrary: PlanLibrary = this.planLibrary,
         internalActions: Map<String, InternalAction> = this.internalActions,
-        generationRequests: GenerationRequestPool = this.generationRequests,
+        generationProcess: GenerationProcessRegistry = this.generationProcesses,
         intentions: IntentionPool = this.intentions,
         templates: List<LiteratePrologTemplate> = this.templates,
     ): AgentContext = AgentContextImpl(
@@ -47,7 +47,7 @@ interface AgentContext {
         events,
         planLibrary,
         internalActions,
-        generationRequests,
+        generationProcess,
         intentions,
         templates,
     )
@@ -58,7 +58,7 @@ interface AgentContext {
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
             internalActions: Map<String, InternalAction> = InternalActions.default(),
-            generationRequests: GenerationRequestPool = GenerationRequestPool.empty(),
+            generationProcess: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
             intentions: IntentionPool = IntentionPool.empty(),
             templates: List<LiteratePrologTemplate> = emptyList(),
         ): AgentContext = AgentContextImpl(
@@ -66,7 +66,7 @@ interface AgentContext {
             events,
             planLibrary,
             internalActions,
-            generationRequests,
+            generationProcess,
             intentions,
             templates,
         )

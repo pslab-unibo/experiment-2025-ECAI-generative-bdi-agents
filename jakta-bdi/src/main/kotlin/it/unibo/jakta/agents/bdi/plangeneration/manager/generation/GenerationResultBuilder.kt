@@ -5,13 +5,13 @@ import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention
 import it.unibo.jakta.agents.bdi.plangeneration.PlanGenerationResult
-import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.impl.GenerationResultProcessorImpl
+import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.impl.GenerationResultBuilderImpl
 import it.unibo.jakta.agents.bdi.plans.PlanID
 
-interface GenerationResultProcessor {
+interface GenerationResultBuilder {
     val logger: KLogger?
 
-    fun processResult(
+    fun buildResult(
         context: AgentContext,
         intention: DeclarativeIntention,
         planID: PlanID,
@@ -19,6 +19,6 @@ interface GenerationResultProcessor {
     ): ExecutionResult
 
     companion object {
-        fun of(logger: KLogger? = null) = GenerationResultProcessorImpl(logger)
+        fun of(logger: KLogger? = null) = GenerationResultBuilderImpl(logger)
     }
 }

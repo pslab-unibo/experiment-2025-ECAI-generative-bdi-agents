@@ -12,13 +12,13 @@ import it.unibo.jakta.agents.bdi.plans.PlanFactory
 import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.tuprolog.core.Truth
 
-class PlanLocator(private val logger: KLogger?) {
+class GenerationProcessPlanBuilder(private val logger: KLogger?) {
     fun findOrCreatePlan(
         genGoal: Generate,
         intention: Intention,
         context: AgentContext,
     ): PartialPlan {
-        val genPlanID = context.generationRequests
+        val genPlanID = context.generationProcesses
             .filter { it.key.trigger.value == genGoal.value }
             .keys
             .firstOrNull()

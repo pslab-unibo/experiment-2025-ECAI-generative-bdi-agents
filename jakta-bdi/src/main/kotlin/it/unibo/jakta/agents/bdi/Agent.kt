@@ -11,11 +11,11 @@ import it.unibo.jakta.agents.bdi.impl.AgentImpl
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.plangeneration.pool.GenerationRequestPool
+import it.unibo.jakta.agents.bdi.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
-import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
 import it.unibo.tuprolog.utils.Taggable
 import java.util.*
 
@@ -60,7 +60,7 @@ interface Agent : Taggable<Agent> {
         events: EventQueue = this.context.events,
         planLibrary: PlanLibrary = this.context.planLibrary,
         internalActions: Map<String, InternalAction> = this.context.internalActions,
-        generationRequests: GenerationRequestPool = this.context.generationRequests,
+        generationProcess: GenerationProcessRegistry = this.context.generationProcesses,
         intentions: IntentionPool = this.context.intentions,
         templates: List<LiteratePrologTemplate> = this.context.templates,
     ) = of(
@@ -74,7 +74,7 @@ interface Agent : Taggable<Agent> {
             events,
             planLibrary,
             internalActions,
-            generationRequests,
+            generationProcess,
             intentions,
             templates,
         ),
@@ -93,7 +93,7 @@ interface Agent : Taggable<Agent> {
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
             internalActions: Map<String, InternalAction> = InternalActions.default(),
-            generationRequests: GenerationRequestPool = GenerationRequestPool.empty(),
+            generationProcess: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
             intentions: IntentionPool = IntentionPool.empty(),
             templates: List<LiteratePrologTemplate> = emptyList(),
         ): Agent = AgentImpl(
@@ -102,7 +102,7 @@ interface Agent : Taggable<Agent> {
                 events,
                 planLibrary,
                 internalActions,
-                generationRequests,
+                generationProcess,
                 intentions,
                 templates,
             ),

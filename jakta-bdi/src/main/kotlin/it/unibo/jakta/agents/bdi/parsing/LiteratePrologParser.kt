@@ -1,8 +1,5 @@
-package it.unibo.jakta.agents.bdi
+package it.unibo.jakta.agents.bdi.parsing
 
-import it.unibo.jakta.agents.bdi.Jakta.JaktaGoalKeyword
-import it.unibo.jakta.agents.bdi.Jakta.JaktaTriggerKeyword
-import it.unibo.jakta.agents.bdi.Jakta.parseStruct
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
@@ -22,7 +19,11 @@ import it.unibo.jakta.agents.bdi.goals.RemoveBelief
 import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
-import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
+import it.unibo.jakta.agents.bdi.parsing.ParsingUtils.GoalKeyword
+import it.unibo.jakta.agents.bdi.parsing.ParsingUtils.TriggerKeyword
+import it.unibo.jakta.agents.bdi.parsing.ParsingUtils.TriggerKeyword.Companion.extractTriggerType
+import it.unibo.jakta.agents.bdi.parsing.ParsingUtils.parseStruct
+import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.parsing.ParseException
 
@@ -54,18 +55,24 @@ object LiteratePrologParser {
     }
 
     fun tangleTrigger(input: String, templates: List<LiteratePrologTemplate> = emptyList()): Trigger? {
-        val keyword = JaktaTriggerKeyword.extractTriggerType(input)
+        val keyword = extractTriggerType(input)
         return if (keyword != null) {
             val processedInput = input.removePrefix(keyword.toString().lowercase())
             val parsedInput = tangleStruct(processedInput, templates)
             when (keyword) {
-                JaktaTriggerKeyword.Achieve -> parsedInput?.let { AchievementGoalInvocation(it) }
-                JaktaTriggerKeyword.AchieveFailure -> parsedInput?.let { AchievementGoalFailure(it) }
-                JaktaTriggerKeyword.Test -> parsedInput?.let { TestGoalInvocation(it) }
-                JaktaTriggerKeyword.TestFailure -> parsedInput?.let { TestGoalFailure(it) }
-                JaktaTriggerKeyword.AddBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseAddition(it) }
-                JaktaTriggerKeyword.RemoveBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseRemoval(it) }
-                JaktaTriggerKeyword.UpdateBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseUpdate(it) }
+                TriggerKeyword.Achieve -> parsedInput?.let { AchievementGoalInvocation(it) }
+                TriggerKeyword.AchieveFailure -> parsedInput?.let { AchievementGoalFailure(it) }
+                TriggerKeyword.Test -> parsedInput?.let { TestGoalInvocation(it) }
+                TriggerKeyword.TestFailure -> parsedInput?.let { TestGoalFailure(it) }
+                TriggerKeyword.AddBelief -> parsedInput?.let { Belief.from(it) }?.let {
+                    BeliefBaseAddition(it)
+                }
+                TriggerKeyword.RemoveBelief -> parsedInput?.let { Belief.from(it) }?.let {
+                    BeliefBaseRemoval(it)
+                }
+                TriggerKeyword.UpdateBelief -> parsedInput?.let { Belief.from(it) }?.let {
+                    BeliefBaseUpdate(it)
+                }
             }
         } else {
             null
@@ -73,34 +80,25 @@ object LiteratePrologParser {
     }
 
     fun tangleGoal(input: String, templates: List<LiteratePrologTemplate> = emptyList()): Goal? {
-        val keyword = JaktaGoalKeyword.extractGoalType(input)
+        val keyword = GoalKeyword.extractGoalType(input)
         return if (keyword != null) {
             val processedInput = input.removePrefix(keyword.toString().lowercase())
             when (keyword) {
-                JaktaGoalKeyword.Achieve -> tangleStruct(processedInput, templates)?.let { Achieve.of(it) }
-                JaktaGoalKeyword.Test -> tangleStruct(
-                    processedInput,
-                    templates,
-                )?.let { Belief.from(it) }?.let { Test.of(it) }
-                JaktaGoalKeyword.Spawn -> tangleGoal(processedInput, templates)?.let { Spawn.of(it) }
-                JaktaGoalKeyword.Generate -> tangleStruct(
-                    processedInput,
-                    templates,
-                )?.let { Generate.of(it, processedInput) }
-                JaktaGoalKeyword.Add -> tangleStruct(
-                    processedInput,
-                    templates,
-                )?.let { Belief.from(it) }?.let { AddBelief.of(it) }
-                JaktaGoalKeyword.Remove -> tangleStruct(
-                    processedInput,
-                    templates,
-                )?.let { Belief.from(it) }?.let { RemoveBelief.of(it) }
-                JaktaGoalKeyword.Update -> tangleStruct(
-                    processedInput,
-                    templates,
-                )?.let { Belief.from(it) }?.let { UpdateBelief.of(it) }
-                JaktaGoalKeyword.Execute -> tangleStruct(processedInput, templates)?.let { Act.of(it) }
-                JaktaGoalKeyword.Iact -> tangleStruct(processedInput, templates)?.let { ActInternally.of(it) }
+                GoalKeyword.Spawn -> tangleGoal(processedInput, templates)?.let { Spawn.of(it) }
+                else -> {
+                    val parsedInput = tangleStruct(processedInput, templates)
+                    when (keyword) {
+                        GoalKeyword.Achieve -> parsedInput?.let { Achieve.of(it) }
+                        GoalKeyword.Test -> parsedInput?.let { Belief.from(it) }?.let { Test.of(it) }
+                        GoalKeyword.Generate -> parsedInput?.let { Generate.of(it, processedInput) }
+                        GoalKeyword.Add -> parsedInput?.let { Belief.from(it) }?.let { AddBelief.of(it) }
+                        GoalKeyword.Remove -> parsedInput?.let { Belief.from(it) }?.let { RemoveBelief.of(it) }
+                        GoalKeyword.Update -> parsedInput?.let { Belief.from(it) }?.let { UpdateBelief.of(it) }
+                        GoalKeyword.Execute -> parsedInput?.let { Act.of(it) }
+                        GoalKeyword.Iact -> parsedInput?.let { ActInternally.of(it) }
+                        else -> null
+                    }
+                }
             }
         } else {
             null
@@ -116,9 +114,9 @@ object LiteratePrologParser {
         }
     }
 
-    /*
-     * Always try first to parse a struct from a template if any are available.
-     * If the parsing fails, try to parse the string as prolog.
+    /**
+     * Tries first to parse a struct from a template if any are available.
+     * If the parsing fails, tries to parse the string as prolog.
      */
     fun tangleStruct(
         input: String,
@@ -137,8 +135,15 @@ object LiteratePrologParser {
         return structsFromFragments.ifEmpty { tangleStruct(input, templates)?.let { listOf(it) } ?: emptyList() }
     }
 
-    private fun buildFact(input: String, templates: List<LiteratePrologTemplate>): String? =
-        templates.asSequence().filter { it.matches(input) }.firstOrNull()?.buildPredicate(input)
+    private fun buildFact(input: String, templates: List<LiteratePrologTemplate>): String? {
+        val matchingTemplate = templates.asSequence().filter { it.matches(input) }.firstOrNull()
+        return if (matchingTemplate != null) {
+            val slotValues = matchingTemplate.extractSlotValues(input)
+            matchingTemplate.buildGroundTerm(slotValues)
+        } else {
+            null
+        }
+    }
 
     private fun tangleFact(input: String, templates: List<LiteratePrologTemplate>): Struct? =
         buildFact(input, templates)?.let { tangleStruct(it) }
@@ -150,7 +155,7 @@ object LiteratePrologParser {
      *
      * Also rewrite the goal to use the variable declared in the guard.
      *
-     * For example, given the string `count(0, [n+1])`
+     * For example, given the string `count(0, [n + 1])`
      * return `count(0, [n])` and `[n1] is [n] + 1`
      */
     fun processArithmeticExpressions(input: String): Pair<String, List<String>> {

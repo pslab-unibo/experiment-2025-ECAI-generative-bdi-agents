@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.plangeneration.Common.getStrategyFromID
-import it.unibo.jakta.agents.bdi.plangeneration.pool.GenerationRequestPool
+import it.unibo.jakta.agents.bdi.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.plans.PlanID
 
 object FeedbackUpdater {
@@ -12,12 +12,11 @@ object FeedbackUpdater {
         generatingPlanID: PlanID?,
         executionResult: ExecutionResult,
         logger: KLogger?,
-        predicate: (ExecutionFeedback) -> Boolean = { true },
     ): ExecutionResult =
-        if (executionResult.feedback != null && predicate(executionResult.feedback)) {
+        if (executionResult.feedback != null) {
             executionResult.copy(
                 executionResult.newAgentContext.copy(
-                    generationRequests = provideFeedback(
+                    generationProcess = provideFeedback(
                         generatingPlanID,
                         executionResult.feedback,
                         executionResult.newAgentContext,
@@ -34,25 +33,25 @@ object FeedbackUpdater {
         feedback: ExecutionFeedback,
         context: AgentContext,
         logger: KLogger?,
-    ): GenerationRequestPool {
+    ): GenerationProcessRegistry {
         return if (generatedPlanID != null) {
             val strategy = getStrategyFromID(generatedPlanID, context.planLibrary)
             if (strategy != null) {
-                val state = context.generationRequests[generatedPlanID]
+                val state = context.generationProcesses[generatedPlanID]
                 if (state != null) {
                     val updatedState = strategy.provideGenerationFeedback(state, feedback)
-                    context.generationRequests.updateRequest(generatedPlanID, updatedState)
+                    context.generationProcesses.updateGenerationProcess(generatedPlanID, updatedState)
                 } else {
                     logger?.error { "No generation state found for planID=$generatedPlanID" }
-                    context.generationRequests
+                    context.generationProcesses
                 }
             } else {
                 logger?.error { "No generation strategy found for planID=$generatedPlanID" }
-                context.generationRequests
+                context.generationProcesses
             }
         } else {
             logger?.error { "No generating plan with id=$generatedPlanID found in the current intention" }
-            context.generationRequests
+            context.generationProcesses
         }
     }
 }

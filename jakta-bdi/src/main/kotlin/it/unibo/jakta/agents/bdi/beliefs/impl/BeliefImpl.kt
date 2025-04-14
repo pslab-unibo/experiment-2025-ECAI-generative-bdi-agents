@@ -1,14 +1,19 @@
 package it.unibo.jakta.agents.bdi.beliefs.impl
 
 import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 
-internal class BeliefImpl(override val rule: Rule) : Belief {
+internal class BeliefImpl(
+    override val rule: Rule,
+    override val template: LiteratePrologTemplate?,
+    override val slotValues: List<Pair<String, String>>,
+) : Belief {
 
     override fun applySubstitution(substitution: Substitution): Belief =
-        BeliefImpl(rule.apply(substitution).castToRule())
+        BeliefImpl(rule.apply(substitution).castToRule(), template, slotValues)
 
     override fun hashCode(): Int = rule.hashCode()
 

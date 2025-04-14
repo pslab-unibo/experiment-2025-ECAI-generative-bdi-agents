@@ -15,15 +15,15 @@ class EventManager(private val logger: KLogger?) {
     fun updateEvents(
         context: AgentContext,
         planID: PlanID,
-        updatedIntention: Intention,
+        intention: Intention,
         planGenResult: PlanGenerationResult,
     ): List<Event> =
-        if (!planGenResult.generationState.isGenerationEndConfirmed) {
-            val newEvent = Event.of(planID.trigger, updatedIntention)
+        if (planGenResult.generationState.isGenerationEndConfirmed) {
+            context.events
+        } else {
+            val newEvent = Event.of(planID.trigger, intention)
             context.events + newEvent.also {
                 logger?.implementation(EventChange(newEvent, ContextUpdate.ADDITION))
             }
-        } else {
-            context.events
         }
 }

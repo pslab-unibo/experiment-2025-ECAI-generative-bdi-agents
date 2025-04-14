@@ -23,7 +23,7 @@ interface PartialPlan : LiteratePlan {
 
     companion object {
         fun of(
-            id: PlanID,
+            id: PlanID? = null,
             trigger: Trigger,
             guard: Struct = Truth.TRUE,
             goals: List<Goal>,
@@ -34,7 +34,7 @@ interface PartialPlan : LiteratePlan {
             literateGoals: String? = null,
         ): PartialPlan =
             PartialPlanImpl(
-                id,
+                id ?: PlanID.of(trigger, guard),
                 trigger,
                 guard,
                 goals,
