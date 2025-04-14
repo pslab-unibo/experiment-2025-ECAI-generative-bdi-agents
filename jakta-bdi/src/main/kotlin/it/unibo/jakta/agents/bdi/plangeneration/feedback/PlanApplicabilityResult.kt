@@ -1,4 +1,4 @@
-package it.unibo.jakta.agents.bdi.plans.feedback
+package it.unibo.jakta.agents.bdi.plangeneration.feedback
 
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.tuprolog.core.Struct

@@ -7,8 +7,10 @@ import it.unibo.jakta.agents.bdi.context.impl.AgentContextImpl
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
+import it.unibo.jakta.agents.bdi.plangeneration.pool.GenerationRequestPool
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
+import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
 
 /**
  * The Context is the actual state of a BDI Agent's structures.
@@ -24,17 +26,31 @@ interface AgentContext {
     /** [Plan]s collection of the BDI Agent */
     val planLibrary: PlanLibrary
 
+    val internalActions: Map<String, InternalAction>
+
+    val generationRequests: GenerationRequestPool
+
     val intentions: IntentionPool
 
-    val internalActions: Map<String, InternalAction>
+    val templates: List<LiteratePrologTemplate>
 
     fun copy(
         beliefBase: BeliefBase = this.beliefBase,
         events: EventQueue = this.events,
         planLibrary: PlanLibrary = this.planLibrary,
-        intentions: IntentionPool = this.intentions,
         internalActions: Map<String, InternalAction> = this.internalActions,
-    ): AgentContext = AgentContextImpl(beliefBase, events, planLibrary, internalActions, intentions)
+        generationRequests: GenerationRequestPool = this.generationRequests,
+        intentions: IntentionPool = this.intentions,
+        templates: List<LiteratePrologTemplate> = this.templates,
+    ): AgentContext = AgentContextImpl(
+        beliefBase,
+        events,
+        planLibrary,
+        internalActions,
+        generationRequests,
+        intentions,
+        templates,
+    )
 
     companion object {
         fun of(
@@ -42,6 +58,17 @@ interface AgentContext {
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
             internalActions: Map<String, InternalAction> = InternalActions.default(),
-        ): AgentContext = AgentContextImpl(beliefBase, events, planLibrary, internalActions)
+            generationRequests: GenerationRequestPool = GenerationRequestPool.empty(),
+            intentions: IntentionPool = IntentionPool.empty(),
+            templates: List<LiteratePrologTemplate> = emptyList(),
+        ): AgentContext = AgentContextImpl(
+            beliefBase,
+            events,
+            planLibrary,
+            internalActions,
+            generationRequests,
+            intentions,
+            templates,
+        )
     }
 }

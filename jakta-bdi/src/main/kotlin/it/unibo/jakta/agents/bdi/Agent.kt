@@ -10,9 +10,12 @@ import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.impl.AgentImpl
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
+import it.unibo.jakta.agents.bdi.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
+import it.unibo.jakta.agents.bdi.plangeneration.pool.GenerationRequestPool
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
-import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
+import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
 import it.unibo.tuprolog.utils.Taggable
 import java.util.*
 
@@ -22,9 +25,11 @@ interface Agent : Taggable<Agent> {
 
     val name: String
 
-    val logger: KLogger?
-
     val generationStrategy: GenerationStrategy?
+
+    val loggingConfig: LoggingConfig?
+
+    val logger: KLogger?
 
     /** Snapshot of Agent's Actual State */
     val context: AgentContext
@@ -38,50 +43,90 @@ interface Agent : Taggable<Agent> {
     /** Intention Selection Function */
     fun scheduleIntention(intentions: IntentionPool): SchedulingResult
 
-    fun copy(agentContext: AgentContext = this.context) =
-        of(this.agentID, this.name, this.logger, this.generationStrategy, agentContext.copy())
+    fun copy(agentContext: AgentContext = this.context) = of(
+        this.agentID,
+        this.name,
+        this.generationStrategy,
+        this.loggingConfig,
+        this.logger,
+        agentContext.copy(),
+    )
 
     fun copy(
-        logger: KLogger? = this.logger,
         generationStrategy: GenerationStrategy? = this.generationStrategy,
+        loggingConfig: LoggingConfig? = this.loggingConfig,
+        logger: KLogger? = this.logger,
         beliefBase: BeliefBase = this.context.beliefBase,
         events: EventQueue = this.context.events,
         planLibrary: PlanLibrary = this.context.planLibrary,
-        intentions: IntentionPool = this.context.intentions,
         internalActions: Map<String, InternalAction> = this.context.internalActions,
+        generationRequests: GenerationRequestPool = this.context.generationRequests,
+        intentions: IntentionPool = this.context.intentions,
+        templates: List<LiteratePrologTemplate> = this.context.templates,
     ) = of(
         this.agentID,
         this.name,
-        logger,
         generationStrategy,
-        context.copy(beliefBase, events, planLibrary, intentions, internalActions),
+        loggingConfig,
+        logger,
+        context.copy(
+            beliefBase,
+            events,
+            planLibrary,
+            internalActions,
+            generationRequests,
+            intentions,
+            templates,
+        ),
     )
 
     companion object {
         fun empty(): Agent = AgentImpl(AgentContext.of())
+
         fun of(
             agentID: AgentID = AgentID(),
             name: String = "Agent-" + UUID.randomUUID(),
-            logger: KLogger? = null,
             generationStrategy: GenerationStrategy? = null,
+            loggingConfig: LoggingConfig? = null,
+            logger: KLogger? = null,
             beliefBase: BeliefBase = BeliefBase.empty(),
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
             internalActions: Map<String, InternalAction> = InternalActions.default(),
+            generationRequests: GenerationRequestPool = GenerationRequestPool.empty(),
+            intentions: IntentionPool = IntentionPool.empty(),
+            templates: List<LiteratePrologTemplate> = emptyList(),
         ): Agent = AgentImpl(
-            AgentContext.of(beliefBase, events, planLibrary, internalActions),
+            AgentContext.of(
+                beliefBase,
+                events,
+                planLibrary,
+                internalActions,
+                generationRequests,
+                intentions,
+                templates,
+            ),
             agentID,
             name,
-            logger,
             generationStrategy,
+            loggingConfig,
+            logger,
         )
 
         fun of(
             agentID: AgentID = AgentID(),
             name: String = "Agent-" + UUID.randomUUID(),
-            logger: KLogger? = null,
             generationStrategy: GenerationStrategy? = null,
+            loggingConfig: LoggingConfig? = null,
+            logger: KLogger? = null,
             agentContext: AgentContext,
-        ): Agent = AgentImpl(agentContext, agentID, name, logger, generationStrategy)
+        ): Agent = AgentImpl(
+            agentContext,
+            agentID,
+            name,
+            generationStrategy,
+            loggingConfig,
+            logger,
+        )
     }
 }

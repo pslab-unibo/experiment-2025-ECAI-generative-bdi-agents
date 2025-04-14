@@ -1,131 +1,176 @@
 package it.unibo.jakta.agents.bdi
 
-import it.unibo.jakta.agents.bdi.Jakta.capitalize
+import it.unibo.jakta.agents.bdi.Jakta.JaktaGoalKeyword
+import it.unibo.jakta.agents.bdi.Jakta.JaktaTriggerKeyword
 import it.unibo.jakta.agents.bdi.Jakta.parseStruct
 import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
+import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
+import it.unibo.jakta.agents.bdi.events.BeliefBaseAddition
+import it.unibo.jakta.agents.bdi.events.BeliefBaseRemoval
+import it.unibo.jakta.agents.bdi.events.BeliefBaseUpdate
+import it.unibo.jakta.agents.bdi.events.TestGoalFailure
+import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
+import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.Act
 import it.unibo.jakta.agents.bdi.goals.ActInternally
 import it.unibo.jakta.agents.bdi.goals.AddBelief
+import it.unibo.jakta.agents.bdi.goals.Generate
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.goals.RemoveBelief
 import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
+import it.unibo.jakta.nlp.literateprolog.LiteratePrologTemplate
 import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.Term
 import it.unibo.tuprolog.core.parsing.ParseException
 
 object LiteratePrologParser {
-    val expressionRegex = "@(\\w+)".toRegex()
-    val roundParenthesesRegex = """\((.+)\)""".toRegex()
+    private data class ParseResult(
+        val struct: Struct? = null,
+        val errorMsg: String? = null,
+    )
 
-    private fun tangleProlog(
-        input: String,
-        delimiterType: DelimiterType = DelimiterType.BACKTICKS,
-    ): List<String> {
-        val delimiterRegex = when (delimiterType) {
-            DelimiterType.SQUARE_BRACKETS -> "\\[([^]]+)]".toRegex()
-            DelimiterType.BACKTICKS -> "`([^`]+)`".toRegex()
-        }
-        val terms = delimiterRegex.findAll(input).map { it.groupValues[1] }.toList()
-        val termsWithoutAt = terms.filterNot { it.startsWith("@") }
-        return termsWithoutAt.map {
-            it.replace(expressionRegex) { match -> match.groupValues[1].capitalize() }
-        }
-    }
+    private val prologFragmentRegex = "`([^`]+)`".toRegex()
 
-    fun extractContentInsideParens(
-        input: String,
-        parensRegex: Regex = roundParenthesesRegex,
-    ): String {
-        val res = parensRegex.find(input)?.groupValues?.get(1) ?: input
-        return "$res."
-    }
-
-    private fun processTerm(term: String): ParseResult =
-        parse(extractContentInsideParens(term))
+    fun tangleProgram(input: String): List<String> =
+        prologFragmentRegex.findAll(input).map { it.groupValues[1] }.toList()
 
     private fun parse(input: String): ParseResult =
         try {
-            val struct = parseStruct(input)
-            ParseResult(struct)
+            val processedInput = convertVariables(input)
+            val parsedStruct = parseStruct(processedInput)
+            ParseResult(parsedStruct)
         } catch (e: ParseException) {
             ParseResult(errorMsg = e.message)
         }
 
-    fun tanglePlanBody(input: String): List<Goal> =
-        tangleProlog(input).mapNotNull { term ->
-            when {
-                term.startsWith("achieve") -> processTerm(term).struct?.let { Achieve.Companion.of(it) }
-                term.startsWith("spawn") -> processTerm(term).struct?.let { Spawn.Companion.of(it) }
-                term.startsWith("test") -> processTerm(term).struct?.let {
-                    Belief.Companion.from(it)
-                }?.let { Test.Companion.of(it) }
-                term.startsWith("add") -> processTerm(term).struct?.let {
-                    Belief.Companion.from(it)
-                }?.let { AddBelief.Companion.of(it) }
-                term.startsWith("remove") -> processTerm(term).struct?.let {
-                    Belief.Companion.from(it)
-                }?.let { RemoveBelief.Companion.of(it) }
-                term.startsWith("update") -> processTerm(term).struct?.let {
-                    Belief.Companion.from(it)
-                }?.let { UpdateBelief.Companion.of(it) }
-                term.startsWith("execute") -> processTerm(term).struct?.let { Act.Companion.of(it) }
-                term.startsWith("iact") -> processTerm(term).struct?.let { ActInternally.Companion.of(it) }
-                else -> null
-            }
+    private fun convertVariables(content: String): String {
+        val regex = Regex("\\[(\\w+)]")
+        return regex.replace(content) { match ->
+            match.groupValues[1].uppercase()
         }
+    }
+
+    fun tangleTrigger(input: String, templates: List<LiteratePrologTemplate> = emptyList()): Trigger? {
+        val keyword = JaktaTriggerKeyword.extractTriggerType(input)
+        return if (keyword != null) {
+            val processedInput = input.removePrefix(keyword.toString().lowercase())
+            val parsedInput = tangleStruct(processedInput, templates)
+            when (keyword) {
+                JaktaTriggerKeyword.Achieve -> parsedInput?.let { AchievementGoalInvocation(it) }
+                JaktaTriggerKeyword.AchieveFailure -> parsedInput?.let { AchievementGoalFailure(it) }
+                JaktaTriggerKeyword.Test -> parsedInput?.let { TestGoalInvocation(it) }
+                JaktaTriggerKeyword.TestFailure -> parsedInput?.let { TestGoalFailure(it) }
+                JaktaTriggerKeyword.AddBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseAddition(it) }
+                JaktaTriggerKeyword.RemoveBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseRemoval(it) }
+                JaktaTriggerKeyword.UpdateBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseUpdate(it) }
+            }
+        } else {
+            null
+        }
+    }
+
+    fun tangleGoal(input: String, templates: List<LiteratePrologTemplate> = emptyList()): Goal? {
+        val keyword = JaktaGoalKeyword.extractGoalType(input)
+        return if (keyword != null) {
+            val processedInput = input.removePrefix(keyword.toString().lowercase())
+            when (keyword) {
+                JaktaGoalKeyword.Achieve -> tangleStruct(processedInput, templates)?.let { Achieve.of(it) }
+                JaktaGoalKeyword.Test -> tangleStruct(
+                    processedInput,
+                    templates,
+                )?.let { Belief.from(it) }?.let { Test.of(it) }
+                JaktaGoalKeyword.Spawn -> tangleGoal(processedInput, templates)?.let { Spawn.of(it) }
+                JaktaGoalKeyword.Generate -> tangleStruct(
+                    processedInput,
+                    templates,
+                )?.let { Generate.of(it, processedInput) }
+                JaktaGoalKeyword.Add -> tangleStruct(
+                    processedInput,
+                    templates,
+                )?.let { Belief.from(it) }?.let { AddBelief.of(it) }
+                JaktaGoalKeyword.Remove -> tangleStruct(
+                    processedInput,
+                    templates,
+                )?.let { Belief.from(it) }?.let { RemoveBelief.of(it) }
+                JaktaGoalKeyword.Update -> tangleStruct(
+                    processedInput,
+                    templates,
+                )?.let { Belief.from(it) }?.let { UpdateBelief.of(it) }
+                JaktaGoalKeyword.Execute -> tangleStruct(processedInput, templates)?.let { Act.of(it) }
+                JaktaGoalKeyword.Iact -> tangleStruct(processedInput, templates)?.let { ActInternally.of(it) }
+            }
+        } else {
+            null
+        }
+    }
+
+    fun tangleGoals(input: String, templates: List<LiteratePrologTemplate> = emptyList()): List<Goal> {
+        val structsInsideBackticks = tangleProgram(input).mapNotNull { tangleGoal(it, templates) }
+        return if (structsInsideBackticks.isNotEmpty()) {
+            structsInsideBackticks
+        } else {
+            tangleGoal(input)?.let { listOf(it) } ?: emptyList()
+        }
+    }
+
+    /*
+     * Always try first to parse a struct from a template if any are available.
+     * If the parsing fails, try to parse the string as prolog.
+     */
+    fun tangleStruct(
+        input: String,
+        templates: List<LiteratePrologTemplate> = emptyList(),
+    ): Struct? = if (templates.isNotEmpty()) {
+        tangleFact(input, templates) ?: parse(input).struct
+    } else {
+        parse(input).struct
+    }
+
+    fun tangleStructs(
+        input: String,
+        templates: List<LiteratePrologTemplate> = emptyList(),
+    ): List<Struct> {
+        val structsFromFragments = tangleProgram(input).mapNotNull { tangleStruct(it, templates) }
+        return structsFromFragments.ifEmpty { tangleStruct(input, templates)?.let { listOf(it) } ?: emptyList() }
+    }
+
+    private fun buildFact(input: String, templates: List<LiteratePrologTemplate>): String? =
+        templates.asSequence().filter { it.matches(input) }.firstOrNull()?.buildPredicate(input)
+
+    private fun tangleFact(input: String, templates: List<LiteratePrologTemplate>): Struct? =
+        buildFact(input, templates)?.let { tangleStruct(it) }
 
     /**
-     * Parse a fragment of tangled Prolog code to a [Struct].
-     * If the fragment is made of a single [Struct], return it.
-     * If the fragment is made of multiple [Struct]s, put all of them in `and`
-     * and return a single [Struct].
+     * Match expressions of type `variable operator number` in the given
+     * input and create an additional string representing a variable declaration
+     * to be added for each match.
+     *
+     * Also rewrite the goal to use the variable declared in the guard.
+     *
+     * For example, given the string `count(0, [n+1])`
+     * return `count(0, [n])` and `[n1] is [n] + 1`
      */
-    fun tangleStruct(literateProgram: String): Struct? {
-        val program = tangleProlog(literateProgram)
-        return if (program.isEmpty()) {
-            null
-        } else {
-            val structs = program.mapNotNull { parse(it).struct }
-            if (structs.isEmpty()) {
-                null
-            } else if (structs.size == 1) {
-                structs[0]
-            } else {
-                structs.toLeftNestedAnd()?.castToStruct()
-//                Tuple.Companion.wrapIfNeeded(structs).castToStruct()
-            }
-        }
-    }
+    fun processArithmeticExpressions(input: String): Pair<String, List<String>> {
+        val pattern = Regex("""(\w+)\s*([+\-*/%^]|>=|<=|>|<|\*\*)\s*(\d+)""")
+        val matches = pattern.findAll(input)
 
-    fun List<Term>.toLeftNestedAnd(): Term? {
-        return when (this.size) {
-            0 -> null
-            1 -> this[0]
-            else -> {
-                // Fold the list into a nested structure
-                this.drop(1).fold(this[0]) { acc, term ->
-                    Struct.of("&", acc, term)
-                }
-            }
-        }
-    }
+        val extraGuards = mutableListOf<String>()
+        var processedGoal = input
 
-    enum class DelimiterType {
-        SQUARE_BRACKETS,
-        BACKTICKS,
-    }
+        for (match in matches) {
+            val variable = match.groupValues[1]
+            val operator = match.groupValues[2]
+            val number = match.groupValues[3]
 
-    fun String.wrapWithDelimiters(delimiterType: DelimiterType = DelimiterType.BACKTICKS): String =
-        when (delimiterType) {
-            DelimiterType.SQUARE_BRACKETS -> "[$this]"
-            DelimiterType.BACKTICKS -> "`$this`"
+            processedGoal = processedGoal.replace(match.value, "${variable}1")
+
+            val output2 = "[${variable}1] is [$variable] $operator $number"
+            extraGuards.add(output2)
         }
+
+        return Pair(processedGoal, extraGuards)
+    }
 }
-
-data class ParseResult(
-    val struct: Struct? = null,
-    val errorMsg: String? = null,
-)

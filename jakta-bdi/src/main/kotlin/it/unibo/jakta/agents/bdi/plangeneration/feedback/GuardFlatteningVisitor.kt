@@ -1,13 +1,13 @@
-package it.unibo.jakta.agents.bdi.plans.feedback
+package it.unibo.jakta.agents.bdi.plangeneration.feedback
 
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Term
 import it.unibo.tuprolog.core.visitors.DefaultTermVisitor
 
-class GuardFlatteningVisitor : DefaultTermVisitor<List<Term>>() {
-    override fun defaultValue(term: Term): List<Term> = listOf(term)
+class GuardFlatteningVisitor : DefaultTermVisitor<List<Struct>>() {
+    override fun defaultValue(term: Term): List<Struct> = listOf(term.castToStruct())
 
-    override fun visitStruct(term: Struct): List<Term> {
+    override fun visitStruct(term: Struct): List<Struct> {
         if (term.functor == "&" && term.arity == 2) {
             val leftTerms = term.args[0].accept(this)
             val rightTerms = term.args[1].accept(this)
@@ -17,6 +17,6 @@ class GuardFlatteningVisitor : DefaultTermVisitor<List<Term>>() {
     }
 
     companion object {
-        fun Term.flattenAnd(): List<Term> = this.accept(GuardFlatteningVisitor())
+        fun Struct.flattenAnd(): List<Struct> = this.accept(GuardFlatteningVisitor())
     }
 }

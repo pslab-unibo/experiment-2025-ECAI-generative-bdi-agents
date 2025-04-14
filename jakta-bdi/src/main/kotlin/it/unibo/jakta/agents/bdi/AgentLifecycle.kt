@@ -19,6 +19,9 @@ import it.unibo.jakta.agents.fsm.Activity
 
 /** BDI Agent definition*/
 interface AgentLifecycle {
+
+    val agent: Agent
+
     /**
      * STEP 1 of reasoning cycle: Belief Update Function.
      * This function defines how to merge new [perceptions] into the current [beliefBase]
@@ -120,7 +123,7 @@ interface AgentLifecycle {
         environment: Environment,
         controller: Activity.Controller? = null,
     ): Iterable<EnvironmentChange> {
-        sense(environment, controller)
+        sense(environment)
         deliberate(environment)
         return act(environment)
     }
@@ -134,10 +137,7 @@ interface AgentLifecycle {
      *  @param environment the [Environment]
      *  @param controller [Activity.Controller] that manages agent's execution
      */
-    fun sense(
-        environment: Environment,
-        controller: Activity.Controller?,
-    )
+    fun sense(environment: Environment)
 
     /** Performs the reason phase of the reasoning cycle, in particular:
      *  - STEP5: Selecting an Event

@@ -16,9 +16,24 @@ interface PlanLibrary {
     /** @return all the applicable [Plan]s in the agent with the specified [BeliefBase] */
     fun applicablePlans(event: Event, beliefBase: BeliefBase): PlanLibrary
 
+    fun getPlan(planID: PlanID): Plan?
+
     fun addPlan(plan: Plan): PlanLibrary
 
+    fun addPlan(planID: PlanID): PlanLibrary
+
     fun removePlan(plan: Plan): PlanLibrary
+
+    fun removePlan(
+        planID: PlanID,
+        predicate: (Plan) -> Boolean = { true },
+    ): PlanLibrary
+
+    fun updatePlan(plan: Plan): PlanLibrary
+
+    // Do not add plans with the same context as previous ones.
+    operator fun plus(other: PlanLibrary) =
+        of((this.plans + other.plans).distinctBy { it.id })
 
     companion object {
         fun of(plans: List<Plan>): PlanLibrary = PlanLibraryImpl(plans)

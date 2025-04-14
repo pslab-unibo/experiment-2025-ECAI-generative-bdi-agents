@@ -1,39 +1,34 @@
 package it.unibo.jakta.agents.bdi.plans
 
-import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.events.AchievementGoalTrigger
-import it.unibo.jakta.agents.bdi.events.BeliefBaseRevision
-import it.unibo.jakta.agents.bdi.events.TestGoalTrigger
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.EmptyGoal
+import it.unibo.jakta.agents.bdi.goals.Generate
 import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.goals.PlanGenerationStepGoal
-import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.tuprolog.core.Struct
-import kotlin.reflect.KClass
 
 class PlanFactory(
-    private val trigger: Struct,
+    private val trigger: Trigger,
     private val goals: List<Goal>,
     private val guard: Struct,
-    private val generationStrategy: GenerationStrategy?,
-    private val generate: Boolean,
-    private val failure: Boolean,
-    private val literateTrigger: String?,
-    private val literateGuard: String?,
-    private val literateGoals: String?,
-    private val triggerType: KClass<out Trigger>,
+    private val generationStrategy: GenerationStrategy? = null,
+    private val parentPlanID: PlanID? = null,
+    private val literateTrigger: String? = null,
+    private val literateGuard: String? = null,
+    private val literateGoals: String? = null,
 ) {
 
     private fun determinePlanType(basicPlan: Plan): Plan {
         return when {
-            generationStrategy != null || generate || basicPlan.goals.any { it is PlanGenerationStepGoal } -> {
-                GeneratedPlan.of(
+            generationStrategy != null || basicPlan.goals.any { it is TrackGoalExecution || it is Generate } -> {
+                PartialPlan.of(
                     basicPlan.id,
                     basicPlan.trigger,
                     basicPlan.guard,
                     basicPlan.goals,
                     generationStrategy,
+                    parentPlanID,
                     literateTrigger,
                     literateGuard,
                     literateGoals,
@@ -56,34 +51,7 @@ class PlanFactory(
 
     fun build(): Plan {
         val goalsList = goals.ifEmpty { listOf(EmptyGoal()) }
-        val basicPlan = createPlan(goalsList)
+        val basicPlan = Plan.of(PlanID.of(trigger, guard), trigger, guard, goalsList)
         return determinePlanType(basicPlan)
-    }
-
-    private fun createPlan(goalsList: List<Goal>): Plan {
-        return when (triggerType) {
-            BeliefBaseRevision::class -> {
-                if (failure) {
-                    Plan.ofBeliefBaseRemoval(Belief.Companion.from(trigger), goalsList, guard)
-                } else {
-                    Plan.ofBeliefBaseAddition(Belief.Companion.from(trigger), goalsList, guard)
-                }
-            }
-            TestGoalTrigger::class -> {
-                if (failure) {
-                    Plan.ofTestGoalFailure(trigger, goalsList, guard)
-                } else {
-                    Plan.ofTestGoalInvocation(trigger, goalsList, guard)
-                }
-            }
-            AchievementGoalTrigger::class -> {
-                if (failure) {
-                    Plan.ofAchievementGoalFailure(trigger, goalsList, guard)
-                } else {
-                    Plan.ofAchievementGoalInvocation(trigger, goalsList, guard)
-                }
-            }
-            else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
-        }
     }
 }

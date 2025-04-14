@@ -16,7 +16,7 @@ internal data class LiteratePlanImpl(
     override val literateTrigger: String?,
     override val literateGuard: String?,
     override val literateGoals: String?,
-) : BasePlan(trigger, guard, goals, id), LiteratePlan {
+) : BasePlan(trigger, guard, goals), LiteratePlan {
 
     override fun applicablePlan(event: Event, beliefBase: BeliefBase): LiteratePlan =
         createApplicablePlan(event, beliefBase)?.let { (actualGuard, actualGoals) ->

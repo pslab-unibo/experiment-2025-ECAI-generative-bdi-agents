@@ -6,6 +6,6 @@ data class LiterateSignature(
     val signature: Signature,
     val description: String = "",
 ) {
-    val name: String = signature.name
+    val name: String = signature.name.trimIndent()
     val arity: Int = signature.arity
 }

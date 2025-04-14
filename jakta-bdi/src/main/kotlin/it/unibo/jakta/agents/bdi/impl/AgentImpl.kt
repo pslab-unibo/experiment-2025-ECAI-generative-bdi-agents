@@ -7,16 +7,18 @@ import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
+import it.unibo.jakta.agents.bdi.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
 import java.util.UUID
 
 internal data class AgentImpl(
     override val context: AgentContext,
     override val agentID: AgentID = AgentID(),
     override val name: String = "Agent-" + UUID.randomUUID(),
-    override val logger: KLogger? = null,
     override val generationStrategy: GenerationStrategy? = null,
+    override val loggingConfig: LoggingConfig? = null,
+    override val logger: KLogger? = null,
     override val tags: Map<String, Any> = emptyMap(),
 ) : Agent {
     override fun selectEvent(events: EventQueue) = events.firstOrNull()

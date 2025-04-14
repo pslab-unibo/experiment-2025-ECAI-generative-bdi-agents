@@ -11,6 +11,44 @@ import java.util.Locale
 
 object Jakta {
 
+    enum class JaktaTriggerKeyword {
+        Achieve, AchieveFailure, Test, TestFailure, AddBelief, RemoveBelief, UpdateBelief;
+
+        companion object {
+            fun extractTriggerType(input: String): JaktaTriggerKeyword? =
+                when {
+                    input.startsWith("achieve") -> Achieve
+                    input.startsWith("achieve failure") -> AchieveFailure
+                    input.startsWith("test") -> Test
+                    input.startsWith("test failure") -> TestFailure
+                    input.startsWith("belief addition") -> AddBelief
+                    input.startsWith("belief removal") -> RemoveBelief
+                    input.startsWith("belief update") -> UpdateBelief
+                    else -> null
+                }
+        }
+    }
+
+    enum class JaktaGoalKeyword {
+        Achieve, Test, Spawn, Generate, Add, Remove, Update, Execute, Iact;
+
+        companion object {
+            fun extractGoalType(input: String): JaktaGoalKeyword? =
+                when {
+                    input.startsWith("achieve") -> Achieve
+                    input.startsWith("test") -> Test
+                    input.startsWith("spawn") -> Spawn
+                    input.startsWith("generate") -> Generate
+                    input.startsWith("add") -> Add
+                    input.startsWith("remove") -> Remove
+                    input.startsWith("update") -> Update
+                    input.startsWith("execute") -> Execute
+                    input.startsWith("iact") -> Iact
+                    else -> null
+                }
+        }
+    }
+
     // fun convert1(struct: Struct): Term = struct.accept(jasonTo2p)
 
     val operators = OperatorSet(
@@ -24,7 +62,9 @@ object Jakta {
     )
 
     private val parser = TermParser.withOperators(OperatorSet.DEFAULT + operators)
+
     fun parseStruct(string: String): Struct = parser.parseStruct(string)
+
     fun parseClause(string: String): Clause = parser.parseClause(string)
 
     fun printAslSyntax(agent: Agent, prettyFormatted: Boolean = true) {
@@ -51,6 +91,26 @@ object Jakta {
 
     fun String.capitalize() = replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    }
+
+    fun List<Struct>.toLeftNestedAnd(): Struct? {
+        return when (this.size) {
+            0 -> null
+            1 -> this[0]
+            else -> {
+                this.drop(1).fold(this[0]) { acc, term ->
+                    Struct.of("&", acc, term)
+                }
+            }
+        }
+    }
+
+    fun String.wrapWithDelimiters(): String = "`$this`"
+
+    fun camelCase(input: String): String {
+        return input.split(' ').mapIndexed { index, word ->
+            if (index == 0) word.lowercase() else word.replaceFirstChar { it.uppercase() }
+        }.joinToString("").replace("'", "")
     }
 
     /**

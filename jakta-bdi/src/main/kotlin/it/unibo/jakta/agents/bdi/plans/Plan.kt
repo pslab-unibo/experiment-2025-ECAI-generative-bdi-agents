@@ -11,7 +11,7 @@ import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.plans.feedback.PlanApplicabilityResult
+import it.unibo.jakta.agents.bdi.plangeneration.feedback.PlanApplicabilityResult
 import it.unibo.jakta.agents.bdi.plans.impl.PlanImpl
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth
@@ -36,51 +36,61 @@ interface Plan {
     fun toActivationRecord(): ActivationRecord
 
     companion object {
-        fun of(id: PlanID? = null, trigger: Trigger, guard: Struct, goals: List<Goal>): Plan {
-            val id = id ?: PlanID.of(trigger)
-            return PlanImpl(id, trigger, guard, goals)
-        }
+        internal fun of(id: PlanID, trigger: Trigger, guard: Struct, goals: List<Goal>): Plan =
+            PlanImpl(id, trigger, guard, goals)
 
         fun ofBeliefBaseAddition(
             belief: Belief,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            id: PlanID? = null,
-        ): Plan = of(id, BeliefBaseAddition(belief), guard, goals)
+        ): Plan {
+            val trigger = BeliefBaseAddition(belief)
+            return of(PlanID.of(trigger, guard), trigger, guard, goals)
+        }
 
         fun ofBeliefBaseRemoval(
             belief: Belief,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            id: PlanID? = null,
-        ): Plan = of(id, BeliefBaseRemoval(belief), guard, goals)
+        ): Plan {
+            val trigger = BeliefBaseRemoval(belief)
+            return of(PlanID.of(trigger, guard), trigger, guard, goals)
+        }
 
         fun ofAchievementGoalInvocation(
             value: Struct,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            id: PlanID? = null,
-        ): Plan = of(id, AchievementGoalInvocation(value), guard, goals)
+        ): Plan {
+            val trigger = AchievementGoalInvocation(value)
+            return of(PlanID.of(trigger, guard), trigger, guard, goals)
+        }
 
         fun ofAchievementGoalFailure(
             value: Struct,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            id: PlanID? = null,
-        ): Plan = of(id, AchievementGoalFailure(value), guard, goals)
+        ): Plan {
+            val trigger = AchievementGoalFailure(value)
+            return of(PlanID.of(trigger, guard), trigger, guard, goals)
+        }
 
         fun ofTestGoalInvocation(
             value: Struct,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            id: PlanID? = null,
-        ): Plan = of(id, TestGoalInvocation(value), guard, goals)
+        ): Plan {
+            val trigger = TestGoalInvocation(value)
+            return of(PlanID.of(trigger, guard), trigger, guard, goals)
+        }
 
         fun ofTestGoalFailure(
             value: Struct,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
-            id: PlanID? = null,
-        ): Plan = of(id, TestGoalFailure(value), guard, goals)
+        ): Plan {
+            val trigger = TestGoalFailure(value)
+            return of(PlanID.of(trigger, guard), trigger, guard, goals)
+        }
     }
 }

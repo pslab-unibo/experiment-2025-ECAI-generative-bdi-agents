@@ -13,7 +13,7 @@ internal data class PlanImpl(
     override val trigger: Trigger,
     override val guard: Struct,
     override val goals: List<Goal>,
-) : BasePlan(trigger, guard, goals, id) {
+) : BasePlan(trigger, guard, goals) {
 
     override fun applicablePlan(event: Event, beliefBase: BeliefBase): Plan =
         createApplicablePlan(event, beliefBase)?.let { (actualGuard, actualGoals) ->
