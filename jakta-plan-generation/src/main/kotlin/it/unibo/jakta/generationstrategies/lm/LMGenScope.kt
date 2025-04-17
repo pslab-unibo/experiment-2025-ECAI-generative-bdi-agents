@@ -1,33 +1,21 @@
 package it.unibo.jakta.generationstrategies.lm
 
 import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_CONNECT_TIMEOUT
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_LM_SERVER_URL
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_MAX_TOKENS
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_MODEL_ID
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_REQUEST_TIMEOUT
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_SOCKET_TIMEOUT
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_TEMPERATURE
-import it.unibo.jakta.generationstrategies.lm.DefaultPlanGeneratorConfig.DEFAULT_TOKEN
+import it.unibo.jakta.generationstrategies.lm.configuration.DefaultGenerationConfig
+import it.unibo.jakta.generationstrategies.lm.configuration.LMGenerationConfig
+import it.unibo.jakta.generationstrategies.lm.configuration.LMInitialConfig
+import it.unibo.jakta.generationstrategies.lm.configuration.LanguageModelConfig
 import kotlin.time.Duration
 
-@JvmInline
-value class Remark(val value: String)
-
-data class LMGenScopeConfig(
-    val lmInitCfg: LMInitialConfig,
-    val lmGenCfg: LMGenerationConfig,
-)
-
-class LMGenScope : Builder<LMGenScopeConfig> {
-    var model: String = DEFAULT_MODEL_ID
-    var temperature: Double = DEFAULT_TEMPERATURE
-    var maxTokens: Int = DEFAULT_MAX_TOKENS
-    var url: String = DEFAULT_LM_SERVER_URL
-    var token: String = DEFAULT_TOKEN
-    var requestTimeout: Duration = DEFAULT_REQUEST_TIMEOUT
-    var connectTimeout: Duration = DEFAULT_CONNECT_TIMEOUT
-    var socketTimeout: Duration = DEFAULT_SOCKET_TIMEOUT
+class LMGenScope : Builder<LanguageModelConfig> {
+    var model: String = DefaultGenerationConfig.DEFAULT_MODEL_ID
+    var temperature: Double = DefaultGenerationConfig.DEFAULT_TEMPERATURE
+    var maxTokens: Int = DefaultGenerationConfig.DEFAULT_MAX_TOKENS
+    var url: String = DefaultGenerationConfig.DEFAULT_LM_SERVER_URL
+    var token: String = DefaultGenerationConfig.DEFAULT_TOKEN
+    var requestTimeout: Duration = DefaultGenerationConfig.DEFAULT_REQUEST_TIMEOUT
+    var connectTimeout: Duration = DefaultGenerationConfig.DEFAULT_CONNECT_TIMEOUT
+    var socketTimeout: Duration = DefaultGenerationConfig.DEFAULT_SOCKET_TIMEOUT
 
     val remarks = mutableListOf<Remark>()
 
@@ -43,15 +31,15 @@ class LMGenScope : Builder<LMGenScopeConfig> {
         remarks.addAll(remark.map { Remark(it) })
     }
 
-    override fun build(): LMGenScopeConfig {
-        return LMGenScopeConfig(
+    override fun build(): LanguageModelConfig {
+        return LanguageModelConfig(
             LMInitialConfig(
                 url,
                 token,
-                remarks,
-                requestTimeout,
-                connectTimeout,
-                socketTimeout,
+                remarks = remarks,
+                requestTimeout = requestTimeout,
+                connectTimeout = connectTimeout,
+                socketTimeout = socketTimeout,
             ),
             LMGenerationConfig(model, temperature, maxTokens),
         )
