@@ -6,7 +6,7 @@ import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
-import it.unibo.jakta.agents.bdi.plans.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 
 @JaktaDSL
 class MasScope : Builder<Mas> {
@@ -27,7 +27,7 @@ class MasScope : Builder<Mas> {
     }
 
     fun agent(name: String, f: AgentScope.() -> Unit): MasScope {
-        agents += AgentScope(name).also(f).build()
+        agents += AgentScope(name, env.externalActions).also(f).build()
         return this
     }
 

@@ -2,10 +2,12 @@ package it.unibo.jakta.agents.bdi.dsl
 
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.Mas
+import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.dsl.actions.ExternalActionScope
 import it.unibo.jakta.agents.bdi.dsl.actions.ExternalActionsScope
 import it.unibo.jakta.agents.bdi.dsl.actions.InternalActionScope
 import it.unibo.jakta.agents.bdi.dsl.actions.InternalActionsScope
+import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefsScope
 import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
 import it.unibo.jakta.agents.bdi.dsl.plans.PlansScope
 import it.unibo.jakta.agents.bdi.environment.Environment
@@ -31,7 +33,9 @@ fun environment(f: EnvironmentScope.() -> Unit): Environment = EnvironmentScope(
 @JaktaDSL
 fun agent(name: String, f: AgentScope.() -> Unit): Agent = AgentScope(name).also(f).build()
 
-fun plans(f: PlansScope.() -> Unit): Iterable<Plan> = PlansScope().also(f).build()
+fun plans(f: PlansScope.() -> Unit): Iterable<Plan> = PlansScope().also(f).build().first
+
+fun beliefs(f: BeliefsScope.() -> Unit): BeliefBase = BeliefsScope().also(f).build()
 
 operator fun String.invoke(vararg terms: Term): Struct =
     Struct.of(this, *terms)
