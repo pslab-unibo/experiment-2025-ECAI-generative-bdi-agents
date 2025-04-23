@@ -1,34 +1,11 @@
 package it.unibo.jakta.agents.bdi.beliefs.impl
 
 import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.tuprolog.core.Rule
-import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.Substitution
 
 internal class BeliefImpl(
     override val rule: Rule,
-    override val template: LiteratePrologTemplate?,
-    override val slotValues: List<Pair<String, String>>,
-) : Belief {
-
-    override fun applySubstitution(substitution: Substitution): Belief =
-        BeliefImpl(rule.apply(substitution).castToRule(), template, slotValues)
-
-    override fun hashCode(): Int = rule.hashCode()
-
-    override fun toString(): String {
-        val escaped = Struct.escapeFunctorIfNecessary(rule.head.functor)
-        val quoted = Struct.enquoteFunctorIfNecessary(escaped)
-        return "$quoted[${rule.head.args.first()}]" +
-            (if (rule.head.arity > 1) "(${rule.head.args.drop(1).joinToString(", ")})" else "") +
-            if (rule.body.isTrue) "." else " ${rule.functor} ${rule.body}."
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as BeliefImpl
-        return rule == other.rule
-    }
+    override val purpose: String?,
+) : BaseBelief() {
+    override fun copy(rule: Rule, purpose: String?): Belief = BeliefImpl(rule, purpose)
 }

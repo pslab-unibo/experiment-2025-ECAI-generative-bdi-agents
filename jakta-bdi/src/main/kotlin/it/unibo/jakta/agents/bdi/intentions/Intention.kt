@@ -41,5 +41,26 @@ interface Intention {
             isSuspended: Boolean = false,
             id: IntentionID = IntentionID(),
         ): Intention = IntentionImpl(recordStack, isSuspended, id)
+
+        /**
+         * Removes the previous goal and adds a new goal immediately after the removed one.
+         */
+        fun Intention.replace(previousGoal: Goal, newGoal: Goal): Intention {
+            return updateCurrentRecordStack { goalQueue ->
+                goalQueue.map { if (it == previousGoal) newGoal else it }
+            }
+        }
+
+        private fun <T : Intention> T.updateCurrentRecordStack(
+            transform: (List<Goal>) -> List<Goal>,
+        ): T {
+            val currentRecord = recordStack.first()
+            val updatedGoalQueue = transform(currentRecord.goalQueue)
+            val newActivationRecord = ActivationRecord.of(updatedGoalQueue, currentRecord.plan)
+            val newRecordStack = listOf(newActivationRecord) + recordStack.drop(1)
+
+            @Suppress("UNCHECKED_CAST")
+            return copy(recordStack = newRecordStack) as T
+        }
     }
 }

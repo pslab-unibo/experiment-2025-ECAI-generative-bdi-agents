@@ -1,26 +1,29 @@
 package it.unibo.jakta.agents.bdi.plangeneration.manager.impl
 
 import io.github.oshai.kotlinlogging.KLogger
-import it.unibo.jakta.agents.bdi.actions.effects.IntentionChange
+import it.unibo.jakta.agents.bdi.actions.effects.EventChange
+import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.context.AgentContext
-import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
+import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
+import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
-import it.unibo.jakta.agents.bdi.goals.Generate
-import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention
-import it.unibo.jakta.agents.bdi.intentions.Intention
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback.InapplicablePlan
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback.PlanNotFound
+import it.unibo.jakta.agents.bdi.goals.Achieve
+import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.InapplicablePlan
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.PlanNotFound
 import it.unibo.jakta.agents.bdi.plangeneration.manager.InvalidationStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.manager.UnavailablePlanStrategy
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.tuprolog.core.Struct
 
 class UnavailablePlanStrategyImpl(
     override val invalidationStrategy: InvalidationStrategy,
@@ -34,96 +37,115 @@ class UnavailablePlanStrategyImpl(
         context: AgentContext,
         generationStrategy: GenerationStrategy?,
     ): ExecutionResult {
-        val intention = selectedEvent.intention
         return when {
-            relevantPlans.isEmpty() -> handlePlanNotFound(
-                selectedEvent,
-                intention,
-                context,
-                generationStrategy,
-            )
-
-            selectedEvent.trigger is AchievementGoalFailure -> handleIntentionFailure(selectedEvent, context)
-            selectedEvent.trigger is TestGoalFailure -> handleIntentionFailure(selectedEvent, context)
-            isApplicablePlansEmpty -> handleFailedPlanPreconditions(selectedEvent, relevantPlans, intention, context)
-            else -> handleIntentionFailure(
-                selectedEvent,
-                context,
-            ) // not expected since either relevantPlans and/or applicablePlans should be empty
+            relevantPlans.isEmpty() -> handlePlanNotFound(selectedEvent, context, generationStrategy)
+            isApplicablePlansEmpty ->
+                handleFailedPlanPreconditions(selectedEvent, relevantPlans, context, generationStrategy)
+            // not expected since either relevantPlans and/or applicablePlans should be empty
+            else -> ExecutionResult(newAgentContext = context)
         }
     }
 
-    private fun handleIntentionFailure(
+    private fun handlePlanNotFound(
         selectedEvent: Event,
-        context: AgentContext,
-    ): ExecutionResult =
-        if (selectedEvent.isInternal()) {
-            val intentionToRemove = selectedEvent.intention!!
-            val updatedIntentions = context.intentions.deleteIntention(intentionToRemove.id)
-            ExecutionResult(newAgentContext = context.copy(intentions = updatedIntentions)).also {
-                logger?.implementation(IntentionChange(intentionToRemove, REMOVAL))
-            }
-        } else {
-            ExecutionResult(newAgentContext = context)
-        }
-
-    /**
-     * Invalidate the failing step in the generating plan.
-     */
-    fun handlePlanNotFound(
-        selectedEvent: Event,
-        intention: Intention?,
         context: AgentContext,
         generationStrategy: GenerationStrategy?,
     ): ExecutionResult {
-        val baseResult = if (intention != null && intention is DeclarativeIntention) {
-            invalidationStrategy.invalidate(intention, context)
-        } else {
-            handleIntentionFailure(selectedEvent, context)
-        }
-
-        val resultWithNewEvent = if (selectedEvent.trigger is AchievementGoalInvocation ||
-            selectedEvent.trigger is TestGoalInvocation
+        val initialGoal = selectedEvent.trigger
+        val newPlan = if (generationStrategy != null &&
+            (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
         ) {
-            val newPlan = PartialPlan.of(
-                trigger = selectedEvent.trigger,
-                goals = listOf(Generate.of(selectedEvent.trigger.value)),
-                generationStrategy = generationStrategy,
-            )
-            val newIntention = Intention.of(newPlan)
-            val newEvent = Event.of(selectedEvent.trigger, newIntention)
-            baseResult.copy(
-                newAgentContext = baseResult.newAgentContext.copy(
-                    events = baseResult.newAgentContext.events.plus(newEvent).minus(selectedEvent),
-                    planLibrary = baseResult.newAgentContext.planLibrary.addPlan(newPlan),
-                ),
-            )
+            createNewPlanForTrigger(initialGoal)
         } else {
-            baseResult
+            null
+        }
+        val feedback = PlanNotFound(initialGoal)
+
+        return createResult(initialGoal, context, newPlan, feedback)
+    }
+
+    private fun handleFailedPlanPreconditions(
+        selectedEvent: Event,
+        relevantPlans: List<Plan>,
+        context: AgentContext,
+        generationStrategy: GenerationStrategy?,
+    ): ExecutionResult {
+        val initialGoal = selectedEvent.trigger
+
+        // TODO should start a new generation here?
+        val newPlan = if (generationStrategy != null &&
+            (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
+        ) {
+            createNewPlanForTrigger(initialGoal)
+        } else {
+            null
         }
 
-        return resultWithNewEvent.copy(
-            feedback = PlanNotFound(selectedEvent.trigger),
+        val feedback = InapplicablePlan(
+            relevantPlans
+                .map { it.checkApplicability(selectedEvent, context.beliefBase) }
+                .filter { it.error == null && it.trigger != null && it.guards != null }
+                .also {
+                    it.forEach { plan ->
+                        logger?.warn { "Plan ${plan.trigger?.value} is not applicable" }
+                        plan.guards?.forEach { guard ->
+                            if (!guard.value) logger?.warn { "Failing guard ${guard.key}" }
+                        }
+                    }
+                },
+        )
+
+        return createResult(initialGoal, context, newPlan, feedback)
+    }
+
+    private fun createNewPlanForTrigger(trigger: Trigger): PartialPlan? {
+        return when (trigger) {
+            is AchievementGoalInvocation -> createFailurePlan(AchievementGoalFailure(trigger.value))
+            is TestGoalInvocation -> createFailurePlan(TestGoalFailure(trigger.value))
+            else -> null
+        }
+    }
+
+    private fun createFailurePlan(
+        failureTrigger: Trigger,
+    ): PartialPlan {
+        val value = failureTrigger.value
+        val initialGoal = GeneratePlan.of(value)
+        return PartialPlan.of(
+            parentGenerationGoal = initialGoal,
+            trigger = failureTrigger,
+            guard = Belief.fromSelfSource(Struct.of("missing_plan_for", value)).rule.head,
+            goals = listOf(
+                initialGoal,
+                Achieve.of(value),
+            ),
         )
     }
 
-    /**
-     * Invalidate both the step in the generating plan and the failing plan.
-     */
-    fun handleFailedPlanPreconditions(
-        selectedEvent: Event,
-        relevantPlans: List<Plan>,
-        intention: Intention?,
+    private fun createResult(
+        failureTrigger: Trigger,
         context: AgentContext,
-    ): ExecutionResult = if (intention != null && intention is DeclarativeIntention) {
-        invalidationStrategy.invalidate(intention, context)
-    } else {
-        handleIntentionFailure(selectedEvent, context)
-    }.copy(
-        feedback = InapplicablePlan(
-            relevantPlans
-                .map { it.checkApplicability(selectedEvent, context.beliefBase) }
-                .filter { it.error == null && it.trigger != null && it.guards != null },
-        ),
-    )
+        newPlan: PartialPlan?,
+        feedback: NegativeFeedback,
+    ): ExecutionResult {
+        return if (newPlan != null) {
+            val newBelief = Belief.fromSelfSource(Struct.of("missing_plan_for", failureTrigger.value))
+            val newEvent = Event.ofAchievementGoalFailure(failureTrigger.value)
+            ExecutionResult(
+                newAgentContext = context.copy(
+                    planLibrary = context.planLibrary.addPlan(newPlan),
+                    beliefBase = context.beliefBase.add(newBelief).updatedBeliefBase,
+                    events = context.events + newEvent,
+                ),
+                feedback = feedback,
+            ).also {
+                logger?.implementation(EventChange(newEvent, ADDITION))
+            }
+        } else {
+            ExecutionResult(
+                newAgentContext = context,
+                feedback = feedback,
+            )
+        }
+    }
 }
