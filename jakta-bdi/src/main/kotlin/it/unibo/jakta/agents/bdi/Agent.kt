@@ -3,15 +3,16 @@ package it.unibo.jakta.agents.bdi
 import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalActions
+import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.context.AgentContext
+import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.impl.AgentImpl
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.plans.Plan
@@ -60,9 +61,10 @@ interface Agent : Taggable<Agent> {
         events: EventQueue = this.context.events,
         planLibrary: PlanLibrary = this.context.planLibrary,
         internalActions: Map<String, InternalAction> = this.context.internalActions,
-        generationProcess: GenerationProcessRegistry = this.context.generationProcesses,
+        generationProcesses: GenerationProcessRegistry = this.context.generationProcesses,
         intentions: IntentionPool = this.context.intentions,
-        templates: List<LiteratePrologTemplate> = this.context.templates,
+        admissibleGoals: Set<AdmissibleGoal> = this.context.admissibleGoals,
+        admissibleBeliefs: Set<AdmissibleBelief> = this.context.admissibleBeliefs,
     ) = of(
         this.agentID,
         this.name,
@@ -74,9 +76,10 @@ interface Agent : Taggable<Agent> {
             events,
             planLibrary,
             internalActions,
-            generationProcess,
+            generationProcesses,
             intentions,
-            templates,
+            admissibleGoals,
+            admissibleBeliefs,
         ),
     )
 
@@ -93,18 +96,20 @@ interface Agent : Taggable<Agent> {
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
             internalActions: Map<String, InternalAction> = InternalActions.default(),
-            generationProcess: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
+            generationProcesses: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
             intentions: IntentionPool = IntentionPool.empty(),
-            templates: List<LiteratePrologTemplate> = emptyList(),
+            admissibleGoals: Set<AdmissibleGoal> = emptySet(),
+            admissibleBeliefs: Set<AdmissibleBelief> = emptySet(),
         ): Agent = AgentImpl(
             AgentContext.of(
                 beliefBase,
                 events,
                 planLibrary,
                 internalActions,
-                generationProcess,
+                generationProcesses,
                 intentions,
-                templates,
+                admissibleGoals,
+                admissibleBeliefs,
             ),
             agentID,
             name,

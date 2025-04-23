@@ -2,12 +2,13 @@ package it.unibo.jakta.agents.bdi.context
 
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalActions
+import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.context.impl.AgentContextImpl
+import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.jakta.agents.bdi.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
@@ -32,24 +33,28 @@ interface AgentContext {
 
     val intentions: IntentionPool
 
-    val templates: List<LiteratePrologTemplate>
+    val admissibleGoals: Set<AdmissibleGoal>
+
+    val admissibleBeliefs: Set<AdmissibleBelief>
 
     fun copy(
         beliefBase: BeliefBase = this.beliefBase,
         events: EventQueue = this.events,
         planLibrary: PlanLibrary = this.planLibrary,
         internalActions: Map<String, InternalAction> = this.internalActions,
-        generationProcess: GenerationProcessRegistry = this.generationProcesses,
+        generationProcesses: GenerationProcessRegistry = this.generationProcesses,
         intentions: IntentionPool = this.intentions,
-        templates: List<LiteratePrologTemplate> = this.templates,
+        admissibleGoals: Set<AdmissibleGoal> = this.admissibleGoals,
+        admissibleBeliefs: Set<AdmissibleBelief> = this.admissibleBeliefs,
     ): AgentContext = AgentContextImpl(
         beliefBase,
         events,
         planLibrary,
         internalActions,
-        generationProcess,
+        generationProcesses,
         intentions,
-        templates,
+        admissibleGoals,
+        admissibleBeliefs,
     )
 
     companion object {
@@ -58,17 +63,19 @@ interface AgentContext {
             events: EventQueue = emptyList(),
             planLibrary: PlanLibrary = PlanLibrary.empty(),
             internalActions: Map<String, InternalAction> = InternalActions.default(),
-            generationProcess: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
+            generationProcesses: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
             intentions: IntentionPool = IntentionPool.empty(),
-            templates: List<LiteratePrologTemplate> = emptyList(),
+            admissibleGoals: Set<AdmissibleGoal> = emptySet(),
+            admissibleBeliefs: Set<AdmissibleBelief> = emptySet(),
         ): AgentContext = AgentContextImpl(
             beliefBase,
             events,
             planLibrary,
             internalActions,
-            generationProcess,
+            generationProcesses,
             intentions,
-            templates,
+            admissibleGoals,
+            admissibleBeliefs,
         )
     }
 }

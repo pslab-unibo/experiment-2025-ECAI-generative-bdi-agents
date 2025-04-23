@@ -1,11 +1,12 @@
 package it.unibo.jakta.agents.bdi.context.impl
 
 import it.unibo.jakta.agents.bdi.actions.InternalAction
+import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.context.AgentContext
+import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.intentions.IntentionPool
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.jakta.agents.bdi.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 
@@ -15,9 +16,10 @@ internal class AgentContextImpl(
     override val events: EventQueue,
     override val planLibrary: PlanLibrary,
     override val internalActions: Map<String, InternalAction>,
-    override val generationProcesses: GenerationProcessRegistry = GenerationProcessRegistry.empty(),
+    override val generationProcesses: GenerationProcessRegistry,
     override val intentions: IntentionPool = IntentionPool.empty(),
-    override val templates: List<LiteratePrologTemplate>,
+    override val admissibleGoals: Set<AdmissibleGoal> = emptySet(),
+    override val admissibleBeliefs: Set<AdmissibleBelief> = emptySet(),
 ) : AgentContext {
     override fun toString(): String = """
     AgentContext {
@@ -25,9 +27,10 @@ internal class AgentContextImpl(
         events = $events
         planLibrary = [${planLibrary.plans}]
         internalActions = [$internalActions]
-        generationProcess = [$generationProcesses]
+        generationProcesses = [$generationProcesses]
         intentions = [$intentions]
-        templates = [$templates]
+        admissibleGoals = [$admissibleGoals]
+        admissibleBeliefs = [$admissibleBeliefs]
     }
     """.trimIndent()
 }
