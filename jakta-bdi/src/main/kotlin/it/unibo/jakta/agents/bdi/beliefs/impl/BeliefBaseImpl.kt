@@ -1,12 +1,10 @@
 package it.unibo.jakta.agents.bdi.beliefs.impl
 
+import it.unibo.jakta.agents.bdi.Jakta.parseClause
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.beliefs.BeliefUpdate
 import it.unibo.jakta.agents.bdi.beliefs.RetrieveResult
-import it.unibo.jakta.agents.bdi.parsing.LiteratePrologParser.tangleStruct
-import it.unibo.jakta.agents.bdi.parsing.ParsingUtils.parseClause
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.tuprolog.collections.ClauseMultiSet
 import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
@@ -19,17 +17,15 @@ import it.unibo.tuprolog.unify.Unificator
 
 internal class BeliefBaseImpl private constructor(
     private val beliefs: ClauseMultiSet,
-    override val typeCheckRule: ((String) -> Rule)?,
 ) : BeliefBase {
 
-    constructor(typeCheckRule: ((String) -> Rule)?) :
-        this(ClauseMultiSet.empty(Unificator.default), typeCheckRule)
+    constructor() : this(ClauseMultiSet.empty(Unificator.default))
 
     override fun add(belief: Belief) = when (beliefs.count(belief.rule)) {
         // There's no Belief that unify the param inside the MultiSet, so it's inserted
         0L -> RetrieveResult(
             listOf(BeliefUpdate.addition(belief)),
-            BeliefBaseImpl(beliefs.add(belief.rule), typeCheckRule),
+            BeliefBaseImpl(beliefs.add(belief.rule)),
         )
         // There are Beliefs that unify the param, so the belief it's not inserted
         else -> RetrieveResult(emptyList(), this)
@@ -59,7 +55,7 @@ internal class BeliefBaseImpl private constructor(
         return if (beliefs.count(belief.rule) > 0) {
             RetrieveResult(
                 listOf(BeliefUpdate.removal(first { it == belief })),
-                BeliefBase.of(typeCheckRule, filter { it != belief }),
+                BeliefBase.of(filter { it != belief }),
             )
         } else {
             RetrieveResult(listOf(), this)
@@ -88,31 +84,8 @@ internal class BeliefBaseImpl private constructor(
         return RetrieveResult(removedBeliefs, bb)
     }
 
-    private fun updateBeliefAsString(
-        templates: List<LiteratePrologTemplate>,
-        belief: String,
-        beliefUpdate: (Belief) -> RetrieveResult,
-    ): RetrieveResult {
-        val fact = tangleStruct(belief, templates)
-        return if (fact != null) {
-            beliefUpdate(Belief.from(fact))
-        } else {
-            RetrieveResult(emptyList(), this)
-        }
-    }
-
-    override fun verbalize(): List<String> = this.map { it.verbalize() }
-
-    override fun add(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult =
-        updateBeliefAsString(templates, belief, ::add)
-
-    override fun remove(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult =
-        updateBeliefAsString(templates, belief, ::remove)
-
-    override fun update(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult =
-        updateBeliefAsString(templates, belief, ::update)
-
-    override fun iterator(): Iterator<Belief> = beliefs.filterIsInstance<Rule>().map { Belief.from(it) }.iterator()
+    override fun iterator(): Iterator<Belief> =
+        beliefs.filterIsInstance<Rule>().map { Belief.from(it) }.iterator()
 
     override fun solve(struct: Struct): Solution =
         Solver.prolog.newBuilder()

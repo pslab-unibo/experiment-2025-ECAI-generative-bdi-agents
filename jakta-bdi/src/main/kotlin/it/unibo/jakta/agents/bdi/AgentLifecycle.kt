@@ -23,7 +23,7 @@ interface AgentLifecycle {
     val agent: Agent
 
     /**
-     * STEP 1 of reasoning cycle: Belief Update Function.
+     * STEP 1 of the reasoning cycle: Belief Update Function.
      * This function defines how to merge new [perceptions] into the current [beliefBase]
      * @param perceptions: [BeliefBase] that collects all agent's perceptions of the environment
      * @param beliefBase: [BeliefBase] the current agent's [BeliefBase]
@@ -35,8 +35,8 @@ interface AgentLifecycle {
     ): RetrieveResult
 
     /**
-     * STEP 5 of reasoning cycle: Selecting an Event.
-     * This function select an event to be handled in a particular reasoning cycle.
+     * STEP 5 of the reasoning cycle: Selecting an Event.
+     * This function selects an event to be handled in a particular reasoning cycle.
      * The default implementation follows a FIFO policy for the [EventQueue].
      * @param events: [EventQueue] on which select the event
      * @return the selected [Event]
@@ -44,7 +44,7 @@ interface AgentLifecycle {
     fun selectEvent(events: EventQueue): Event?
 
     /**
-     * STEP 6 of reasoning cycle: Retrieving all Relevant Plans.
+     * STEP 6 of the reasoning cycle: Retrieving all Relevant Plans.
      * This function returns all plans from [PlanLibrary] that have a triggering event that can be unified
      * with the selected event.
      * @param event: the selected [Event]
@@ -57,7 +57,7 @@ interface AgentLifecycle {
     ): PlanLibrary
 
     /**
-     * STEP 7 of reasoning cycle: Determining the Applicable Plans.
+     * STEP 7 of the reasoning cycle: Determining the Applicable Plans.
      * This function defines if a plan is applicable based on the agent's Belief Base.
      * @param event: the selected [Event] that triggered the [Plan]
      * @param plan: the triggered [Plan]
@@ -71,7 +71,7 @@ interface AgentLifecycle {
     ): Boolean
 
     /**
-     * Step 8 of reasoning cycle: Selecting one Applicable Plan.
+     * Step 8 of the reasoning cycle: Selecting one Applicable Plan.
      * Given all the applicable plans, this Selection Function returns the plan that the agent will commit to execute.
      * By default,
      * @param plans: applicable [Plan]s
@@ -95,7 +95,7 @@ interface AgentLifecycle {
     ): Intention
 
     /**
-     * Step 9 of reasoning cycle: Selecting an Intention for Further Execution.
+     * Step 9 of the reasoning cycle: Selecting an Intention for Further Execution.
      * Given all agent's intentions, this Selection Function selects the intention to be scheduled to execution
      * by the agent. By default, this function implements Round Robin scheduling.
      * @param intentions: the agent's [IntentionPool]
@@ -104,7 +104,7 @@ interface AgentLifecycle {
     fun scheduleIntention(intentions: IntentionPool): SchedulingResult
 
     /**
-     * Step 10 of reasoning cycle: Executing One step of an Intention.
+     * Step 10 of the reasoning cycle: Executing One step of an Intention.
      * Depending on the formula on the top of the intention, the agent will execute the related action.
      * @param intention: [Intention] on which the agent is currently focused
      * @return the updated [Intention] after agent execution

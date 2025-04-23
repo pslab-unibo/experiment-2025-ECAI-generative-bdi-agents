@@ -73,6 +73,7 @@ open class EnvironmentImpl(
     override fun removeData(key: String): Environment = copy(data = data - key)
 
     override fun updateData(newData: Map<String, Any>): Environment = copy(data = newData)
+
     override fun copy(
         agentIDs: Map<String, AgentID>,
         externalActions: Map<String, ExternalAction>,

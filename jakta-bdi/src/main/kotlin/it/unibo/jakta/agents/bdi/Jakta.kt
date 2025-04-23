@@ -1,10 +1,12 @@
 package it.unibo.jakta.agents.bdi
 
+import it.unibo.tuprolog.core.Clause
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.TermFormatter
 import it.unibo.tuprolog.core.operators.Operator
 import it.unibo.tuprolog.core.operators.OperatorSet
 import it.unibo.tuprolog.core.operators.Specifier
+import it.unibo.tuprolog.core.parsing.TermParser
 import java.util.Locale
 
 object Jakta {
@@ -16,15 +18,21 @@ object Jakta {
         Operator("~", Specifier.FX, 900),
     )
 
-    val formatter: TermFormatter = TermFormatter.prettyExpressions(
+    val termFormatter: TermFormatter = TermFormatter.prettyExpressions(
         operatorSet = OperatorSet.DEFAULT + operators,
     )
+
+    private val parser = TermParser.withOperators(OperatorSet.DEFAULT + operators)
+
+    fun parseStruct(string: String): Struct = parser.parseStruct(string)
+
+    fun parseClause(string: String): Clause = parser.parseClause(string)
 
     fun printAslSyntax(agent: Agent, prettyFormatted: Boolean = true) {
         println("% ${agent.name}")
         for (belief in agent.context.beliefBase) {
             if (prettyFormatted) {
-                println(formatter.format(belief.rule))
+                println(termFormatter.format(belief.rule))
             } else {
                 println(belief.rule)
             }
@@ -34,9 +42,9 @@ object Jakta {
             var guard = plan.guard.toString()
             var body = plan.goals.joinToString("; ") { it.value.toString() }
             if (prettyFormatted) {
-                trigger = formatter.format(plan.trigger.value)
-                guard = formatter.format(plan.guard)
-                body = plan.goals.joinToString("; ") { formatter.format(it.value) }
+                trigger = termFormatter.format(plan.trigger.value)
+                guard = termFormatter.format(plan.guard)
+                body = plan.goals.joinToString("; ") { termFormatter.format(it.value) }
             }
             println("+!$trigger : $guard <- $body")
         }
@@ -84,6 +92,4 @@ object Jakta {
         this.removeFirst {
             this[0].let { it is Struct && it.arity == 1 && it.functor == "source" }
         }
-
-    fun String.wrapWithDelimiters(): String = "`$this`"
 }

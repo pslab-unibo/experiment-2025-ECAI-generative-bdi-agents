@@ -12,10 +12,6 @@ import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.logging.events.ActionEvent.ActionAddition
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.plans.PartialPlan
-import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.PlanLibrary
-import it.unibo.jakta.agents.bdi.plans.copy
 
 class MasInitializationImpl(override val mas: Mas) : MasInitialization {
     override fun initialize(): Mas =
@@ -33,7 +29,6 @@ class MasInitializationImpl(override val mas: Mas) : MasInitialization {
                 agent
                     .assignLogger(agentLoggingConfig)
                     .assignGenerationStrategy(mas.generationStrategy)
-                    .assignGenerationStrategyToPlans()
             },
         )
 
@@ -79,24 +74,6 @@ class MasInitializationImpl(override val mas: Mas) : MasInitialization {
         ): Agent {
             return if (this.generationStrategy == null && masGenerationStrategy != null) {
                 this.copy(generationStrategy = masGenerationStrategy)
-            } else {
-                this
-            }
-        }
-
-        private fun Agent.assignGenerationStrategyToPlans(): Agent {
-            val agentGenerationStrategy = this.generationStrategy
-            val updatedPlans = this.context.planLibrary.plans.map { plan ->
-                plan.assignGenerationStrategy(agentGenerationStrategy)
-            }
-            return this.copy(planLibrary = PlanLibrary.of(updatedPlans))
-        }
-
-        private fun Plan.assignGenerationStrategy(
-            agentGenerationStrategy: GenerationStrategy?,
-        ): Plan {
-            return if (this is PartialPlan && agentGenerationStrategy != null) {
-                this.copy(generationStrategy = agentGenerationStrategy)
             } else {
                 this
             }

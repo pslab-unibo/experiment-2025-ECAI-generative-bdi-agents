@@ -1,15 +1,11 @@
 package it.unibo.jakta.agents.bdi.beliefs
 
 import it.unibo.jakta.agents.bdi.beliefs.impl.BeliefBaseImpl
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
-import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.solve.Solution
 
 /** A BDI Agent's collection of [Belief] */
 interface BeliefBase : Iterable<Belief> {
-
-    val typeCheckRule: ((String) -> Rule)?
 
     /**
      * Adds a [Belief] to this [BeliefBase]
@@ -41,44 +37,25 @@ interface BeliefBase : Iterable<Belief> {
 
     fun update(belief: Belief): RetrieveResult
 
-    /*
-     * Beliefs expressed in a controlled natural language
-     */
-    fun add(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult
-
-    fun remove(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult
-
-    fun update(templates: List<LiteratePrologTemplate>, belief: String): RetrieveResult
-
     fun solve(struct: Struct): Solution
 
     fun solve(belief: Belief): Solution
 
-    fun verbalize(): List<String>
-
     companion object {
         /** @return an empty [BeliefBase] */
-        fun empty(typeCheckRule: ((String) -> Rule)? = null): BeliefBase =
-            BeliefBaseImpl(typeCheckRule)
+        fun empty(): BeliefBase = BeliefBaseImpl()
 
         /**
          * Generates a [BeliefBase] from a collection of [Belief]
          * @param beliefs: the [Iterable] of [Belief] the [BeliefBase] will be composed of
          * @return the new [BeliefBase]
          */
-        fun of(
-            typeCheckRule: ((String) -> Rule)? = null,
-            beliefs: Iterable<Belief>,
-        ): BeliefBase {
+        fun of(beliefs: Iterable<Belief>): BeliefBase {
             var bb = empty()
             beliefs.forEach { bb = bb.add(it).updatedBeliefBase }
             return bb
         }
 
-        fun of(
-            typeCheckRule: ((String) -> Rule)? = null,
-            vararg beliefs: Belief,
-        ): BeliefBase =
-            of(typeCheckRule, beliefs.asList())
+        fun of(vararg beliefs: Belief): BeliefBase = of(beliefs.asList())
     }
 }

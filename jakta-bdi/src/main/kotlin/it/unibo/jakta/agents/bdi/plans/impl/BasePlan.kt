@@ -3,9 +3,9 @@ package it.unibo.jakta.agents.bdi.plans.impl
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.Trigger
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.PlanApplicabilityResult
 import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.GuardFlatteningVisitor.Companion.flattenAnd
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.PlanApplicabilityResult
+import it.unibo.jakta.agents.bdi.plangeneration.GuardFlattenerVisitor.Companion.flattenAnd
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.core.Struct
@@ -20,9 +20,7 @@ internal abstract class BasePlan(
         return if (isRelevant(event)) {
             val mgu = event.trigger.value mguWith this.trigger.value
             val actualGuard = guard.apply(mgu).castToStruct()
-            val guards = actualGuard
-                .flattenAnd()
-                .associate { it to beliefBase.solve(it).isYes }
+            val guards = actualGuard.flattenAnd().associateWith { beliefBase.solve(it).isYes }
             PlanApplicabilityResult(event.trigger, guards)
         } else {
             PlanApplicabilityResult(

@@ -1,8 +1,8 @@
 package it.unibo.jakta.agents.bdi.actions.effects
 
 import it.unibo.jakta.agents.bdi.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.Jakta.formatter
 import it.unibo.jakta.agents.bdi.Jakta.removeSource
+import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.context.ContextUpdate
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
@@ -71,7 +71,7 @@ data class PlanChange(
 ) : InternalChange {
     override val name = "Plan${changeType.name.lowercase().capitalize()}"
 
-    override val description = "$changeTypeDescription plan: ${formatter.format(
+    override val description = "$changeTypeDescription plan: ${termFormatter.format(
         plan.trigger.value,
     )} to the plan library"
 
