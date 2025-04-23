@@ -1,13 +1,12 @@
 package it.unibo.jakta.agents.bdi.goals
 
-import it.unibo.jakta.agents.bdi.Jakta.formatter
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.goals.impl.AchieveImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActExternallyImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActImpl
 import it.unibo.jakta.agents.bdi.goals.impl.ActInternallyImpl
 import it.unibo.jakta.agents.bdi.goals.impl.AddBeliefImpl
-import it.unibo.jakta.agents.bdi.goals.impl.GenerateImpl
+import it.unibo.jakta.agents.bdi.goals.impl.GeneratePlanImpl
 import it.unibo.jakta.agents.bdi.goals.impl.RemoveBeliefImpl
 import it.unibo.jakta.agents.bdi.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TestImpl
@@ -16,7 +15,6 @@ import it.unibo.jakta.agents.bdi.goals.impl.UpdateBeliefImpl
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
-import it.unibo.jakta.agents.bdi.plans.copy
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 import it.unibo.tuprolog.core.Truth
@@ -116,12 +114,9 @@ interface ActExternally : ActionGoal {
 
 sealed interface DeclarativeGoal : Goal
 
-interface Generate : DeclarativeGoal {
-    val literateValue: String
-
+interface GeneratePlan : DeclarativeGoal {
     companion object {
-        fun of(value: Struct, literateValue: String = formatter.format(value)): Generate =
-            GenerateImpl(value, literateValue)
+        fun of(value: Struct): GeneratePlan = GeneratePlanImpl(value)
     }
 }
 
