@@ -1,5 +1,6 @@
 import org.gradle.kotlin.dsl.register
 import java.io.OutputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.ktor)
@@ -20,11 +21,16 @@ dependencies {
 }
 
 tasks.register<JavaExec>("runExperiment") {
+    val keystoreFile = project.rootProject.file(".env")
+    val properties = Properties()
+    properties.load(keystoreFile.inputStream())
+
+    environment = mapOf("API_KEY" to properties.getProperty("API_KEY"))
     description = "Run a multi-agent system with the given experimental config."
     group = "application"
 
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "${project.group}.playground.ExperimentRunnerKt"
+    mainClass = "${project.group}.playground.explorer.ExperimentRunnerKt"
 }
 
 fun findExecutablePath(
@@ -53,14 +59,12 @@ val globalPython = findExecutablePath("python3", "python") { path ->
 
 val localPythonEnvRoot = projectDir.resolve("build").resolve("python")
 
-val localPython
-    get() = fileTree(localPythonEnvRoot) {
-        include("**/python")
-        include("**/python.exe")
-    }.firstOrNull()?.absolutePath
+val localPython get() = fileTree(localPythonEnvRoot) {
+    include("**/python")
+    include("**/python.exe")
+}.firstOrNull()?.absolutePath
 
-val python
-    get() = localPython ?: globalPython ?: error("Python executable not found")
+val python get() = localPython ?: globalPython ?: error("Python executable not found")
 
 tasks.register<Exec>("createVenv") {
     description = "Create a virtual environment."

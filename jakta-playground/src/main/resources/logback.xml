@@ -3,7 +3,7 @@
     <encoder>
       /*%d{yyyy-MM-dd HH:mm:ss.SSS} %logger{40}.%M\(%class{0}.java:%line\) - %msg%throwable%n*/
       <pattern>
-        %highlight(%level) %yellow(%logger{36}) - %msg %kvp%n
+        %highlight(%level) %yellow(%logger{36}) - %msg%n
       </pattern>
     </encoder>
   </appender>
