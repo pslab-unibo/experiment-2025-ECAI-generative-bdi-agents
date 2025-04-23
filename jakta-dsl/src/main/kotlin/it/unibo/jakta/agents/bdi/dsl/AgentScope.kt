@@ -1,13 +1,11 @@
 package it.unibo.jakta.agents.bdi.dsl
 
 import it.unibo.jakta.agents.bdi.Agent
-import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalActions
 import it.unibo.jakta.agents.bdi.dsl.actions.InternalActionsScope
 import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefsScope
 import it.unibo.jakta.agents.bdi.dsl.goals.InitialGoalsScope
 import it.unibo.jakta.agents.bdi.dsl.plans.PlansScope
-import it.unibo.jakta.agents.bdi.dsl.templates.TemplatesScope
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.executionstrategies.TimeDistribution
 import it.unibo.jakta.agents.bdi.executionstrategies.setTimeDistribution
@@ -15,35 +13,19 @@ import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 
-class AgentScope(
-    val name: String? = null,
-    private val externalActions: Map<String, ExternalAction> = emptyMap(),
-) : Builder<Agent> {
+class AgentScope(val name: String? = null) : Builder<Agent> {
     private val actionsScope by lazy { InternalActionsScope() }
     private val internalActions by lazy { InternalActions.default() + actionsScope.build() }
 
-    private val templatesScope by lazy { TemplatesScope() }
-    private val templates by lazy { templatesScope.build() }
+    private val beliefsScope by lazy { BeliefsScope() }
+    private val goalsScope by lazy { InitialGoalsScope() }
 
-    private val beliefsScope by lazy { BeliefsScope(templates) }
-    private val goalsScope by lazy { InitialGoalsScope(templates) }
-
-    private val actionTemplates by lazy {
-        val externalActionsTemplates = externalActions.mapNotNull { it.value.signature.template }
-        val internalActionsTemplates = internalActions.mapNotNull { it.value.signature.template }
-        externalActionsTemplates + internalActionsTemplates
-    }
-
-    private val plansScope by lazy { PlansScope(templates + actionTemplates) }
+    private val plansScope by lazy { PlansScope() }
 
     private var plans = emptyList<Plan>()
     private lateinit var time: TimeDistribution
-    var generationStrategy: GenerationStrategy? = null
 
-    fun templates(f: TemplatesScope.() -> Unit): AgentScope {
-        templatesScope.also(f)
-        return this
-    }
+    var generationStrategy: GenerationStrategy? = null
 
     fun beliefs(f: BeliefsScope.() -> Unit): AgentScope {
         beliefsScope.also(f)
@@ -76,17 +58,20 @@ class AgentScope(
     }
 
     override fun build(): Agent {
-        val builtPlans = plansScope.build()
-        val plans = builtPlans.first
-        val planTemplates = builtPlans.second
+        val beliefs = beliefsScope.build()
+        val initialGoals = goalsScope.build()
+        val planLibrary = PlanLibrary.of(this.plans + plansScope.build())
+        val (goals, admissibleGoals) = initialGoals
+
         var agent = Agent.of(
             name = name.orEmpty(),
-            beliefBase = beliefsScope.build(),
+            beliefBase = beliefs.first,
             generationStrategy = generationStrategy,
-            events = goalsScope.build().map { Event.of(it) },
-            planLibrary = PlanLibrary.of(this.plans + plans),
+            events = goals.map { Event.of(it) },
+            planLibrary = planLibrary,
             internalActions = internalActions,
-            templates = templates + actionTemplates + planTemplates,
+            admissibleGoals = admissibleGoals,
+            admissibleBeliefs = beliefs.second,
         )
         if (this::time.isInitialized) {
             agent = agent.setTimeDistribution(time)

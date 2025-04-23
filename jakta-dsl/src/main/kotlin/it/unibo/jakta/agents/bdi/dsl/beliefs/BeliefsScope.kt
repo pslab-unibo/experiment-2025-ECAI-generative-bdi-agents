@@ -1,11 +1,9 @@
 package it.unibo.jakta.agents.bdi.dsl.beliefs
 
+import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.agents.bdi.parsing.LiteratePrologParser.tangleStruct
-import it.unibo.jakta.agents.bdi.parsing.LiteratePrologParser.tangleStructs
-import it.unibo.jakta.agents.bdi.parsing.templates.LiteratePrologTemplate
 import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Fact
 import it.unibo.tuprolog.core.Rule
@@ -16,22 +14,17 @@ import it.unibo.tuprolog.dsl.jakta.JaktaLogicProgrammingScope
  * Builder for Jakta Agents's [BeliefBase].
  */
 class BeliefsScope(
-    private val templates: List<LiteratePrologTemplate> = emptyList(),
     private val lp: JaktaLogicProgrammingScope = JaktaLogicProgrammingScope.empty(),
-) : Builder<BeliefBase>, JaktaLogicProgrammingScope by lp {
+) : Builder<Pair<BeliefBase, Set<AdmissibleBelief>>>, JaktaLogicProgrammingScope by lp {
 
-    var typeCheckRule: ((String) -> Rule)? = null
-    private val beliefs = mutableListOf<Belief>()
+    private val actualBeliefs = mutableListOf<Belief>()
+    private val admissibleBeliefs = mutableSetOf<AdmissibleBelief>()
 
     /**
      * Handler for the addition of a fact [Belief] into the agent's [BeliefBase].
      * @param struct the [Struct] that represents the [Belief].
      */
-    fun fact(
-        struct: Struct,
-        template: LiteratePrologTemplate? = null,
-        slotValues: List<Pair<String, String>> = emptyList(),
-    ) = beliefs.add(createBelief(struct, template, slotValues))
+    fun fact(struct: Struct) = actualBeliefs.add(createBelief(struct))
 
     /**
      * Handler for the addition of a fact [Belief] into the agent's [BeliefBase].
@@ -40,18 +33,19 @@ class BeliefsScope(
     override fun fact(function: JaktaLogicProgrammingScope.() -> Any): Fact =
         lp.fact { function() }.also { fact(it.head) }
 
+    fun admissible(block: BeliefsScope.() -> Unit) {
+        val scope = BeliefsScope()
+        scope.block()
+        val s = scope.build()
+        admissibleBeliefs
+            .addAll(s.first.map { AdmissibleBelief.from(it.rule, it.purpose) } + s.second)
+    }
+
     /**
      * Handler for the addition of a fact [Belief] into the agent's [BeliefBase].
      * @param atom the [String] representing the [Atom] the agent is going to believe.
      */
-    fun fact(atom: String): Boolean {
-        val parsedFact: Struct? = tangleStructs(atom, templates).firstOrNull()
-        return if (parsedFact != null) {
-            fact(parsedFact)
-        } else {
-            fact(atomOf(atom))
-        }
-    }
+    fun fact(atom: String): Boolean = fact(atomOf(atom))
 
     /**
      * Handler for the addition of a rule [Belief] into the agent's [BeliefBase].
@@ -67,30 +61,14 @@ class BeliefsScope(
     fun rule(rule: Rule) {
         val freshRule = rule.freshCopy()
         val belief: Belief = Belief.wrap(freshRule.head, freshRule.bodyItems, wrappingTag = Belief.SOURCE_SELF)
-        beliefs.add(belief)
+        actualBeliefs.add(belief)
     }
 
-    fun createBelief(
-        struct: Struct,
-        template: LiteratePrologTemplate? = null,
-        slotValues: List<Pair<String, String>> = emptyList(),
-    ): Belief =
+    fun createBelief(struct: Struct): Belief =
         Belief.wrap(
             struct.freshCopy(),
             wrappingTag = Belief.SOURCE_SELF,
-            template = template,
-            slotValues = slotValues,
         )
 
-    override fun build(): BeliefBase {
-        val (toKeep, toConvert) = beliefs.partition {
-            tangleStruct(it.rule.head.toString(), templates) == null
-        }
-
-        val converted = toConvert.map {
-            createBelief(tangleStruct(it.rule.head.toString(), templates)!!)
-        }
-
-        return BeliefBase.of(typeCheckRule, toKeep + converted)
-    }
+    override fun build() = Pair(BeliefBase.of(actualBeliefs), admissibleBeliefs)
 }

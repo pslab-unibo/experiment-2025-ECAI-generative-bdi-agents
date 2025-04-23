@@ -8,8 +8,16 @@ import it.unibo.jakta.agents.bdi.actions.impl.AbstractInternalAction
 
 class InternalActionsScope :
     ActionsScope<AgentChange, InternalResponse, InternalRequest, InternalAction, InternalActionScope>() {
-    public override fun newAction(name: String, arity: Int, f: InternalActionScope.() -> Unit): InternalAction =
+    public override fun newAction(
+        name: String,
+        arity: Int,
+        parameterNames: List<String>,
+        purpose: String?,
+        f: InternalActionScope.() -> Unit,
+    ): InternalAction =
         object : AbstractInternalAction(name, arity) {
+            override val purpose = purpose
+
             override fun action(request: InternalRequest) {
                 InternalActionScope(this, request).f()
             }

@@ -3,6 +3,7 @@ package it.unibo.jakta.agents.bdi.dsl
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.Mas
 import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
+import it.unibo.jakta.agents.bdi.dsl.logging.LoggingConfigScope
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
@@ -27,7 +28,7 @@ class MasScope : Builder<Mas> {
     }
 
     fun agent(name: String, f: AgentScope.() -> Unit): MasScope {
-        agents += AgentScope(name, env.externalActions).also(f).build()
+        agents += AgentScope(name).also(f).build()
         return this
     }
 
@@ -36,8 +37,8 @@ class MasScope : Builder<Mas> {
         return this
     }
 
-    fun generationStrategy(f: () -> GenerationStrategy): MasScope {
-        generationStrategy = f()
+    fun loggingConfig(block: LoggingConfigScope.() -> Unit): MasScope {
+        loggingConfig = LoggingConfigScope().also(block).build()
         return this
     }
 

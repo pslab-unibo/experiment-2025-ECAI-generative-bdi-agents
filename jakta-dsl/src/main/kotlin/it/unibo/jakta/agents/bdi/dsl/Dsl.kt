@@ -2,15 +2,16 @@ package it.unibo.jakta.agents.bdi.dsl
 
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.Mas
-import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.dsl.actions.ExternalActionScope
 import it.unibo.jakta.agents.bdi.dsl.actions.ExternalActionsScope
 import it.unibo.jakta.agents.bdi.dsl.actions.InternalActionScope
 import it.unibo.jakta.agents.bdi.dsl.actions.InternalActionsScope
 import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefsScope
 import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
+import it.unibo.jakta.agents.bdi.dsl.logging.LoggingConfigScope
 import it.unibo.jakta.agents.bdi.dsl.plans.PlansScope
 import it.unibo.jakta.agents.bdi.environment.Environment
+import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Term
@@ -21,11 +22,12 @@ annotation class JaktaDSL
 @JaktaDSL
 fun mas(f: MasScope.() -> Unit): Mas =
     MasScope().also(f).build()
+
 fun internalAction(name: String, arity: Int, f: InternalActionScope.() -> Unit) =
-    InternalActionsScope().newAction(name, arity, f)
+    InternalActionsScope().newAction(name, arity, emptyList(), f = f)
 
 fun externalAction(name: String, arity: Int, f: ExternalActionScope.() -> Unit) =
-    ExternalActionsScope().newAction(name, arity, f)
+    ExternalActionsScope().newAction(name, arity, emptyList(), f = f)
 
 @JaktaDSL
 fun environment(f: EnvironmentScope.() -> Unit): Environment = EnvironmentScope().also(f).build()
@@ -33,9 +35,12 @@ fun environment(f: EnvironmentScope.() -> Unit): Environment = EnvironmentScope(
 @JaktaDSL
 fun agent(name: String, f: AgentScope.() -> Unit): Agent = AgentScope(name).also(f).build()
 
-fun plans(f: PlansScope.() -> Unit): Iterable<Plan> = PlansScope().also(f).build().first
+fun plans(f: PlansScope.() -> Unit): Iterable<Plan> = PlansScope().also(f).build()
 
-fun beliefs(f: BeliefsScope.() -> Unit): BeliefBase = BeliefsScope().also(f).build()
+fun beliefs(f: BeliefsScope.() -> Unit) = BeliefsScope().also(f).build()
+
+fun loggingConfig(block: LoggingConfigScope.() -> Unit): LoggingConfig =
+    LoggingConfigScope().also(block).build()
 
 operator fun String.invoke(vararg terms: Term): Struct =
     Struct.of(this, *terms)

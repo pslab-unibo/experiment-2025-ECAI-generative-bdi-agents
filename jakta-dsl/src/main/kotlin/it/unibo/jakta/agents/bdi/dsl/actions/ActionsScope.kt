@@ -17,12 +17,21 @@ abstract class ActionsScope<C, Res, Req, A, As> : Builder<Map<String, A>>
 
     private val actions = mutableListOf<A>()
 
+    fun action(name: String, vararg parameterNames: String, f: As.() -> Unit) {
+        val parameterNames = parameterNames.toList()
+        actions += newAction(name, parameterNames.size, parameterNames, f = f)
+    }
+
     fun action(name: String, arity: Int, f: As.() -> Unit) {
-        actions += newAction(name, arity, f)
+        actions += newAction(name, arity, emptyList(), f = f)
     }
 
     fun action(method: KFunction<*>) {
-        actions += newAction(method.name, method.parameters.size) {
+        actions += newAction(
+            method.name,
+            method.parameters.size,
+            method.parameters.map { it.name!! },
+        ) {
             method.call(*arguments.toTypedArray())
         }
     }
@@ -31,7 +40,13 @@ abstract class ActionsScope<C, Res, Req, A, As> : Builder<Map<String, A>>
         actions += action
     }
 
-    protected abstract fun newAction(name: String, arity: Int, f: As.() -> Unit): A
+    protected abstract fun newAction(
+        name: String,
+        arity: Int,
+        parameterNames: List<String> = emptyList(),
+        purpose: String? = null,
+        f: As.() -> Unit,
+    ): A
 
     override fun build(): Map<String, A> = actions.associateBy { it.signature.name }
 

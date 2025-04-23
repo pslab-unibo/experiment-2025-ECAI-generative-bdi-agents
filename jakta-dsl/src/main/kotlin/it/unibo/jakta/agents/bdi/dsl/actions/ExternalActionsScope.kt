@@ -8,8 +8,16 @@ import it.unibo.jakta.agents.bdi.actions.impl.AbstractExternalAction
 
 class ExternalActionsScope :
     ActionsScope<EnvironmentChange, ExternalResponse, ExternalRequest, ExternalAction, ExternalActionScope>() {
-    public override fun newAction(name: String, arity: Int, f: ExternalActionScope.() -> Unit): ExternalAction =
+    public override fun newAction(
+        name: String,
+        arity: Int,
+        parameterNames: List<String>,
+        purpose: String?,
+        f: ExternalActionScope.() -> Unit,
+    ): ExternalAction =
         object : AbstractExternalAction(name, arity) {
+            override val purpose = purpose
+
             override fun action(request: ExternalRequest) {
                 ExternalActionScope(this, request).f()
             }
