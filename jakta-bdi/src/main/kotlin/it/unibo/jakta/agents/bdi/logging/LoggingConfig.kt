@@ -2,8 +2,8 @@ package it.unibo.jakta.agents.bdi.logging
 
 import ch.qos.logback.classic.Level
 import io.github.oshai.kotlinlogging.KLogger
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback
 import it.unibo.jakta.agents.bdi.logging.events.LogEvent
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.FailureFeedback
 
 data class LoggingConfig(
     val logServerURL: String? = null,
@@ -21,7 +21,7 @@ fun KLogger.implementation(event: LogEvent) {
 }
 
 private fun KLogger.logSimple(event: LogEvent) {
-    if (event is FailureFeedback) {
+    if (event is NegativeFeedback) {
         warn { event.description }
     } else {
         info { event.description }
@@ -29,7 +29,7 @@ private fun KLogger.logSimple(event: LogEvent) {
 }
 
 private fun KLogger.logWithMetadata(event: LogEvent) {
-    if (event is FailureFeedback) {
+    if (event is NegativeFeedback) {
         atWarn {
             message = event.description
             payload = event.metadata

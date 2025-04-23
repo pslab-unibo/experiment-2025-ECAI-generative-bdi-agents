@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.events
 
+import it.unibo.jakta.agents.bdi.Documentable
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.goals.Achieve
@@ -8,37 +9,41 @@ import it.unibo.tuprolog.core.Struct
 import kotlin.reflect.KClass
 
 /** [Trigger] denotes the change that took place for the [Event] generation. */
-interface Trigger {
+sealed interface Trigger : Documentable {
     val value: Struct
 
-    fun copy(value: Struct = this.value): Trigger
+    fun copy(
+        value: Struct = this.value,
+        purpose: String? = this.purpose,
+    ): Trigger
 
     companion object {
         fun fromStruct(
             trigger: Struct,
             triggerType: KClass<out Trigger>,
             failure: Boolean = false,
+            purpose: String? = null,
         ): Trigger {
             return when (triggerType) {
                 BeliefBaseRevision::class -> {
                     if (failure) {
-                        BeliefBaseRemoval(Belief.from(trigger))
+                        BeliefBaseRemoval(Belief.from(trigger), purpose)
                     } else {
-                        BeliefBaseAddition(Belief.from(trigger))
+                        BeliefBaseAddition(Belief.from(trigger), purpose)
                     }
                 }
                 TestGoalTrigger::class -> {
                     if (failure) {
-                        TestGoalFailure(trigger)
+                        TestGoalFailure(trigger, purpose)
                     } else {
-                        TestGoalInvocation(trigger)
+                        TestGoalInvocation(trigger, purpose)
                     }
                 }
                 AchievementGoalTrigger::class -> {
                     if (failure) {
-                        AchievementGoalFailure(trigger)
+                        AchievementGoalFailure(trigger, purpose)
                     } else {
-                        AchievementGoalInvocation(trigger)
+                        AchievementGoalInvocation(trigger, purpose)
                     }
                 }
                 else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
@@ -54,17 +59,26 @@ interface BeliefBaseRevision : Trigger {
     val belief: Struct
         get() = value
 
-    fun copy(belief: Belief): BeliefBaseRevision
+    fun copy(belief: Belief, purpose: String?): BeliefBaseRevision
 }
 
 /** [BeliefBaseRevision] generated after a [Belief] addition to agent's [BeliefBase]. */
-class BeliefBaseAddition(private val addedBelief: Belief) : BeliefBaseRevision {
+class BeliefBaseAddition(
+    private val addedBelief: Belief,
+    override val purpose: String? = null,
+) : BeliefBaseRevision {
     override val value: Struct
         get() = addedBelief.rule.head
 
-    override fun copy(value: Struct): Trigger = BeliefBaseAddition(Belief.from(value))
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = BeliefBaseAddition(Belief.from(value), purpose)
 
-    override fun copy(belief: Belief): BeliefBaseRevision = BeliefBaseAddition(belief)
+    override fun copy(
+        belief: Belief,
+        purpose: String?,
+    ): BeliefBaseRevision = BeliefBaseAddition(belief, purpose)
 
     override fun toString(): String = "BeliefBaseAddition(value=$value)"
 
@@ -88,13 +102,22 @@ class BeliefBaseAddition(private val addedBelief: Belief) : BeliefBaseRevision {
 }
 
 /** [BeliefBaseRevision] generated after a [Belief] removal from agent's [BeliefBase]. */
-class BeliefBaseRemoval(private val removedBelief: Belief) : BeliefBaseRevision {
+class BeliefBaseRemoval(
+    private val removedBelief: Belief,
+    override val purpose: String? = null,
+) : BeliefBaseRevision {
     override val value: Struct
         get() = removedBelief.rule.head
 
-    override fun copy(value: Struct): Trigger = BeliefBaseRemoval(Belief.from(value))
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = BeliefBaseRemoval(Belief.from(value), purpose)
 
-    override fun copy(belief: Belief): BeliefBaseRevision = BeliefBaseRemoval(belief)
+    override fun copy(
+        belief: Belief,
+        purpose: String?,
+    ): BeliefBaseRevision = BeliefBaseRemoval(belief, purpose)
 
     override fun toString(): String = "BeliefBaseRemoval(value=$value)"
 
@@ -117,13 +140,22 @@ class BeliefBaseRemoval(private val removedBelief: Belief) : BeliefBaseRevision 
     }
 }
 
-class BeliefBaseUpdate(private val removedBelief: Belief) : BeliefBaseRevision {
+class BeliefBaseUpdate(
+    private val removedBelief: Belief,
+    override val purpose: String? = null,
+) : BeliefBaseRevision {
     override val value: Struct
         get() = removedBelief.rule.head
 
-    override fun copy(value: Struct): Trigger = BeliefBaseUpdate(Belief.from(value))
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = BeliefBaseUpdate(Belief.from(value), purpose)
 
-    override fun copy(belief: Belief): BeliefBaseRevision = BeliefBaseUpdate(belief)
+    override fun copy(
+        belief: Belief,
+        purpose: String?,
+    ): BeliefBaseRevision = BeliefBaseUpdate(belief, purpose)
 
     override fun toString(): String = "BeliefBaseUpdate(value=$value)"
     override fun equals(other: Any?): Boolean {
@@ -152,10 +184,16 @@ interface TestGoalTrigger : Trigger {
 }
 
 /** [TestGoalTrigger] generated after an invocation of a [Test] Goal. */
-class TestGoalInvocation(override val value: Struct) : TestGoalTrigger {
-    override fun copy(value: Struct): Trigger = TestGoalInvocation(value)
+class TestGoalInvocation(
+    override val value: Struct,
+    override val purpose: String? = null,
+) : TestGoalTrigger {
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = TestGoalInvocation(value, purpose)
 
-    override fun toString(): String = "TestGoalInvocation(value=$value)"
+    override fun toString(): String = "TestGoalInvocation(value=$value, purpose=$purpose)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -172,10 +210,16 @@ class TestGoalInvocation(override val value: Struct) : TestGoalTrigger {
 }
 
 /** [TestGoalTrigger] generated after a failure of a [Test] Goal. */
-class TestGoalFailure(override val value: Struct) : TestGoalTrigger {
-    override fun copy(value: Struct): Trigger = TestGoalFailure(value)
+class TestGoalFailure(
+    override val value: Struct,
+    override val purpose: String? = null,
+) : TestGoalTrigger {
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = TestGoalFailure(value, purpose)
 
-    override fun toString(): String = "TestGoalFailure(value=$value)"
+    override fun toString(): String = "TestGoalFailure(value=$value, purpose=$purpose)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -198,10 +242,16 @@ interface AchievementGoalTrigger : Trigger {
 }
 
 /** [AchievementGoalTrigger] generated after the invocation of a [Achieve] Goal. */
-class AchievementGoalInvocation(override val value: Struct) : AchievementGoalTrigger {
-    override fun copy(value: Struct): Trigger = AchievementGoalInvocation(value)
+class AchievementGoalInvocation(
+    override val value: Struct,
+    override val purpose: String? = null,
+) : AchievementGoalTrigger {
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = AchievementGoalInvocation(value, purpose)
 
-    override fun toString(): String = "AchievementGoalInvocation(value=$value)"
+    override fun toString(): String = "AchievementGoalInvocation(value=$value, purpose=$purpose)"
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -217,10 +267,16 @@ class AchievementGoalInvocation(override val value: Struct) : AchievementGoalTri
 }
 
 /** [AchievementGoalTrigger] generated after the failure of a [Achieve] Goal. */
-class AchievementGoalFailure(override val value: Struct) : AchievementGoalTrigger {
-    override fun copy(value: Struct): Trigger = AchievementGoalFailure(value)
+class AchievementGoalFailure(
+    override val value: Struct,
+    override val purpose: String? = null,
+) : AchievementGoalTrigger {
+    override fun copy(
+        value: Struct,
+        purpose: String?,
+    ): Trigger = AchievementGoalFailure(value, purpose)
 
-    override fun toString(): String = "AchievementGoalFailure(value=$value)"
+    override fun toString(): String = "AchievementGoalFailure(value=$value, purpose=$purpose)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -1,13 +1,18 @@
 package it.unibo.jakta.agents.bdi.plangeneration
 
-import it.unibo.jakta.agents.bdi.plans.PlanLibrary
+import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
+import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
+import it.unibo.jakta.agents.bdi.plans.PartialPlan
 
 interface PlanGenerationResult : GenerationResult {
-    val generationState: GenerationState
-    val generatedPlanLibrary: PlanLibrary
+    val generatedPlanLibrary: List<PartialPlan>
+    val generatedAdmissibleGoals: Set<AdmissibleGoal>
+    val generatedAdmissibleBeliefs: Set<AdmissibleBelief>
 
     fun copy(
         generationState: GenerationState = this.generationState,
-        generatedPlanLibrary: PlanLibrary = this.generatedPlanLibrary,
+        generatedPlanLibrary: List<PartialPlan> = this.generatedPlanLibrary,
+        generatedAdmissibleGoals: Set<AdmissibleGoal> = this.generatedAdmissibleGoals,
+        generatedAdmissibleBeliefs: Set<AdmissibleBelief> = this.generatedAdmissibleBeliefs,
     ): PlanGenerationResult
 }

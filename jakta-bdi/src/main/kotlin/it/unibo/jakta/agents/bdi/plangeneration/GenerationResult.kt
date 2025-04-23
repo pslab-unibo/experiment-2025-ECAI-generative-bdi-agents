@@ -1,3 +1,5 @@
 package it.unibo.jakta.agents.bdi.plangeneration
 
-interface GenerationResult
+interface GenerationResult {
+    val generationState: GenerationState
+}

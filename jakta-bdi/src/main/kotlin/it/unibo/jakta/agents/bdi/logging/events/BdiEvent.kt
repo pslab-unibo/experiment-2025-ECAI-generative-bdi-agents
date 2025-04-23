@@ -1,6 +1,6 @@
 package it.unibo.jakta.agents.bdi.logging.events
 
-import it.unibo.jakta.agents.bdi.Jakta.formatter
+import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.Trigger
 
@@ -18,7 +18,7 @@ sealed interface BdiEvent : LogEvent {
 
     companion object {
         fun triggerDescription(triggerType: Trigger): String =
-            "${triggerType.javaClass.simpleName} with value ${formatter.format(triggerType.value)}"
+            "${triggerType.javaClass.simpleName} with value ${termFormatter.format(triggerType.value)}"
 
         fun eventType(e: Event) = if (e.isExternal()) {
             "external"

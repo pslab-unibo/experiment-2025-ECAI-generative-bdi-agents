@@ -1,30 +1,19 @@
 package it.unibo.jakta.agents.bdi.plangeneration
 
 import io.github.oshai.kotlinlogging.KLogger
-import it.unibo.jakta.agents.bdi.goals.Generate
+import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.plans.PlanID
 
 interface GenerationState {
-    val goal: Generate
+    val goal: GeneratePlan
     val achievedGoalsHistory: List<Goal>
-    val rootPlanID: PlanID
+    val consecutiveFailureCount: Int
     val logger: KLogger?
-    val isGenerationFinished: Boolean
-    val isGenerationEndConfirmed: Boolean
-    val generationIteration: Int
-    val failedGenerationProcess: Int
-
-    fun reset(): GenerationState
 
     fun copy(
-        goal: Generate = this.goal,
+        goal: GeneratePlan = this.goal,
         achievedGoalsHistory: List<Goal> = this.achievedGoalsHistory,
-        rootPlanID: PlanID = this.rootPlanID,
+        consecutiveFailureCount: Int = this.consecutiveFailureCount,
         logger: KLogger? = this.logger,
-        isGenerationFinished: Boolean = this.isGenerationFinished,
-        isGenerationEndConfirmed: Boolean = this.isGenerationEndConfirmed,
-        generationIteration: Int = this.generationIteration,
-        failedGenerationProcess: Int = this.failedGenerationProcess,
     ): GenerationState
 }
