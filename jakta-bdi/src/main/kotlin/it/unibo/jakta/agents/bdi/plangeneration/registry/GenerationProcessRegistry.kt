@@ -1,18 +1,22 @@
 package it.unibo.jakta.agents.bdi.plangeneration.registry
 
+import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationState
-import it.unibo.jakta.agents.bdi.plans.PlanID
 
-interface GenerationProcessRegistry : Map<PlanID, GenerationState> {
+interface GenerationProcessRegistry : Map<GeneratePlan, GenerationState> {
 
-    fun updateGenerationProcess(planID: PlanID, generationState: GenerationState): GenerationProcessRegistry
+    fun updateGenerationProcess(goal: GeneratePlan, generationState: GenerationState): GenerationProcessRegistry
 
-    fun deleteGenerationProcess(planID: PlanID): GenerationProcessRegistry
+    fun nextGenerationState(): GenerationState?
+
+    fun pop(): GenerationProcessRegistry
+
+    fun deleteGenerationProcess(goal: GeneratePlan): GenerationProcessRegistry
 
     companion object {
         fun empty(): GenerationProcessRegistry = GenerationProcessRegistryImpl()
 
-        fun of(requests: Map<PlanID, GenerationState>): GenerationProcessRegistry = GenerationProcessRegistryImpl(
+        fun of(requests: Map<GeneratePlan, GenerationState>): GenerationProcessRegistry = GenerationProcessRegistryImpl(
             requests,
         )
     }

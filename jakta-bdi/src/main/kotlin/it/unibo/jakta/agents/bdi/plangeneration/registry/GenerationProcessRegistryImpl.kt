@@ -1,20 +1,28 @@
 package it.unibo.jakta.agents.bdi.plangeneration.registry
 
+import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationState
-import it.unibo.jakta.agents.bdi.plans.PlanID
 
 class GenerationProcessRegistryImpl(
-    val from: Map<PlanID, GenerationState> = emptyMap(),
-) : GenerationProcessRegistry, HashMap<PlanID, GenerationState>(from) {
+    val from: Map<GeneratePlan, GenerationState> = emptyMap(),
+) : GenerationProcessRegistry, LinkedHashMap<GeneratePlan, GenerationState>(from) {
 
     override fun updateGenerationProcess(
-        planID: PlanID,
+        goal: GeneratePlan,
         generationState: GenerationState,
     ): GenerationProcessRegistry =
-        GenerationProcessRegistryImpl(this + Pair(planID, generationState))
+        GenerationProcessRegistryImpl(this + Pair(goal, generationState))
 
-    override fun deleteGenerationProcess(planID: PlanID): GenerationProcessRegistry =
-        GenerationProcessRegistryImpl(this - planID)
+    override fun nextGenerationState(): GenerationState? {
+        if (this.isEmpty()) return null
+        return this.entries.iterator().next().value
+    }
 
-    override fun toString(): String = from.values.joinToString()
+    override fun pop(): GenerationProcessRegistry =
+        nextGenerationState()?.let { GenerationProcessRegistryImpl(this - it.goal) } ?: this
+
+    override fun deleteGenerationProcess(goal: GeneratePlan): GenerationProcessRegistry =
+        GenerationProcessRegistryImpl(this - goal)
+
+    override fun toString(): String = from.values.joinToString(separator = "\n")
 }

@@ -1,60 +1,18 @@
 package it.unibo.jakta.agents.bdi.plangeneration.manager.generation.impl
 
+import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GenerationFailure.GenericGenerationFailure
+import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.intentions.Intention
-import it.unibo.jakta.agents.bdi.plangeneration.FailureResult
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.GenericGenerationFailure
-import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.GoalGenerationStrategy.Companion.MAX_GENERATION_ATTEMPTS
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationFailureResult
+import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.updaters.GenerationProcessUpdater
 
-class GenerationErrorHandler {
-
-    fun handleMaxConcurrentGenerationProcessesExceeded(
-        intention: Intention,
-        context: AgentContext,
-    ): ExecutionResult {
-        val errorMsg =
-            "Cannot start a new generation process since the max amount " +
-                "of $MAX_GENERATION_ATTEMPTS attempts exceeded."
-        return ExecutionResult(
-            context.copy(intentions = context.intentions.updateIntention(intention.pop())),
-            feedback = GenericGenerationFailure(errorMsg),
-        )
-    }
-
-    fun handleMissingGenerationStrategy(
-        intention: Intention,
-        context: AgentContext,
-    ): ExecutionResult {
-        val errorMsg = "Cannot generate new goals without a generation strategy"
-        return ExecutionResult(
-            context.copy(intentions = context.intentions.updateIntention(intention.pop())),
-            feedback = GenericGenerationFailure(errorMsg),
-        )
-    }
-
-    fun handleMaxAttemptsExceeded(
-        intention: Intention,
-        context: AgentContext,
-        maxAttempts: Int,
-    ): ExecutionResult {
-        val errorMsg = "Reached maximum amount of retries ($maxAttempts attempts)"
-        return ExecutionResult(
-            context.copy(intentions = context.intentions.updateIntention(intention.pop())),
-            feedback = GenericGenerationFailure(errorMsg),
-        )
-    }
-
-    fun handleMissingDeclarativeIntention(
-        intention: Intention,
-        context: AgentContext,
-    ): ExecutionResult {
-        val errorMsg = "A running generation process needs a DeclarativeIntention to keep on going"
-        return ExecutionResult(
-            context.copy(intentions = context.intentions.updateIntention(intention.pop())),
-            feedback = GenericGenerationFailure(errorMsg),
-        )
-    }
+class GenerationErrorHandler(
+    val logger: KLogger?,
+) {
+    private val generationProcessUpdater = GenerationProcessUpdater(logger)
 
     fun handleUnknownResult(
         intention: Intention,
@@ -68,13 +26,18 @@ class GenerationErrorHandler {
     }
 
     fun handleFailure(
+        genGoal: GeneratePlan,
         intention: Intention,
         context: AgentContext,
-        planGenResult: FailureResult,
+        planGenResult: GenerationFailureResult,
     ): ExecutionResult {
         val errorMsg = "Failed generation due to: ${planGenResult.errorMsg}"
+        val updatedGenProcesses = generationProcessUpdater.update(context, genGoal, planGenResult)
         return ExecutionResult(
-            context.copy(intentions = context.intentions.updateIntention(intention.pop())),
+            context.copy(
+                intentions = context.intentions.updateIntention(intention.pop()),
+                generationProcesses = updatedGenProcesses,
+            ),
             feedback = GenericGenerationFailure(errorMsg),
         )
     }

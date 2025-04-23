@@ -4,11 +4,10 @@ import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.environment.Environment
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback
 import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
-import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention
-import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention.Companion.replace
 import it.unibo.jakta.agents.bdi.intentions.Intention
-import it.unibo.jakta.agents.bdi.plangeneration.feedback.FailureFeedback
+import it.unibo.jakta.agents.bdi.intentions.Intention.Companion.replace
 import it.unibo.jakta.agents.bdi.plangeneration.manager.GoalTrackingStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.manager.InvalidationStrategy
 
@@ -20,6 +19,7 @@ class GoalTrackingStrategyImpl(
     /**
      * Replace the previous intention's [TrackGoalExecution] with the goal being tracked.
      * If the execution is successful, also update the plan library by un-tracking the goal.
+     * Otherwise, invalidate the plan library, intention and any event and return the failure feedback.
      */
     override fun trackGoalExecution(
         goal: TrackGoalExecution,
@@ -35,7 +35,7 @@ class GoalTrackingStrategyImpl(
 
         val result = runIntention(newIntention, context, environment)
 
-        val updatedRes = if (result.feedback is FailureFeedback) {
+        val updatedRes = if (result.feedback is NegativeFeedback) {
             result
         } else {
             val updatedPlanLibrary = goal.untrack(intention.currentPlan(), result.newAgentContext.planLibrary)
@@ -46,8 +46,8 @@ class GoalTrackingStrategyImpl(
             )
         }
 
-        return if (updatedRes.feedback is FailureFeedback && intention is DeclarativeIntention) {
-            invalidationStrategy.invalidate(intention, updatedRes.newAgentContext).copy(
+        return if (updatedRes.feedback is NegativeFeedback) {
+            invalidationStrategy.invalidate(intention.currentPlan(), updatedRes.newAgentContext).copy(
                 feedback = updatedRes.feedback,
             )
         } else {

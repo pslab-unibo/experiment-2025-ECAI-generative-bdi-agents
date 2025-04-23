@@ -1,18 +1,14 @@
 package it.unibo.jakta.agents.bdi.plangeneration.manager
 
 import io.github.oshai.kotlinlogging.KLogger
-import it.unibo.jakta.agents.bdi.context.AgentContext
-import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.intentions.DeclarativeIntention
-import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
-import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.GoalGenerationStrategy
+import it.unibo.jakta.agents.bdi.plangeneration.manager.generation.GeneratePlanStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.manager.impl.GenerationManagerImpl
 
 interface GenerationManager {
     val logger: KLogger?
     val loggingConfig: LoggingConfig?
-    val goalGenerationStrategy: GoalGenerationStrategy
+    val planGenerationStrategy: GeneratePlanStrategy
     val goalTrackingStrategy: GoalTrackingStrategy
     val invalidationStrategy: InvalidationStrategy
     val unavailablePlanStrategy: UnavailablePlanStrategy
@@ -21,7 +17,7 @@ interface GenerationManager {
         fun of(
             logger: KLogger? = null,
             loggingConfig: LoggingConfig? = null,
-            goalGenerationStrategy: GoalGenerationStrategy = GoalGenerationStrategy.of(
+            planGenerationStrategy: GeneratePlanStrategy = GeneratePlanStrategy.of(
                 loggingConfig = loggingConfig,
                 logger = logger,
             ),
@@ -32,23 +28,10 @@ interface GenerationManager {
         ): GenerationManager = GenerationManagerImpl(
             logger,
             loggingConfig,
-            goalGenerationStrategy,
+            planGenerationStrategy,
             goalTrackingStrategy,
             invalidationStrategy,
             unavailablePlanStrategy,
         )
-
-        fun getGoalsAchieved(
-            intention: Intention,
-            context: AgentContext,
-        ): List<Goal> =
-            if (intention is DeclarativeIntention) {
-                context
-                    .generationProcesses[intention.currentGeneratingPlan()]
-                    ?.achievedGoalsHistory
-                    ?: emptyList()
-            } else {
-                emptyList()
-            }
     }
 }
