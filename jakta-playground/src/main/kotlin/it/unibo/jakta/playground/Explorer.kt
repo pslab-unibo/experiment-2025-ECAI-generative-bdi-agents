@@ -2,19 +2,20 @@ package it.unibo.jakta.playground
 
 import it.unibo.jakta.agents.bdi.dsl.mas
 import it.unibo.jakta.agents.bdi.logging.LoggingConfig
-import it.unibo.jakta.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
+import it.unibo.jakta.playground.MockGenerationStrategy.createOneStepStrategyWithMockedAPI
 import it.unibo.jakta.playground.explorer.ExplorerBot.explorerBot
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld
 
 fun main() {
-//    val strategy = createOneStepStrategyWithMockedAPI(listOf(text))
+    val strategy = createOneStepStrategyWithMockedAPI(listOf(text1)) // text2
 
     mas {
         loggingConfig = LoggingConfig()
+        generationStrategy = strategy
 
-        oneStepGeneration {
-            url = "http://localhost:8080/"
-        }
+//        oneStepGeneration {
+//            url = "http://localhost:8080/"
+//        }
 
         environment {
             from(GridWorld())

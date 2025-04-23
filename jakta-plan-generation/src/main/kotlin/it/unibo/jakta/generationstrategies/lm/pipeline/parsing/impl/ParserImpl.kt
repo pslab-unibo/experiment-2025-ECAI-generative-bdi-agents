@@ -37,13 +37,19 @@ class ParserImpl : Parser {
 
         val parsedBlocks = blocks.map { content ->
             try {
-                yaml.decodeFromString(PlanData.serializer(), content)
-            } catch (_: Exception) {
-                try {
-                    yaml.decodeFromString(ListSerializer(TemplateData.serializer()), content)
-                } catch (_: Exception) {
-                    return GenericParserFailure("Unsupported block format inside ticks")
+                parsePlanData(content) ?: run {
+                    try {
+                        yaml.decodeFromString(PlanData.serializer(), content)
+                    } catch (_: Exception) {
+                        try {
+                            yaml.decodeFromString(ListSerializer(TemplateData.serializer()), content)
+                        } catch (_: Exception) {
+                            return GenericParserFailure("Unsupported block format inside ticks")
+                        }
+                    }
                 }
+            } catch (e: Exception) {
+                return GenericParserFailure("Error parsing content: ${e.message}")
             }
         }
 
@@ -84,6 +90,60 @@ class ParserImpl : Parser {
             } else {
                 NewResult(newPlans, newAdmissibleGoals, newAdmissibleBeliefs, input)
             }
+        }
+    }
+
+    private fun parsePlanData(content: String): PlanData? {
+        val lines = content.lines()
+
+        var event = ""
+        val conditions = mutableListOf<String>()
+        val operations = mutableListOf<String>()
+
+        var currentSection = ""
+
+        for (line in lines) {
+            val trimmedLine = line.trim()
+
+            if (trimmedLine.isEmpty()) continue
+
+            when {
+                trimmedLine.startsWith("EVENT:") -> {
+                    event = trimmedLine.substringAfter("EVENT:").trim()
+                    currentSection = "EVENT"
+                }
+                trimmedLine.startsWith("CONDITIONS:") -> {
+                    currentSection = "CONDITIONS"
+                }
+                trimmedLine.startsWith("OPERATIONS:") -> {
+                    currentSection = "OPERATIONS"
+                }
+                // Handle list items or values within the current section
+                else -> {
+                    when (currentSection) {
+                        "CONDITIONS" -> {
+                            if (trimmedLine == "<none>") {
+                                conditions.add("<none>")
+                            } else if (trimmedLine.startsWith("-")) {
+                                conditions.add(trimmedLine.substringAfter("-").trim())
+                            }
+                        }
+                        "OPERATIONS" -> {
+                            if (trimmedLine == "<none>") {
+                                operations.add("<none>")
+                            } else if (trimmedLine.startsWith("-")) {
+                                operations.add(trimmedLine.substringAfter("-").trim())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return if (event.isNotEmpty()) {
+            PlanData(event, conditions, operations)
+        } else {
+            null
         }
     }
 
@@ -133,6 +193,14 @@ class ParserImpl : Parser {
     private fun extractCodeBlocks(input: String): List<String> {
         val regex = """```(?:\w*\n)?([^`]*?)```""".toRegex(RegexOption.DOT_MATCHES_ALL)
         val matches = regex.findAll(input)
-        return matches.map { matchResult -> matchResult.groupValues[1].trim() }.toList()
+
+        return matches.flatMap { matchResult ->
+            val blockContent = matchResult.groupValues[1].trim()
+            if (blockContent.contains("\n---\n")) {
+                blockContent.split("\n---\n").map { it.trim() }
+            } else {
+                listOf(blockContent)
+            }
+        }.toList()
     }
 }

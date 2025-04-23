@@ -72,14 +72,15 @@ class UnavailablePlanStrategyImpl(
     ): ExecutionResult {
         val initialGoal = selectedEvent.trigger
 
-        // TODO should start a new generation here?
-        val newPlan = if (generationStrategy != null &&
-            (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
-        ) {
-            createNewPlanForTrigger(initialGoal)
-        } else {
-            null
-        }
+//        // TODO should start a new generation here?
+        val newPlan = null
+//        val newPlan = if (generationStrategy != null &&
+//            (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
+//        ) {
+//            createNewPlanForTrigger(initialGoal)
+//        } else {
+//            null
+//        }
 
         val feedback = InapplicablePlan(
             relevantPlans

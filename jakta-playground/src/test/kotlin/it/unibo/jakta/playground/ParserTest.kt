@@ -5,7 +5,7 @@ import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserSucc
 
 fun main() {
     val parser = Parser.of()
-    val res = parser.parse(text)
+    val res = parser.parse(text1)
     if (res is ParserSuccess.NewResult) {
         println(res.plans.joinToString("\n"))
         println(res.admissibleGoals.joinToString("\n"))
