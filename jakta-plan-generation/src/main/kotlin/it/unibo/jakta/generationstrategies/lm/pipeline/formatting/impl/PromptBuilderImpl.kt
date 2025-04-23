@@ -100,7 +100,7 @@ class PromptBuilderImpl(
     ): String {
         val res = formatter(items)
         return if (res.isNotEmpty()) {
-            res.joinToString(prefix = "- ")
+            res.joinToString(separator = "\n") { "- $it" }
         } else {
             ""
         }

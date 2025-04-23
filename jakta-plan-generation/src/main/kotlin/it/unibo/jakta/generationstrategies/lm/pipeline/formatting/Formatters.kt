@@ -39,17 +39,30 @@ object Formatters {
     val goalFormatter = object : Formatter<Goal> {
         override fun format(goal: Goal): String =
             when (goal) {
-                is Achieve -> "achieve ${termFormatter.format(goal.value)}"
-                is Act -> "execute ${termFormatter.format(goal.value)}"
-                is ActExternally, is ActInternally -> "execute ${goal.value}"
-                is UpdateBelief -> "update ${goal.belief.removeSource()}"
-                is AddBelief -> "add ${goal.belief.removeSource()}"
-                is RemoveBelief -> "remove ${goal.belief.removeSource()}"
-                is Spawn -> "spawn ${goal.value}"
-                is Test -> "test ${goal.value}"
-                is GeneratePlan -> "generate ${goal.value}"
-                is TrackGoalExecution -> "track ${goal.value}"
                 is EmptyGoal -> "<none>"
+                else -> {
+                    val prefix = when (goal) {
+                        is Achieve -> "achieve"
+                        is Act, is ActExternally, is ActInternally -> "execute"
+                        is UpdateBelief -> "update"
+                        is AddBelief -> "add"
+                        is RemoveBelief -> "remove"
+                        is Spawn -> "spawn"
+                        is Test -> "test"
+                        is GeneratePlan -> "generate"
+                        is TrackGoalExecution -> "track"
+                        else -> error("Unknown goal type: ${goal.javaClass.simpleName}")
+                    }
+
+                    val term = when (goal) {
+                        is UpdateBelief -> goal.belief.removeSource()
+                        is AddBelief -> goal.belief.removeSource()
+                        is RemoveBelief -> goal.belief.removeSource()
+                        else -> goal.value
+                    }
+
+                    "$prefix ${termFormatter.format(term)}"
+                }
             }
     }
 
@@ -78,7 +91,7 @@ object Formatters {
 
     val admissibleBeliefsFormatter = object : Formatter<AdmissibleBelief> {
         override fun format(item: AdmissibleBelief): String {
-            val res = "${item.rule.head.removeSource()}"
+            val res = termFormatter.format(item.rule.head.removeSource())
             return item.purpose?.let { "$res: $it" } ?: res
         }
     }
@@ -123,7 +136,7 @@ object Formatters {
             val params = signature.parameterNames
             append("(")
             if (params.isNotEmpty()) {
-                params.forEach { append((it.capitalize())) }
+                append(params.joinToString { it.capitalize() })
             } else {
                 (1..signature.arity).forEach { append("Parameter$it") }
             }
