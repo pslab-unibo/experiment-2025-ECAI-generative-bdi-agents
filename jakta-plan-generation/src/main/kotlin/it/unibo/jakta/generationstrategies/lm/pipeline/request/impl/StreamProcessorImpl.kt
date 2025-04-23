@@ -3,37 +3,37 @@ package it.unibo.jakta.generationstrategies.lm.pipeline.request.impl
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.client.OpenAI
 import io.github.oshai.kotlinlogging.KLogger
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.ResponseParser
+import it.unibo.jakta.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TIMEOUT
+import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
+import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserFailure.NetworkRequestFailure
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserResult
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.PlanGenerationParserSuccess.RequestFailure
 import it.unibo.jakta.generationstrategies.lm.pipeline.request.StreamProcessor
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 class StreamProcessorImpl : StreamProcessor {
     override suspend fun requestGeneration(
         api: OpenAI,
         request: ChatCompletionRequest,
         logger: KLogger?,
-        parser: ResponseParser,
+        parser: Parser,
     ): ParserResult {
-        try {
-            val outputBuffer = StringBuilder()
-            api.chatCompletions(request)
-                .collect { response ->
-                    val content = response.choices.first().delta?.content.orEmpty()
-
-                    outputBuffer.append(content)
-                    parser.parse(content)
-
-                    if (parser.isComplete()) { return@collect }
+        return try {
+            withTimeout(DEFAULT_TIMEOUT) {
+                val completionResponse = api.chatCompletion(request)
+                val res = completionResponse.choices.firstOrNull()?.message?.content
+                if (res == null || res.isBlank()) {
+                    logger?.warn { "API response is empty or invalid" }
+                    return@withTimeout NetworkRequestFailure("Invalid or empty response from the API")
                 }
-            return parser.buildResult()
-        } catch (_: CancellationException) {
-            logger?.trace { "\nFlow was cancelled." }
-            return RequestFailure("Cancelled early")
+                parser.parse(res)
+            }
+        } catch (e: TimeoutCancellationException) {
+            logger?.error { "Request timed out: ${e.message}" }
+            NetworkRequestFailure("Request timed out")
         } catch (e: Exception) {
-            logger?.error { "\nFlow threw an unexpected exception: ${e.message}" }
-            return RequestFailure("Error: ${e.message}")
+            logger?.error { "Error during request generation: ${e.message}" }
+            NetworkRequestFailure("Error during request generation: ${e.message}")
         }
     }
 }

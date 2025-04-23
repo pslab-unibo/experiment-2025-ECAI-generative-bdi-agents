@@ -1,0 +1,64 @@
+package it.unibo.jakta.generationstrategies.lm.pipeline.formatting.impl
+
+import com.aallam.openai.api.chat.ChatMessage
+import com.aallam.openai.api.chat.ChatRole
+import it.unibo.jakta.agents.bdi.dsl.Builder
+
+class PromptScope private constructor(
+    private val headingLevel: Int = 1,
+) : Builder<String> {
+    private val sections = mutableListOf<PromptSection>()
+
+    fun section(title: String, f: PromptScope.() -> Unit = {}) {
+        val text = PromptScope(headingLevel + 1).also(f).build()
+        if (text.isNotBlank()) {
+            sections.add(PromptSection(title, text))
+        }
+    }
+
+    fun fromFile(filePath: String) {
+        val text = readResourceFile(filePath)
+        if (text.isNotBlank()) {
+            sections.add(PromptSection(null, text))
+        }
+    }
+
+    fun <T> fromFormatter(input: T, formatter: (T) -> String) {
+        val text = formatter(input)
+        if (text.isNotBlank()) {
+            sections.add(PromptSection(null, text))
+        }
+    }
+
+    fun fromString(text: String) {
+        if (text.isNotBlank()) {
+            sections.add(PromptSection(null, text))
+        }
+    }
+
+    fun buildAsMessage(): ChatMessage = ChatMessage(ChatRole.System, build())
+
+    override fun build(): String = sections.joinToString(separator = "\n") { it.toString(headingLevel) }.trim()
+
+    private data class PromptSection(val title: String?, val text: String) {
+        fun toString(level: Int): String {
+            return when {
+                title != null -> {
+                    val heading = "#".repeat(level)
+                    "\n$heading $title\n\n$text"
+                }
+                else -> text
+            }
+        }
+    }
+
+    companion object {
+        fun prompt(block: PromptScope.() -> Unit) = PromptScope().apply(block)
+
+        private fun readResourceFile(resourcePath: String): String {
+            val classLoader = object {}.javaClass.enclosingClass?.classLoader ?: ClassLoader.getSystemClassLoader()
+            val inputStream = classLoader.getResourceAsStream(resourcePath) ?: return "File not found: $resourcePath"
+            return inputStream.bufferedReader().use { it.readText() }
+        }
+    }
+}

@@ -1,9 +1,9 @@
 package it.unibo.jakta.generationstrategies.lm.pipeline.request
 
 import com.aallam.openai.client.OpenAI
+import it.unibo.jakta.generationstrategies.lm.LMGenerationConfig
 import it.unibo.jakta.generationstrategies.lm.LMGenerationState
-import it.unibo.jakta.generationstrategies.lm.configuration.LMGenerationConfig
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.ResponseParser
+import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserResult
 import it.unibo.jakta.generationstrategies.lm.pipeline.request.impl.RequestHandlerImpl
 
@@ -14,7 +14,7 @@ interface RequestHandler {
 
     suspend fun requestTextCompletion(
         generationState: LMGenerationState,
-        parser: ResponseParser,
+        parser: Parser,
     ): ParserResult
 
     companion object {

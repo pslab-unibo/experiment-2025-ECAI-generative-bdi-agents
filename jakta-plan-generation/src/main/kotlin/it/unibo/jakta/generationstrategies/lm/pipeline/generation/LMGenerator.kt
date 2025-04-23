@@ -6,36 +6,33 @@ import it.unibo.jakta.agents.bdi.plangeneration.GenerationResult
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationState
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.Generator
-import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.generationstrategies.lm.LMGenerationFailure
 import it.unibo.jakta.generationstrategies.lm.LMGenerationState
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.ResponseParser
+import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
+import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserFailure.GenericParserFailure
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserResult
 import it.unibo.jakta.generationstrategies.lm.pipeline.request.RequestHandler
 import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy
 import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy.Companion.logChatMessage
-import kotlinx.coroutines.runBlocking
 
 interface LMGenerator : Generator {
     val requestHandler: RequestHandler
-    val responseParser: ResponseParser
+    val responseParser: Parser
 
     fun handleParserResults(
-        generatingPlan: PartialPlan,
         generationStrategy: LMGenerationStrategy,
-        generationResults: ParserResult,
+        generationResult: ParserResult,
         generationState: LMGenerationState,
     ): GenerationResult
 
-    fun generate(
-        generatingPlan: PartialPlan,
+    suspend fun generate(
         generationStrategy: GenerationStrategy,
         generationState: GenerationState,
-    ): GenerationResult = runBlocking {
+    ): GenerationResult {
         val lmGenStrat = generationStrategy as? LMGenerationStrategy
         val lmGenState = generationState as? LMGenerationState
 
-        return@runBlocking when {
+        return when {
             lmGenStrat == null -> LMGenerationFailure(
                 generationState,
                 "Expected a LMGenerationStrategy but got ${generationStrategy.javaClass.simpleName}",
@@ -46,41 +43,27 @@ interface LMGenerator : Generator {
             )
             else -> {
                 val generationResult = requestHandler.requestTextCompletion(generationState, responseParser)
-
-                val chatMessage = ChatMessage(
-                    ChatRole.Assistant,
-                    generationResult.rawContent,
-                )
-
+                val chatMessage = ChatMessage(ChatRole.Assistant, generationResult.rawContent)
                 val updatedState = generationState.copy(
                     chatHistory = generationState.chatHistory + chatMessage,
-                    generationIteration = generationState.generationIteration + 1,
                 ).also {
                     generationState.logger?.logChatMessage(chatMessage)
                 }
 
-                handleParserResults(
-                    generatingPlan,
-                    generationStrategy,
-                    generationResult,
-                    updatedState,
-                )
-//                .also {
-//                    updatedState.chatHistory.forEach { updatedState.logger?.logChatMessage(it) }
-//                }
+                handleParserResults(generationStrategy, generationResult, updatedState)
             }
         }
     }
 
     fun handleParsingFailure(
-        errorMsg: String,
+        generationResult: GenericParserFailure,
         generationState: LMGenerationState,
     ): GenerationResult {
+        val errorMsg = "Failed parsing"
         val newMessage = ChatMessage(ChatRole.User, errorMsg)
         return LMGenerationFailure(
             generationState = generationState.copy(
                 chatHistory = generationState.chatHistory + newMessage,
-                failedGenerationProcess = generationState.failedGenerationProcess + 1,
             ),
             errorMsg = errorMsg,
         ).also {
