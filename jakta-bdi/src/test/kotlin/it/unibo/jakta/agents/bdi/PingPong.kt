@@ -31,6 +31,8 @@ fun main() {
                 )
             }
         }
+
+        override val purpose: String = "Send a message to a receiver"
     }
 
     val env = Environment.of(

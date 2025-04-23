@@ -24,7 +24,7 @@ class TestIntentions : DescribeSpec({
 
     val activationRecord = ActivationRecord.of(
         listOf(AddBelief.of(buySomething), AddBelief.of(eatSomething)),
-        PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
+        PlanID(AchievementGoalInvocation(Struct.of("test"))),
     )
     val intention = Intention.of(listOf(activationRecord))
 
@@ -46,7 +46,7 @@ class TestIntentions : DescribeSpec({
         it("should add on top of the record stack after a push() invocation") {
             val newActivationRecord = ActivationRecord.of(
                 listOf(Achieve.of(Atom.of("clean"))),
-                PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
+                PlanID(AchievementGoalInvocation(Struct.of("test"))),
             )
             val updatedIntention = intention.push(newActivationRecord)
             updatedIntention.nextGoal() shouldBe Achieve.of(Atom.of("clean"))
@@ -60,7 +60,7 @@ class TestIntentions : DescribeSpec({
                 intention.recordStack +
                     ActivationRecord.of(
                         listOf(Achieve.of(Struct.of("clean", X))),
-                        PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
+                        PlanID(AchievementGoalInvocation(Struct.of("test"))),
                     ),
             )
             newIntention.recordStack.size shouldBe 2
@@ -82,7 +82,7 @@ class TestIntentions : DescribeSpec({
                     listOf(
                         Achieve.of(Struct.of("clean", Atom.of("home"))),
                     ),
-                    PlanID.of(AchievementGoalInvocation(Struct.of("test"))),
+                    PlanID(AchievementGoalInvocation(Struct.of("test"))),
                 ),
             ),
         )

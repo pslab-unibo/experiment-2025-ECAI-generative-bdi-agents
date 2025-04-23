@@ -9,7 +9,7 @@ import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Struct
 
 class TestBeliefsDsl : DescribeSpec({
-    fun testingBeliefs(function: BeliefsScope.() -> Unit) = BeliefsScope().also { it.function() }.build()
+    fun testingBeliefs(function: BeliefsScope.() -> Unit) = BeliefsScope().also { it.function() }.build().first
 
     describe("An agent beliefs") {
         it("can be described through functions") {
