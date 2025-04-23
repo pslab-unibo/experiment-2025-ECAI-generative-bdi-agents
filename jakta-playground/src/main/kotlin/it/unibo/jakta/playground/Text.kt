@@ -6,7 +6,7 @@ val text1 = """
     CONDITIONS:
     - there_is(home, D)
     - direction(D)
-    - ¬obstacle(D)
+    - ~obstacle(D)
     OPERATIONS:
     - execute move(D)
     ---
@@ -39,7 +39,7 @@ val text1 = """
     EVENT: check_accessible(D)
     CONDITIONS:
     - direction(D)
-    - ¬obstacle(D)
+    - ~obstacle(D)
     OPERATIONS:
     <none>
     ```
