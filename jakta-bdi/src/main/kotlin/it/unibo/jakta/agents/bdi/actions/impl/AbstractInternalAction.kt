@@ -1,9 +1,9 @@
 package it.unibo.jakta.agents.bdi.actions.impl
 
+import it.unibo.jakta.agents.bdi.actions.ExtendedSignature
 import it.unibo.jakta.agents.bdi.actions.InternalAction
 import it.unibo.jakta.agents.bdi.actions.InternalRequest
 import it.unibo.jakta.agents.bdi.actions.InternalResponse
-import it.unibo.jakta.agents.bdi.actions.LiterateSignature
 import it.unibo.jakta.agents.bdi.actions.effects.AgentChange
 import it.unibo.jakta.agents.bdi.actions.effects.BeliefChange
 import it.unibo.jakta.agents.bdi.actions.effects.EventChange
@@ -20,14 +20,15 @@ import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.solve.Signature
 
-abstract class AbstractInternalAction(override val signature: LiterateSignature) : InternalAction,
-    AbstractAction<AgentChange, InternalResponse, InternalRequest>(signature) {
+abstract class AbstractInternalAction(override val extendedSignature: ExtendedSignature) : InternalAction,
+    AbstractAction<AgentChange, InternalResponse, InternalRequest>(extendedSignature) {
 
-    constructor(name: String, arity: Int) :
-        this(Signature(name, arity), name)
+    constructor(name: String) : this(ExtendedSignature(Signature(name, 0), emptyList()))
 
-    constructor(signature: Signature, description: String) :
-        this(LiterateSignature(signature, description))
+    constructor(name: String, arity: Int) : this(ExtendedSignature(Signature(name, arity), emptyList()))
+
+    constructor(name: String, vararg parameterNames: String) :
+        this(ExtendedSignature(Signature(name, parameterNames.size), parameterNames.toList()))
 
     override fun addBelief(belief: Belief) {
         effects.add(BeliefChange(belief, ADDITION))

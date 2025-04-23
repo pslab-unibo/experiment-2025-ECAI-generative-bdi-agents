@@ -4,12 +4,9 @@ import it.unibo.jakta.agents.bdi.actions.impl.AbstractInternalAction
 import it.unibo.tuprolog.core.Substitution
 
 object InternalActions {
-    object Print : AbstractInternalAction(
-        """
-        `print [message] [payload]` prints a [message] and its [payload]
-        """,
-        arity = 2,
-    ) {
+    object Print : AbstractInternalAction("print", "message", "payload") {
+        override val purpose = "prints a [message] and its [payload]"
+
         override fun action(request: InternalRequest) {
             val payload = request.arguments.joinToString(" ") {
                 when {
@@ -21,45 +18,33 @@ object InternalActions {
         }
     }
 
-    object Fail : AbstractInternalAction(
-        """
-        `fail` makes the agent fail its current intention
-        """,
-        arity = 0,
-    ) {
+    object Fail : AbstractInternalAction("fail") {
+        override val purpose = "makes the agent fail its current intention"
+
         override fun action(request: InternalRequest) {
             result = Substitution.failed()
         }
     }
 
-    object Stop : AbstractInternalAction(
-        """
-        `stop` makes the agent stop
-        """,
-        arity = 0,
-    ) {
+    object Stop : AbstractInternalAction("stop") {
+        override val purpose = "stops the agent"
+
         override fun action(request: InternalRequest) {
             stopAgent()
         }
     }
 
-    object Pause : AbstractInternalAction(
-        """
-        `pause` makes the agent pause 
-        """,
-        arity = 0,
-    ) {
+    object Pause : AbstractInternalAction("pause") {
+        override val purpose = "pauses the agent"
+
         override fun action(request: InternalRequest) {
             pauseAgent()
         }
     }
 
-    object Sleep : AbstractInternalAction(
-        """
-        `sleep [time]` makes the agent sleep for [time] milliseconds
-        """,
-        arity = 1,
-    ) {
+    object Sleep : AbstractInternalAction("sleep", "time") {
+        override val purpose = "makes the agent sleep for [time] milliseconds"
+
         override fun action(request: InternalRequest) {
             if (request.arguments[0].isInteger) {
                 sleepAgent(request.arguments[0].castToInteger().value.toLong())

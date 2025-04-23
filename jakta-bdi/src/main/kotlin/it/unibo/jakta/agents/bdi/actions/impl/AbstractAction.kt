@@ -3,12 +3,12 @@ package it.unibo.jakta.agents.bdi.actions.impl
 import it.unibo.jakta.agents.bdi.actions.Action
 import it.unibo.jakta.agents.bdi.actions.ActionRequest
 import it.unibo.jakta.agents.bdi.actions.ActionResponse
-import it.unibo.jakta.agents.bdi.actions.LiterateSignature
+import it.unibo.jakta.agents.bdi.actions.ExtendedSignature
 import it.unibo.jakta.agents.bdi.actions.effects.SideEffect
 import it.unibo.tuprolog.core.Substitution
 
 abstract class AbstractAction<C : SideEffect, Res : ActionResponse<C>, Req : ActionRequest<C, Res>> (
-    override val signature: LiterateSignature,
+    override val extendedSignature: ExtendedSignature,
 ) : Action<C, Res, Req> {
 
     protected var result: Substitution = Substitution.empty()
