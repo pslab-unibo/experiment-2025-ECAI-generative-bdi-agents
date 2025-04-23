@@ -87,6 +87,14 @@ internal class BeliefBaseImpl private constructor(
     override fun iterator(): Iterator<Belief> =
         beliefs.filterIsInstance<Rule>().map { Belief.from(it) }.iterator()
 
+    override fun solveAll(struct: Struct): Sequence<Solution> =
+        Solver.prolog.newBuilder()
+            .flag(Unknown, Unknown.FAIL)
+            .staticKb(operatorExtension + Theory.of(beliefs))
+            .flag(TrackVariables) { ON }
+            .build()
+            .solve(struct)
+
     override fun solve(struct: Struct): Solution =
         Solver.prolog.newBuilder()
             .flag(Unknown, Unknown.FAIL)
@@ -96,6 +104,8 @@ internal class BeliefBaseImpl private constructor(
             .solveOnce(struct)
 
     override fun solve(belief: Belief): Solution = solve(belief.rule.head)
+
+    override fun solveAll(belief: Belief): Sequence<Solution> = solveAll(belief.rule.head)
 
     override fun toString(): String =
         beliefs.joinToString { Belief.from(it.castToRule()).toString() }

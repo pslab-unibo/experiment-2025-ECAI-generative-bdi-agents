@@ -8,7 +8,7 @@ import it.unibo.jakta.playground.explorer.gridworld.GridWorld.Companion.objects
 
 object ExplorerBot {
     fun MasScope.explorerBot(strategy: LMGenerationStrategy? = null) =
-        agent("TestAgent") {
+        agent("ExplorerBot") {
             generationStrategy = strategy
             goals {
                 +achieve("reach"("home")).meaning {

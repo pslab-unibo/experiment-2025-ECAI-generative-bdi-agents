@@ -41,6 +41,10 @@ interface BeliefBase : Iterable<Belief> {
 
     fun solve(belief: Belief): Solution
 
+    fun solveAll(struct: Struct): Sequence<Solution>
+
+    fun solveAll(belief: Belief): Sequence<Solution>
+
     companion object {
         /** @return an empty [BeliefBase] */
         fun empty(): BeliefBase = BeliefBaseImpl()

@@ -23,8 +23,6 @@ class ExplorerBotExperiment : Experiment() {
 
         timeoutAgent(timeout)
 
-        explorerBot()
-
         environment {
             from(GridWorld())
             actions {
@@ -35,6 +33,8 @@ class ExplorerBotExperiment : Experiment() {
                 removeAgents(agents.map { it.name })
             }
         }
+
+        explorerBot()
     }
 
     override fun createLoggingConfig(expName: String) = loggingConfig {
