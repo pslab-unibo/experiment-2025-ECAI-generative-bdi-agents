@@ -6,12 +6,12 @@ tuprolog = "1.0.4"
 alchemist = "37.0.1"
 ktor = "3.0.1"
 logback = "1.4.14"
-openapi = "7.10.0"
 kotlinLogging = "7.0.3"
-slf4j = "2.0.3"
 openai = "4.0.1"
-kotlinxPlugin="2.1.0"
-kotlinCoroutines="1.10.1"
+kotlinxPlugin = "2.1.0"
+kotlinCoroutines = "1.10.1"
+mockk = "1.13.17"
+kaml = "0.77.0"
 
 [libraries]
 alchemist-api = { module = "it.unibo.alchemist:alchemist-api", version.ref = "alchemist" }
@@ -42,20 +42,20 @@ tuprolog-dsl-theory = { module = "it.unibo.tuprolog:dsl-theory-jvm", version.ref
 tuprolog-dsl-solve = { module = "it.unibo.tuprolog:dsl-solve-jvm", version.ref = "tuprolog" }
 tuprolog-oop-lib = { module = "it.unibo.tuprolog:oop-lib-jvm", version.ref = "tuprolog" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
 openai = { module = "com.aallam.openai:openai-client", version.ref = "openai" }
+kotlin-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 
 [bundles]
 kotlin-logging = [ "logback", "kotlin-logging" ]
-kotlin-ktor = [
-    "ktor-client-cio",
-    "ktor-client-contentnegotiation",
-    "ktor-serialization-kotlinx"
+kotlin-testing = [
+    "kotest-junit5-jvm",
+    "kotest-assertions-core-jvm",
+    "mockito-core",
+    "kotlin-mockk"
 ]
-kotlin-testing = [ "kotest-junit5-jvm", "kotest-assertions-core-jvm", "mockito-core" ]
 alchemist-api = [
     "alchemist",
     "alchemist-api"

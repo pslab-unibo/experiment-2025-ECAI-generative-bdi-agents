@@ -10,5 +10,6 @@ dependencies {
 
     implementation(libs.kotlin.coroutines)
     implementation(libs.openai)
-    implementation(libs.bundles.kotlin.ktor)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.kaml)
 }
