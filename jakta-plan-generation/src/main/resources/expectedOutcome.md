@@ -1,23 +1,23 @@
 Format each plan as follows:
 
 ```yaml
-EVENT: event to be pursued
+EVENT: [achieve|test] event to be pursued
 CONDITIONS:
-- condition to be satisfied
-- other conditions to be satisfied
-- ...
+  - condition to be satisfied
+  - other conditions to be satisfied
+  - ...
 OPERATIONS:
-- operation to be performed
-- other operations to be performed
-- ...
+  - [execute|achieve|test|add|remove|update] operation to be performed
+  - [execute|achieve|test|add|remove|update] other operations to be performed
+  - ...
 ```
-
 Separate plans with a bar such as `---`.
 Represent the lack of conditions or operations with the word `<none>`.
-Try to be as general as possible, using the minimal number of plans, possibly involving variables.
 
+Events must be prefixed with either "achieve" or "test".
 Events can be drawn from the admissible goals.
 Conditions can be logic formulas over the beliefs, possibly involving negation and logical connectives.
+Operations must be prefixed with one of: "execute", "achieve", "test", "add", "remove", or "update".
 Operations can be drawn from the admissible actions or from the admissible goals.
 You can invent new admissible goals or beliefs, but you cannot invent admissible actions.
 Only use FOL syntax, with no quantifiers.
@@ -31,3 +31,8 @@ For example:
   purpose: natural language interpretation of my_belief for a general Y
 - ...
 ```
+
+Be as general and minimal as possible: use variables instead of constants where appropriate, reuse patterns across plans, and avoid over-specification.
+
+Do not show intermediate attempts, incorrect plans, rejected versions, or any reasoning.
+The output must be a final, clean, and minimal plan set only.

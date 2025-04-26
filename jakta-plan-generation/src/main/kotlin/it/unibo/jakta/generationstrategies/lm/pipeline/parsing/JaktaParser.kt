@@ -2,6 +2,7 @@ package it.unibo.jakta.generationstrategies.lm.pipeline.parsing
 
 import it.unibo.jakta.agents.bdi.Jakta.parseStruct
 import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.SOURCE_SELF
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.BeliefBaseAddition
@@ -51,12 +52,15 @@ object JaktaParser {
     fun tangleTrigger(input: String): Trigger? {
         val keyword = extractTriggerType(input)
         return if (keyword != null) {
-            val processedInput = input.removePrefix(keyword.toString().lowercase())
+            val processedInput = input
+                .removePrefix(keyword.toString().lowercase())
+                .removeSuffix("()")
             val parsedInput = tangleStruct(processedInput)
             when (keyword) {
                 TriggerKeyword.Achieve -> parsedInput?.let { AchievementGoalInvocation(it) }
                 TriggerKeyword.AchieveFailure -> parsedInput?.let { AchievementGoalFailure(it) }
-                TriggerKeyword.Test -> parsedInput?.let { TestGoalInvocation(it) }
+                TriggerKeyword.Test ->
+                    parsedInput?.let { TestGoalInvocation(Belief.wrap(it, wrappingTag = SOURCE_SELF)) }
                 TriggerKeyword.TestFailure -> parsedInput?.let { TestGoalFailure(it) }
                 TriggerKeyword.AddBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseAddition(it) }
                 TriggerKeyword.RemoveBelief -> parsedInput?.let { Belief.from(it) }?.let { BeliefBaseRemoval(it) }
@@ -70,18 +74,28 @@ object JaktaParser {
     fun tangleGoal(input: String): Goal? {
         val keyword = extractGoalType(input)
         return if (keyword != null) {
-            val processedInput = input.removePrefix(keyword.toString().lowercase())
+            val processedInput = input
+                .removePrefix(keyword.toString().lowercase())
+                .removeSuffix("()")
             when (keyword) {
                 GoalKeyword.Spawn -> tangleGoal(processedInput)?.let { Spawn.of(it) }
+                GoalKeyword.Generate -> tangleGoal(processedInput)?.let { GeneratePlan.of(it) }
                 else -> {
                     val parsedInput = tangleStruct(processedInput)
                     when (keyword) {
                         GoalKeyword.Achieve -> parsedInput?.let { Achieve.of(it) }
-                        GoalKeyword.Test -> parsedInput?.let { Belief.from(it) }?.let { Test.of(it) }
-                        GoalKeyword.Generate -> parsedInput?.let { GeneratePlan.of(it) }
-                        GoalKeyword.Add -> parsedInput?.let { Belief.from(it) }?.let { AddBelief.of(it) }
-                        GoalKeyword.Remove -> parsedInput?.let { Belief.from(it) }?.let { RemoveBelief.of(it) }
-                        GoalKeyword.Update -> parsedInput?.let { Belief.from(it) }?.let { UpdateBelief.of(it) }
+                        GoalKeyword.Test -> parsedInput?.let {
+                            Belief.wrap(it, wrappingTag = SOURCE_SELF)
+                        }?.let { Test.of(it) }
+                        GoalKeyword.Add -> parsedInput?.let {
+                            Belief.wrap(it, wrappingTag = SOURCE_SELF)
+                        }?.let { AddBelief.of(it) }
+                        GoalKeyword.Remove -> parsedInput?.let {
+                            Belief.wrap(it, wrappingTag = SOURCE_SELF)
+                        }?.let { RemoveBelief.of(it) }
+                        GoalKeyword.Update -> parsedInput?.let {
+                            Belief.wrap(it, wrappingTag = SOURCE_SELF)
+                        }?.let { UpdateBelief.of(it) }
                         GoalKeyword.Execute -> parsedInput?.let { Act.of(it) }
                         else -> null
                     }

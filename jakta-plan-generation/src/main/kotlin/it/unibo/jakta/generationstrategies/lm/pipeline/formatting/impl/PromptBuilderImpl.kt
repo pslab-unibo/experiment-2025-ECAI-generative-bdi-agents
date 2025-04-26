@@ -6,6 +6,7 @@ import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.generationstrategies.lm.Remark
+import it.unibo.jakta.generationstrategies.lm.pipeline.filtering.ContextFilter
 import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.Formatters.actionsFormatter
 import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.Formatters.admissibleBeliefsFormatter
 import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.Formatters.admissibleGoalsFormatter
@@ -16,6 +17,7 @@ import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.PromptBuilder
 import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.impl.PromptScope.Companion.prompt
 
 class PromptBuilderImpl(
+    override val contextFilter: ContextFilter,
     override val remarks: List<Remark>,
     override val withSubgoals: Boolean,
 ) : PromptBuilder {
@@ -25,11 +27,13 @@ class PromptBuilderImpl(
         context: AgentContext,
         externalActions: List<ExternalAction>,
     ): ChatMessage {
-        val internalActions = context.internalActions.values.toList()
-        val actualBeliefs = context.beliefBase
-        val admissibleBeliefs = context.admissibleBeliefs
-        val admissibleGoals = context.admissibleGoals
-        val actualGoals = context.planLibrary.plans
+        val filteredContext = contextFilter.filter(initialGoal, context, externalActions)
+
+        val internalActions = filteredContext.internalActions.values.toList()
+        val actualBeliefs = filteredContext.beliefBase
+        val admissibleBeliefs = filteredContext.admissibleBeliefs
+        val admissibleGoals = filteredContext.admissibleGoals
+        val actualGoals = filteredContext.planLibrary.plans
 
         return prompt {
             section("Background") { fromFile("background.md") }
@@ -51,8 +55,6 @@ class PromptBuilderImpl(
 
                 section("Goals") {
                     section("Admissible goals") {
-                        fromString("- ${termFormatter.format(initialGoal.value)}")
-
                         fromFormatter(admissibleGoals) {
                             formatAsBulletList(it, admissibleGoalsFormatter::format)
                         }
@@ -61,10 +63,7 @@ class PromptBuilderImpl(
                     section("Actual goals") {
                         fromFormatter(actualGoals) { plans ->
                             if (withSubgoals) {
-                                planFormatter.format(plans).joinToString(
-                                    prefix = "\n",
-                                    separator = "\n",
-                                )
+                                planFormatter.format(plans).joinToString(prefix = "\n", separator = "\n")
                             } else {
                                 val triggers = plans.map { it.trigger }
                                 formatAsBulletList(triggers, triggerFormatter::format)
@@ -88,7 +87,10 @@ class PromptBuilderImpl(
 
             section("Expected outcome") {
                 val formattedGoal = termFormatter.format(initialGoal.value)
-                fromString("You should generate a list of plans to pursue the goal `$formattedGoal`.")
+                fromString(
+                    "You must output only the final set of plans to pursue the goal $formattedGoal, " +
+                        "with no reasoning, explanations, or alternatives.",
+                )
                 fromFile("expectedOutcome.md")
             }
         }.buildAsMessage()

@@ -48,6 +48,7 @@ interface LMGenerator : Generator {
                     chatHistory = generationState.chatHistory + chatMessage,
                 ).also {
                     generationState.logger?.logChatMessage(chatMessage)
+                    generationState.logger?.info { "\n" + chatMessage.content }
                 }
 
                 handleParserResults(generationStrategy, generationResult, updatedState)

@@ -50,6 +50,7 @@ class LMGenerationStrategyImpl(
             chatHistory = listOf(history),
         ).also {
             logger?.logChatMessage(history)
+            logger?.info { "\n" + history.content }
         }
     }
 

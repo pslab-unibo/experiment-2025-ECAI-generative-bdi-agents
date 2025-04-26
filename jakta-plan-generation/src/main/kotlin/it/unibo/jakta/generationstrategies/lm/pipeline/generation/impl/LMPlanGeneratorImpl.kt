@@ -39,7 +39,9 @@ class LMPlanGeneratorImpl(
         res: NewResult,
     ): GenerationResult {
         val newPlans = res.plans.let { plans -> plans.mapNotNull { handleNewPlan(generationState.goal, it) } }
-        return LMGenerationResult(generationState, newPlans, res.admissibleGoals, res.admissibleBeliefs)
+        return LMGenerationResult(generationState, newPlans, res.admissibleGoals, res.admissibleBeliefs).also {
+            generationState.logger?.info { "\n" + newPlans.joinToString("\n") }
+        }
     }
 
     private fun handleNewPlan(

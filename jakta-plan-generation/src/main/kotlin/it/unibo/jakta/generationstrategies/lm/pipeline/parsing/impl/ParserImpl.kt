@@ -1,10 +1,7 @@
 package it.unibo.jakta.generationstrategies.lm.pipeline.parsing.impl
 
 import com.charleskorn.kaml.Yaml
-import it.unibo.jakta.agents.bdi.Jakta.toLeftNestedAnd
-import it.unibo.jakta.agents.bdi.Prolog2Jakta
 import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
-import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.SOURCE_SELF
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
@@ -14,6 +11,7 @@ import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.JaktaParser.tangleGoal
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.JaktaParser.tangleStruct
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.JaktaParser.tangleTrigger
+import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.LiterateGuardParser.processGuard
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.impl.TemplateData.BeliefTemplate
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.impl.TemplateData.GoalTemplate
@@ -22,8 +20,6 @@ import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserFail
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserResult
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserSuccess.NewPlan
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserSuccess.NewResult
-import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.Truth
 import kotlinx.serialization.builtins.ListSerializer
 
 class ParserImpl : Parser {
@@ -41,10 +37,14 @@ class ParserImpl : Parser {
                     try {
                         yaml.decodeFromString(PlanData.serializer(), content)
                     } catch (_: Exception) {
-                        try {
-                            yaml.decodeFromString(ListSerializer(TemplateData.serializer()), content)
-                        } catch (_: Exception) {
-                            return GenericParserFailure("Unsupported block format inside ticks")
+                        if (content.trim() == "- <none>" || content.trim() == "<none>") {
+                            emptyList()
+                        } else {
+                            try {
+                                yaml.decodeFromString(ListSerializer(TemplateData.serializer()), content)
+                            } catch (_: Exception) {
+                                return GenericParserFailure("Unsupported block format inside ticks")
+                            }
                         }
                     }
                 }
@@ -149,22 +149,7 @@ class ParserImpl : Parser {
 
     private fun convertToPlan(plan: PlanData): NewPlan? {
         val trigger = parseTriggerWithAchieveFallback(plan.event)
-
-        val guard = if (plan.conditions.contains("<none>")) {
-            Truth.TRUE
-        } else {
-            plan.conditions
-                .mapNotNull { c -> tangleStruct(c)?.accept(Prolog2Jakta)?.castToStruct() }
-                .map {
-                    if (it.functor == "~") {
-                        val struct = it.args[0].castToStruct()
-                        Struct.of("~", Belief.wrap(struct, wrappingTag = SOURCE_SELF).rule.head)
-                    } else {
-                        Belief.wrap(it, wrappingTag = SOURCE_SELF).rule.head
-                    }
-                }
-                .toLeftNestedAnd()
-        }
+        val guard = processGuard(plan)
 
         val goals = if (plan.operations.contains("<none>")) {
             listOf(EmptyGoal())

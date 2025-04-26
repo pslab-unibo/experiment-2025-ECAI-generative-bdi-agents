@@ -8,6 +8,7 @@ import com.aallam.openai.client.OpenAIConfig
 import com.aallam.openai.client.OpenAIHost
 import it.unibo.jakta.generationstrategies.lm.LMGenerationConfig
 import it.unibo.jakta.generationstrategies.lm.dsl.LMGenerationConfigScope
+import it.unibo.jakta.generationstrategies.lm.pipeline.filtering.ContextFilter
 import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.PromptBuilder
 import it.unibo.jakta.generationstrategies.lm.pipeline.generation.LMPlanGenerator
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
@@ -26,7 +27,8 @@ object GenerationStrategies {
         val requestHandler = RequestHandler.of(api, streamProcessor, lmGenCfg)
         val responseParser = Parser.of()
         val planGenerator = LMPlanGenerator.of(requestHandler, responseParser)
-        val promptBuilder = PromptBuilder.of(lmGenCfg.remarks, lmGenCfg.withSubgoals)
+        val contextFilter = ContextFilter.of()
+        val promptBuilder = PromptBuilder.of(contextFilter, lmGenCfg.remarks, lmGenCfg.withSubgoals)
 
         return LMGenerationStrategyImpl(planGenerator, promptBuilder)
     }
