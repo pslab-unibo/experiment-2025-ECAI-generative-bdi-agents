@@ -1,18 +1,24 @@
 package it.unibo.jakta.playground.explorer
 
-import it.unibo.jakta.agents.bdi.dsl.AgentScope
+import it.unibo.jakta.agents.bdi.actions.ExternalRequest
+import it.unibo.jakta.agents.bdi.actions.impl.AbstractExternalAction
+import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.SOURCE_PERCEPT
 import it.unibo.jakta.agents.bdi.dsl.MasScope
 import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefMetadata.meaning
 import it.unibo.jakta.agents.bdi.dsl.goals.TriggerMetadata.meaning
+import it.unibo.jakta.agents.bdi.dsl.plans
+import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld.Companion.directions
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld.Companion.objects
-import it.unibo.jakta.playground.getDirectionToMove
-import it.unibo.jakta.playground.move
+import it.unibo.tuprolog.core.Struct
+import it.unibo.tuprolog.core.Substitution
+import it.unibo.tuprolog.core.Var
 
 object ExplorerBot {
-    fun AgentScope.plans() =
+    fun baselinePlans() =
         plans {
             +achieve("reach"(O)) onlyIf {
                 "there_is"(O, "here").fromPercept
@@ -42,7 +48,7 @@ object ExplorerBot {
             }
         }
 
-    fun MasScope.explorerBot(strategy: LMGenerationStrategy? = null) =
+    fun MasScope.explorerBot(plans: Iterable<Plan>? = null, strategy: LMGenerationStrategy? = null) =
         agent("ExplorerBot") {
             generationStrategy = strategy
             goals {
@@ -85,8 +91,38 @@ object ExplorerBot {
                     }
                 }
             }
-//            plans()
+            plans?.let { plans(it) }
         }
+
+    val getDirectionToMove = object : AbstractExternalAction("getDirectionToMove", "Direction") {
+        override fun action(request: ExternalRequest) {
+            val percepts = request.environment.perception.percept()
+            val output = request.arguments[0].asVar()
+
+            val belief = Belief.wrap(
+                Struct.of("not", Struct.of("obstacle", Var.of("Direction"))),
+                wrappingTag = SOURCE_PERCEPT,
+            )
+
+            val dir = percepts.solveAll(belief, ignoreSource = true)
+                .toList()
+                .flatMap { it.substitution.values }
+                .random()
+
+            if (output != null) {
+                this.addResults(Substitution.unifier(output to dir))
+            }
+        }
+    }
+
+    val move = object : AbstractExternalAction("move", "Direction") {
+        override fun action(request: ExternalRequest) {
+            val direction = request.arguments[0].asAtom()?.value
+            if (direction != null) {
+                updateData("directionToMove" to direction)
+            }
+        }
+    }
 
     fun MasScope.gridWorld() = environment {
         from(GridWorld())

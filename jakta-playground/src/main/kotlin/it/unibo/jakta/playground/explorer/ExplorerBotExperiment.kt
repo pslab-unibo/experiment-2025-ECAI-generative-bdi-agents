@@ -10,9 +10,9 @@ import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
 import it.unibo.jakta.playground.experiment.Experiment
 import it.unibo.jakta.playground.explorer.ExplorerBot.explorerBot
+import it.unibo.jakta.playground.explorer.ExplorerBot.getDirectionToMove
+import it.unibo.jakta.playground.explorer.ExplorerBot.move
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld
-import it.unibo.jakta.playground.getDirectionToMove
-import it.unibo.jakta.playground.move
 
 class ExplorerBotExperiment : Experiment() {
     override fun createMas(

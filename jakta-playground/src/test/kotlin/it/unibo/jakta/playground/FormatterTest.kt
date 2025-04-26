@@ -2,15 +2,16 @@ package it.unibo.jakta.playground
 
 import it.unibo.jakta.agents.bdi.dsl.agent
 import it.unibo.jakta.agents.bdi.environment.Environment
+import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.generationstrategies.lm.dsl.DSLExtensions.givenLMConfig
 import it.unibo.jakta.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
 import it.unibo.jakta.generationstrategies.lm.pipeline.formatting.PromptBuilder
-import it.unibo.tuprolog.core.Struct
+import it.unibo.tuprolog.core.Atom
 
 fun main() {
     val goal = "lorem ipsum"
-    val promptBuilder = PromptBuilder.of(withSubgoals = true)
+    val promptBuilder = PromptBuilder.of(withSubgoals = false)
 
     val agent = agent("Test") {
         oneStepGeneration {}
@@ -63,7 +64,7 @@ fun main() {
     val environment = Environment.of()
 
     val prompt = promptBuilder.buildPrompt(
-        GeneratePlan.of(Struct.of(goal)),
+        GeneratePlan.of(Achieve.of(Atom.of(goal))),
         agent.context,
         environment.externalActions.values.toList(),
     )
