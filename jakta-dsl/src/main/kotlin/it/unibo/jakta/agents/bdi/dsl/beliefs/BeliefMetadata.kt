@@ -1,6 +1,5 @@
 package it.unibo.jakta.agents.bdi.dsl.beliefs
 
-import it.unibo.jakta.agents.bdi.Jakta.capitalize
 import it.unibo.jakta.agents.bdi.Jakta.removeSource
 import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.beliefs.Belief
@@ -15,7 +14,7 @@ object BeliefMetadata {
             .head
             .removeSource()
             .args
-            .map { "`${termFormatter.format(it).capitalize()}`" }
+            .map { "`${termFormatter.format(it)}`" }
     }
 
     fun Belief.meaning(block: BeliefContext.() -> String): Belief {

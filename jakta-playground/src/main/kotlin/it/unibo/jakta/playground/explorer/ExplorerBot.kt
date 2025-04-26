@@ -18,33 +18,36 @@ import it.unibo.tuprolog.core.Substitution
 import it.unibo.tuprolog.core.Var
 
 object ExplorerBot {
+    val Direction = Var.of("Direction")
+    val NewDirection = Var.of("NewDirection")
+    val Object = Var.of("Object")
     fun baselinePlans() =
         plans {
-            +achieve("reach"(O)) onlyIf {
-                "there_is"(O, "here").fromPercept
+            +achieve("reach"(Object)) onlyIf {
+                "there_is"(Object, "here").fromPercept
             } then {
-                execute("print"("reached", O))
+                execute("print"("reached", Object))
                 execute("stop")
             }
-            +achieve("reach"(O)) onlyIf {
-                not("there_is"(O, "here").fromPercept)
+            +achieve("reach"(Object)) onlyIf {
+                not("there_is"(Object, "here").fromPercept)
             } then {
-                execute("getDirectionToMove"(D))
-                achieve("move_towards"(D, O))
+                execute("getDirectionToMove"(Direction))
+                achieve("move_towards"(Direction, Object))
             }
-            +achieve("move_towards"(D, O)) onlyIf {
-                "direction"(D).fromSelf and
-                    not("obstacle"(D)).fromPercept
+            +achieve("move_towards"(Direction, Object)) onlyIf {
+                "direction"(Direction).fromSelf and
+                    not("obstacle"(Direction)).fromPercept
             } then {
-                execute("move"(D))
-                achieve("reach"(O))
+                execute("move"(Direction))
+                achieve("reach"(Object))
             }
-            +achieve("move_towards"(D, O)) onlyIf {
-                "direction"(D).fromSelf and
-                    "obstacle"(D).fromPercept
+            +achieve("move_towards"(Direction, Object)) onlyIf {
+                "direction"(Direction).fromSelf and
+                    "obstacle"(Direction).fromPercept
             } then {
-                execute("getDirectionToMove"(N))
-                achieve("move_towards"(N, O))
+                execute("getDirectionToMove"(NewDirection))
+                achieve("move_towards"(NewDirection, Object))
             }
         }
 
@@ -53,7 +56,7 @@ object ExplorerBot {
             generationStrategy = strategy
             goals {
                 admissible {
-                    +achieve("reach"("O")).meaning {
+                    +achieve("reach"("Object")).meaning {
                         "reach a situation where ${args[0]} is in the position of the agent" +
                             " (i.e. there_is(${args[0]}, here))"
                     }
@@ -77,16 +80,16 @@ object ExplorerBot {
                 }
 
                 admissible {
-                    +fact { "obstacle"("D") }.meaning {
+                    +fact { "obstacle"("Direction") }.meaning {
                         "there is an $functor to the ${args[0]}"
                     }
-                    +fact { "there_is"("O", "D") }.meaning {
+                    +fact { "there_is"("Object", "Direction") }.meaning {
                         "there is an ${args[0]} in the given ${args[1]}"
                     }
-                    +fact { "direction"("D") }.meaning {
+                    +fact { "direction"("Direction") }.meaning {
                         "${args[0]} is a direction"
                     }
-                    +fact { "object"("O") }.meaning {
+                    +fact { "object"("Object") }.meaning {
                         "${args[0]} is an object"
                     }
                 }

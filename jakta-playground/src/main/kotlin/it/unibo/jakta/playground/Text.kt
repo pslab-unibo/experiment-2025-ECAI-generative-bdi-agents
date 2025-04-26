@@ -231,7 +231,7 @@ val text5 = """
     ```
 """.trimIndent()
 
-// gemini 2.0 pro experimental
+// gemini 2.0 flash experimental
 val text6 = """
     ```yaml
     EVENT: achieve reach(Object)
