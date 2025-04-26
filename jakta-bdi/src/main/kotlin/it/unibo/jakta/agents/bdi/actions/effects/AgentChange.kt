@@ -33,7 +33,7 @@ data class BeliefChange(
         "From${belief.source()}"
 
     override val description =
-        "$changeTypeDescription ${belief.rule.head.removeSource()} from source ${belief.source()}"
+        "$changeTypeDescription ${belief.removeSource()} from source ${belief.source()}"
 
     companion object {
         fun Belief.source() = rule.head.args.first().castToStruct().args.first().toString().capitalize()

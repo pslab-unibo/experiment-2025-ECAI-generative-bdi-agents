@@ -75,7 +75,7 @@ internal data class AgentLifecycleImpl(
 ) : AgentLifecycle {
     private var controller: Activity.Controller? = null
     private var cachedEffects = emptyList<EnvironmentChange>()
-
+    private val isSourceIgnored = agent.generationStrategy != null
     private val generationManager = GenerationManager.of(agent.logger, agent.loggingConfig)
 
     override fun updateBelief(perceptions: BeliefBase, beliefBase: BeliefBase): RetrieveResult =
@@ -157,7 +157,7 @@ internal data class AgentLifecycleImpl(
                 val newContext = applyEffects(context, internalResponse.effects)
                 ExecutionResult(
                     newContext.copy(intentions = newContext.intentions.updateIntention(newIntention)),
-                    GoalExecutionSuccess(goal),
+                    internalResponse.feedback ?: GoalExecutionSuccess(goal),
                 )
             } else {
                 val feedback = ActionSubstitutionFailure(action.signature, goal.action.args)
@@ -192,7 +192,7 @@ internal data class AgentLifecycleImpl(
                 }
                 ExecutionResult(
                     context.copy(intentions = context.intentions.updateIntention(newIntention)),
-                    GoalExecutionSuccess(goal),
+                    externalResponse.feedback ?: GoalExecutionSuccess(goal),
                     externalResponse.effects,
                 )
             } else {
@@ -294,7 +294,7 @@ internal data class AgentLifecycleImpl(
             }
 
             is Test -> {
-                val solution = context.beliefBase.solve(nextGoal.value)
+                val solution = context.beliefBase.solve(nextGoal.value, isSourceIgnored)
                 when (solution.isYes) {
                     true -> {
                         val newIntention = intention.pop().applySubstitution(solution.substitution)
@@ -433,9 +433,6 @@ internal data class AgentLifecycleImpl(
     override fun sense(environment: Environment) {
         // STEP1: Perceive the Environment
         val perceptions = environment.percept()
-//        perceptions.forEach {
-//            agent.logger?.implementation(NewPercept(percept = it, source = "environment"))
-//        }
 
         // STEP2: Update the BeliefBase
         val rr = updateBelief(perceptions, agent.context.beliefBase)
@@ -527,7 +524,9 @@ internal data class AgentLifecycleImpl(
                 newBeliefBase = newContext.beliefBase
 
                 if (selectedEvent.isInternal()) {
-                    newIntentionPool = newIntentionPool.deleteIntention(selectedEvent.intention!!.id)
+                    newIntentionPool = newIntentionPool.deleteIntention(selectedEvent.intention!!.id).also {
+                        agent.logger?.implementation(IntentionChange(selectedEvent.intention!!, REMOVAL))
+                    }
                 }
             }
 

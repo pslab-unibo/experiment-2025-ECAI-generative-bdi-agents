@@ -69,7 +69,7 @@ interface Event {
          * @return a new instance of [Event]
          */
         fun ofTestGoalInvocation(testGoal: Test, intention: Intention? = null): Event =
-            of(TestGoalInvocation(testGoal.value), intention)
+            of(TestGoalInvocation(testGoal.belief), intention)
 
         /**
          * Generates an [Event] with a [TestGoalFailure] trigger.

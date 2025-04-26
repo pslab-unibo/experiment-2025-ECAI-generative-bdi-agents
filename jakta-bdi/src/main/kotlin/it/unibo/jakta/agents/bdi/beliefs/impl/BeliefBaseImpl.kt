@@ -2,12 +2,14 @@ package it.unibo.jakta.agents.bdi.beliefs.impl
 
 import it.unibo.jakta.agents.bdi.Jakta.parseClause
 import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.isBelief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.beliefs.BeliefUpdate
 import it.unibo.jakta.agents.bdi.beliefs.RetrieveResult
 import it.unibo.tuprolog.collections.ClauseMultiSet
 import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
+import it.unibo.tuprolog.core.Var
 import it.unibo.tuprolog.solve.Solution
 import it.unibo.tuprolog.solve.Solver
 import it.unibo.tuprolog.solve.flags.TrackVariables
@@ -17,15 +19,19 @@ import it.unibo.tuprolog.unify.Unificator
 
 internal class BeliefBaseImpl private constructor(
     private val beliefs: ClauseMultiSet,
+    private val purposeMap: Map<Rule, String?>,
 ) : BeliefBase {
 
-    constructor() : this(ClauseMultiSet.empty(Unificator.default))
+    constructor() : this(ClauseMultiSet.empty(Unificator.default), emptyMap())
 
     override fun add(belief: Belief) = when (beliefs.count(belief.rule)) {
-        // There's no Belief that unify the param inside the MultiSet, so it's inserted
+        // There's no Belief that unifies the param inside the MultiSet, so it's inserted
         0L -> RetrieveResult(
             listOf(BeliefUpdate.addition(belief)),
-            BeliefBaseImpl(beliefs.add(belief.rule)),
+            BeliefBaseImpl(
+                beliefs.add(belief.rule),
+                purposeMap + (belief.rule to belief.purpose),
+            ),
         )
         // There are Beliefs that unify the param, so the belief it's not inserted
         else -> RetrieveResult(emptyList(), this)
@@ -42,20 +48,12 @@ internal class BeliefBaseImpl private constructor(
         return RetrieveResult(addedBeliefs, bb)
     }
 
-    override fun hashCode() = beliefs.hashCode()
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as BeliefBaseImpl
-        return beliefs == other.beliefs
-    }
-
     override fun remove(belief: Belief): RetrieveResult {
         return if (beliefs.count(belief.rule) > 0) {
+            val foundBelief = first { it == belief }
             RetrieveResult(
-                listOf(BeliefUpdate.removal(first { it == belief })),
-                BeliefBase.of(filter { it != belief }),
+                listOf(BeliefUpdate.removal(foundBelief)),
+                BeliefBase.of(filter { it != foundBelief }),
             )
         } else {
             RetrieveResult(listOf(), this)
@@ -85,30 +83,62 @@ internal class BeliefBaseImpl private constructor(
     }
 
     override fun iterator(): Iterator<Belief> =
-        beliefs.filterIsInstance<Rule>().map { Belief.from(it) }.iterator()
+        beliefs.filterIsInstance<Rule>().map {
+            Belief.from(it, purposeMap[it])
+        }.iterator()
 
-    override fun solveAll(struct: Struct): Sequence<Solution> =
+    override fun solveAll(struct: Struct, ignoreSource: Boolean): Sequence<Solution> =
+        if (struct.isBelief()) {
+            createSolver().solve(createAllSourcesMatchingStruct(struct))
+        } else {
+            createSolver().solve(struct)
+        }
+
+    override fun solve(struct: Struct, ignoreSource: Boolean): Solution =
+        if (struct.isBelief()) {
+            createSolver().solveOnce(createAllSourcesMatchingStruct(struct))
+        } else {
+            createSolver().solveOnce(struct)
+        }
+
+    private fun createAllSourcesMatchingStruct(struct: Struct) = struct.setArgs(
+        listOf(Struct.of("source", Var.anonymous())) + struct.args.drop(1),
+    )
+
+    private fun createSolver(): Solver =
         Solver.prolog.newBuilder()
             .flag(Unknown, Unknown.FAIL)
             .staticKb(operatorExtension + Theory.of(beliefs))
             .flag(TrackVariables) { ON }
             .build()
-            .solve(struct)
 
-    override fun solve(struct: Struct): Solution =
-        Solver.prolog.newBuilder()
-            .flag(Unknown, Unknown.FAIL)
-            .staticKb(operatorExtension + Theory.of(beliefs))
-            .flag(TrackVariables) { ON }
-            .build()
-            .solveOnce(struct)
+    override fun solve(belief: Belief, ignoreSource: Boolean): Solution = solve(belief.rule.head)
 
-    override fun solve(belief: Belief): Solution = solve(belief.rule.head)
-
-    override fun solveAll(belief: Belief): Sequence<Solution> = solveAll(belief.rule.head)
+    override fun solveAll(belief: Belief, ignoreSource: Boolean): Sequence<Solution> = solveAll(belief.rule.head)
 
     override fun toString(): String =
-        beliefs.joinToString { Belief.from(it.castToRule()).toString() }
+        beliefs.joinToString { rule ->
+            val purpose = purposeMap[rule.castToRule()]
+            Belief.from(rule.castToRule(), purpose).toString()
+        }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BeliefBaseImpl
+
+        if (beliefs != other.beliefs) return false
+        if (purposeMap != other.purposeMap) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = beliefs.hashCode()
+        result = 31 * result + purposeMap.hashCode()
+        return result
+    }
 
     companion object {
         private val operatorExtension = Theory.of(

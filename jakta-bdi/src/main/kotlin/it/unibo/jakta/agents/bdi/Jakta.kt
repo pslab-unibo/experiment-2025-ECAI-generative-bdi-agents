@@ -1,8 +1,11 @@
 package it.unibo.jakta.agents.bdi
 
+import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Clause
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.TermFormatter
+import it.unibo.tuprolog.core.Truth
 import it.unibo.tuprolog.core.operators.Operator
 import it.unibo.tuprolog.core.operators.OperatorSet
 import it.unibo.tuprolog.core.operators.Specifier
@@ -54,42 +57,32 @@ object Jakta {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
 
-    fun List<Struct>.toLeftNestedAnd(): Struct? {
-        return when (this.size) {
-            0 -> null
-            1 -> this[0]
-            else -> {
-                this.drop(1).fold(this[0]) { acc, term ->
-                    Struct.of("&", acc, term)
-                }
-            }
-        }
-    }
+    fun String.dropNumbersFromWords() = this.replace(Regex("(?<=\\w)\\d+"), "")
 
-    /**
-     * Creates a novel [Struct] which is a copy of the current one, except that
-     * it has one argument less. The removed argument is the first of the old
-     * [Struct].
-     *
-     * @return a new [Struct], whose functor is equals to the current one,
-     * whose arity is less than the current one and which has not the first
-     * argument of the old [Struct]
-     */
-    private fun Struct.removeFirst(condition: ((Struct) -> Boolean)? = null): Struct =
+    fun Belief.removeSource(): Struct = this.rule.head.removeSource()
+
+    fun Struct.removeSource(): Struct = removeFirst()
+
+    fun String.removeSource(): Struct = Atom.of(this).removeFirst()
+
+    fun Struct.removeFirst(): Struct =
         if (this.arity >= 1) {
-            if (condition != null && condition(this)) {
-                Struct.of(this.functor, this.args.subList(1, this.args.count()))
-            } else if (condition == null) {
-                Struct.of(this.functor, this.args.subList(1, this.args.count()))
-            } else {
-                this
-            }
+            this.setArgs(this.args.drop(1))
         } else {
             this
         }
 
-    fun Struct.removeSource(): Struct =
-        this.removeFirst {
-            this[0].let { it is Struct && it.arity == 1 && it.functor == "source" }
+    fun List<Struct>.toLeftNestedAnd(): Struct? {
+        return when {
+            isEmpty() -> Truth.TRUE
+            size == 1 -> first()
+            else -> {
+                var result = first()
+                for (i in 1 until size) {
+                    result = Struct.of("&", result, this[i])
+                }
+                result
+            }
         }
+    }
 }

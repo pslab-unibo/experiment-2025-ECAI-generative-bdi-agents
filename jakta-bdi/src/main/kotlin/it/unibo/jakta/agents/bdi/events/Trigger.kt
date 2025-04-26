@@ -19,7 +19,7 @@ sealed interface Trigger : Documentable {
 
     companion object {
         fun fromStruct(
-            trigger: Struct,
+            triggerValue: Struct,
             triggerType: KClass<out Trigger>,
             failure: Boolean = false,
             purpose: String? = null,
@@ -27,23 +27,23 @@ sealed interface Trigger : Documentable {
             return when (triggerType) {
                 BeliefBaseRevision::class -> {
                     if (failure) {
-                        BeliefBaseRemoval(Belief.from(trigger), purpose)
+                        BeliefBaseRemoval(Belief.from(triggerValue), purpose)
                     } else {
-                        BeliefBaseAddition(Belief.from(trigger), purpose)
+                        BeliefBaseAddition(Belief.from(triggerValue), purpose)
                     }
                 }
                 TestGoalTrigger::class -> {
                     if (failure) {
-                        TestGoalFailure(trigger, purpose)
+                        TestGoalFailure(triggerValue, purpose)
                     } else {
-                        TestGoalInvocation(trigger, purpose)
+                        TestGoalInvocation(Belief.from(triggerValue), purpose)
                     }
                 }
                 AchievementGoalTrigger::class -> {
                     if (failure) {
-                        AchievementGoalFailure(trigger, purpose)
+                        AchievementGoalFailure(triggerValue, purpose)
                     } else {
-                        AchievementGoalInvocation(trigger, purpose)
+                        AchievementGoalInvocation(triggerValue, purpose)
                     }
                 }
                 else -> throw IllegalArgumentException("Unknown trigger type: $triggerType")
@@ -179,19 +179,21 @@ class BeliefBaseUpdate(
 
 /** [Trigger] of an event made by a [Test] Goal. */
 interface TestGoalTrigger : Trigger {
-    val goal: Struct
-        get() = value
+    val goal: Struct get() = value
 }
 
 /** [TestGoalTrigger] generated after an invocation of a [Test] Goal. */
 class TestGoalInvocation(
-    override val value: Struct,
+    val belief: Belief,
     override val purpose: String? = null,
 ) : TestGoalTrigger {
+    override val value: Struct
+        get() = belief.rule.head
+
     override fun copy(
         value: Struct,
         purpose: String?,
-    ): Trigger = TestGoalInvocation(value, purpose)
+    ): Trigger = TestGoalInvocation(Belief.from(value), purpose)
 
     override fun toString(): String = "TestGoalInvocation(value=$value, purpose=$purpose)"
 
@@ -252,6 +254,7 @@ class AchievementGoalInvocation(
     ): Trigger = AchievementGoalInvocation(value, purpose)
 
     override fun toString(): String = "AchievementGoalInvocation(value=$value, purpose=$purpose)"
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

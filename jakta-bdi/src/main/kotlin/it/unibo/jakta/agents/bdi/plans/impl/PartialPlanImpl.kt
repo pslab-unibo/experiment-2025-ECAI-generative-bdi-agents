@@ -9,8 +9,10 @@ import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
+import it.unibo.jakta.agents.bdi.plans.Plan.Companion.formatPlanToString
 import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.tuprolog.core.Struct
+import it.unibo.tuprolog.unify.Unificator.Companion.mguWith
 
 internal class PartialPlanImpl(
     override val id: PlanID,
@@ -36,6 +38,12 @@ internal class PartialPlanImpl(
             parentGenerationGoal,
         )
 
+    override fun isApplicable(event: Event, beliefBase: BeliefBase): Boolean {
+        val mgu = event.trigger.value mguWith this.trigger.value
+        val actualGuard = guard.apply(mgu).castToStruct()
+        return isRelevant(event) && beliefBase.solve(actualGuard, ignoreSource = true).isYes
+    }
+
     override fun toActivationRecord(): ActivationRecord =
         ActivationRecord.of(
             /*
@@ -54,7 +62,7 @@ internal class PartialPlanImpl(
         )
 
     override fun applicablePlan(event: Event, beliefBase: BeliefBase): PartialPlan =
-        createApplicablePlan(event, beliefBase)?.let { (actualGuard, actualGoals) ->
+        createApplicablePlan(event, beliefBase, ignoreSource = true)?.let { (actualGuard, actualGoals) ->
             PartialPlan.of(
                 id,
                 event.trigger,
@@ -88,12 +96,5 @@ internal class PartialPlanImpl(
         return result
     }
 
-    override fun toString(): String {
-        return "PartialPlanImpl(" +
-            "id=$id, " +
-            "trigger=$trigger, " +
-            "guard=$guard, " +
-            "goals=$goals, " +
-            "parentGenerationGoal=$parentGenerationGoal)"
-    }
+    override fun toString(): String = formatPlanToString(trigger, guard, goals, parentGenerationGoal)
 }

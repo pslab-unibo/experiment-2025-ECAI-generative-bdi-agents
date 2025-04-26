@@ -37,13 +37,13 @@ interface BeliefBase : Iterable<Belief> {
 
     fun update(belief: Belief): RetrieveResult
 
-    fun solve(struct: Struct): Solution
+    fun solve(struct: Struct, ignoreSource: Boolean = false): Solution
 
-    fun solve(belief: Belief): Solution
+    fun solve(belief: Belief, ignoreSource: Boolean = false): Solution
 
-    fun solveAll(struct: Struct): Sequence<Solution>
+    fun solveAll(struct: Struct, ignoreSource: Boolean = false): Sequence<Solution>
 
-    fun solveAll(belief: Belief): Sequence<Solution>
+    fun solveAll(belief: Belief, ignoreSource: Boolean = false): Sequence<Solution>
 
     companion object {
         /** @return an empty [BeliefBase] */

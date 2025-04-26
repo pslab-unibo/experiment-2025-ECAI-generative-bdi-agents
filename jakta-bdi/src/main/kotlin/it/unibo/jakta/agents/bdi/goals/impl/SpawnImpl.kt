@@ -6,8 +6,7 @@ import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 
 internal class SpawnImpl(override val goal: Goal) : Spawn {
-    override val value: Struct
-        get() = goal.value
+    override val value: Struct get() = goal.value
 
     override fun applySubstitution(substitution: Substitution) =
         SpawnImpl(goal.applySubstitution(substitution))

@@ -76,6 +76,7 @@ interface Achieve : Goal {
 }
 
 interface Test : Goal {
+    val belief: Belief
     companion object {
         fun of(belief: Belief): Test = TestImpl(belief)
     }
@@ -112,11 +113,13 @@ interface ActExternally : ActionGoal {
     }
 }
 
-sealed interface DeclarativeGoal : Goal
+sealed interface DeclarativeGoal : Goal {
+    val goal: Goal
+}
 
 interface GeneratePlan : DeclarativeGoal {
     companion object {
-        fun of(value: Struct): GeneratePlan = GeneratePlanImpl(value)
+        fun of(goal: Goal): GeneratePlan = GeneratePlanImpl(goal)
     }
 }
 

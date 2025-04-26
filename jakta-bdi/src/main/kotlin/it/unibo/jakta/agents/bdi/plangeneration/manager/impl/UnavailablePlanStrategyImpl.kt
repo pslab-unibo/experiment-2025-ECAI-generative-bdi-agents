@@ -5,22 +5,19 @@ import it.unibo.jakta.agents.bdi.actions.effects.EventChange
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
-import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.Event
-import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback.InapplicablePlan
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback.PlanNotFound
-import it.unibo.jakta.agents.bdi.goals.Achieve
-import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.manager.InvalidationStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.manager.UnavailablePlanStrategy
+import it.unibo.jakta.agents.bdi.plangeneration.manager.impl.GenerationPlanBuilder.getGenerationPlan
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.core.Struct
@@ -40,7 +37,7 @@ class UnavailablePlanStrategyImpl(
         return when {
             relevantPlans.isEmpty() -> handlePlanNotFound(selectedEvent, context, generationStrategy)
             isApplicablePlansEmpty ->
-                handleFailedPlanPreconditions(selectedEvent, relevantPlans, context, generationStrategy)
+                handleFailedPlanPreconditions(selectedEvent, relevantPlans, context)
             // not expected since either relevantPlans and/or applicablePlans should be empty
             else -> ExecutionResult(newAgentContext = context)
         }
@@ -55,33 +52,21 @@ class UnavailablePlanStrategyImpl(
         val newPlan = if (generationStrategy != null &&
             (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
         ) {
-            createNewPlanForTrigger(initialGoal)
+            getGenerationPlan(initialGoal)
         } else {
             null
         }
         val feedback = PlanNotFound(initialGoal)
 
-        return createResult(initialGoal, context, newPlan, feedback)
+        return createResult(initialGoal, context, feedback, newPlan)
     }
 
     private fun handleFailedPlanPreconditions(
         selectedEvent: Event,
         relevantPlans: List<Plan>,
         context: AgentContext,
-        generationStrategy: GenerationStrategy?,
     ): ExecutionResult {
         val initialGoal = selectedEvent.trigger
-
-//        // TODO should start a new generation here?
-        val newPlan = null
-//        val newPlan = if (generationStrategy != null &&
-//            (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
-//        ) {
-//            createNewPlanForTrigger(initialGoal)
-//        } else {
-//            null
-//        }
-
         val feedback = InapplicablePlan(
             relevantPlans
                 .map { it.checkApplicability(selectedEvent, context.beliefBase) }
@@ -96,38 +81,14 @@ class UnavailablePlanStrategyImpl(
                 },
         )
 
-        return createResult(initialGoal, context, newPlan, feedback)
-    }
-
-    private fun createNewPlanForTrigger(trigger: Trigger): PartialPlan? {
-        return when (trigger) {
-            is AchievementGoalInvocation -> createFailurePlan(AchievementGoalFailure(trigger.value))
-            is TestGoalInvocation -> createFailurePlan(TestGoalFailure(trigger.value))
-            else -> null
-        }
-    }
-
-    private fun createFailurePlan(
-        failureTrigger: Trigger,
-    ): PartialPlan {
-        val value = failureTrigger.value
-        val initialGoal = GeneratePlan.of(value)
-        return PartialPlan.of(
-            parentGenerationGoal = initialGoal,
-            trigger = failureTrigger,
-            guard = Belief.fromSelfSource(Struct.of("missing_plan_for", value)).rule.head,
-            goals = listOf(
-                initialGoal,
-                Achieve.of(value),
-            ),
-        )
+        return createResult(initialGoal, context, feedback)
     }
 
     private fun createResult(
         failureTrigger: Trigger,
         context: AgentContext,
-        newPlan: PartialPlan?,
         feedback: NegativeFeedback,
+        newPlan: PartialPlan? = null,
     ): ExecutionResult {
         return if (newPlan != null) {
             val newBelief = Belief.fromSelfSource(Struct.of("missing_plan_for", failureTrigger.value))

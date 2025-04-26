@@ -20,7 +20,6 @@ interface Belief : Documentable {
     ): Belief
 
     companion object {
-
         val SOURCE_PERCEPT: Term = Struct.of("source", Atom.of("percept"))
         val SOURCE_SELF: Term = Struct.of("source", Atom.of("self"))
         val SOURCE_UNKNOWN: Term = Struct.of("source", Var.of("Source"))
@@ -96,16 +95,18 @@ interface Belief : Documentable {
         fun fromMessageSource(from: String, head: Struct, body: Iterable<Term>): Belief =
             of(head, body, from)
 
-        fun from(rule: Rule, purpose: String? = null): Belief {
-            if (rule.head.args.isNotEmpty() &&
-                rule.head.args.first() is Struct &&
-                rule.head.args.first().castToStruct().functor == "source"
-            ) {
-                return BeliefImpl(rule, purpose)
+        fun from(rule: Rule, purpose: String? = null): Belief =
+            if (rule.head.isBelief()) {
+                BeliefImpl(rule, purpose)
+            } else {
+                throw IllegalArgumentException("The rule is not a belief: $rule")
             }
-            throw IllegalArgumentException("The rule is not a belief: $rule")
-        }
 
         fun from(struct: Struct, purpose: String? = null): Belief = from(Rule.of(struct), purpose)
+
+        fun Struct.isBelief() =
+            this.args.isNotEmpty() &&
+                this.args.first() is Struct &&
+                this.args.first().castToStruct().functor == "source"
     }
 }

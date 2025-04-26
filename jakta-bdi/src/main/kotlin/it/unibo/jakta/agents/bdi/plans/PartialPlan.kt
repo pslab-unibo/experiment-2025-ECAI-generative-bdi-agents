@@ -24,6 +24,21 @@ interface PartialPlan : Plan {
 
     companion object {
         fun of(
+            id: PlanID,
+            goals: List<Goal>,
+            parentGenerationGoal: GeneratePlan? = null,
+            generationConfig: GenerationConfig? = null,
+        ): PartialPlan =
+            PartialPlanImpl(
+                id,
+                id.trigger,
+                id.context,
+                goals,
+                parentGenerationGoal,
+                generationConfig,
+            )
+
+        fun of(
             id: PlanID? = null,
             trigger: Trigger,
             guard: Struct = Truth.TRUE,
