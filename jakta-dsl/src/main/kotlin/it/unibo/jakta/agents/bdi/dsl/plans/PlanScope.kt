@@ -1,12 +1,12 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
+import it.unibo.jakta.agents.bdi.GuardFlattenerVisitor.Companion.flattenAnd
 import it.unibo.jakta.agents.bdi.Jakta.toLeftNestedAnd
 import it.unibo.jakta.agents.bdi.Prolog2Jakta
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.EmptyGoal
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationConfig
-import it.unibo.jakta.agents.bdi.plangeneration.GuardFlattenerVisitor.Companion.flattenAnd
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.tuprolog.core.Scope

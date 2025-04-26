@@ -5,6 +5,7 @@ import it.unibo.jakta.agents.bdi.actions.ActionRequest
 import it.unibo.jakta.agents.bdi.actions.ActionResponse
 import it.unibo.jakta.agents.bdi.actions.effects.SideEffect
 import it.unibo.jakta.agents.bdi.dsl.Builder
+import it.unibo.jakta.agents.bdi.dsl.actions.ActionMetadata.ActionContext
 import it.unibo.tuprolog.core.Term
 import kotlin.reflect.KFunction
 
@@ -17,27 +18,34 @@ abstract class ActionsScope<C, Res, Req, A, As> : Builder<Map<String, A>>
 
     private val actions = mutableListOf<A>()
 
-    fun action(name: String, vararg parameterNames: String, f: As.() -> Unit) {
+    fun action(name: String, vararg parameterNames: String, f: As.() -> Unit): Action<*, *, *> {
         val parameterNames = parameterNames.toList()
-        actions += newAction(name, parameterNames.size, parameterNames, f = f)
+        return newAction(name, parameterNames.size, parameterNames, f = f).also {
+            actions += it
+        }
     }
 
-    fun action(name: String, arity: Int, f: As.() -> Unit) {
-        actions += newAction(name, arity, emptyList(), f = f)
-    }
+    fun action(name: String, arity: Int, f: As.() -> Unit) =
+        newAction(name, arity, emptyList(), f = f).also { actions += it }
 
-    fun action(method: KFunction<*>) {
-        actions += newAction(
+    fun action(method: KFunction<*>) =
+        newAction(
             method.name,
             method.parameters.size,
             method.parameters.map { it.name!! },
         ) {
             method.call(*arguments.toTypedArray())
+        }.also {
+            actions += it
         }
-    }
 
-    fun action(action: A) {
-        actions += action
+    fun action(action: A) = action.also { actions += it }
+
+    fun Action<*, *, *>.meaning(block: ActionContext.() -> String): Action<*, *, *> {
+        val context = ActionContext(this)
+        val purpose = context.block()
+        this.purpose = purpose
+        return this
     }
 
     protected abstract fun newAction(

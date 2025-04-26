@@ -57,30 +57,15 @@ class BodyScope(
     }
 
     /**
-     * Handler for the creation of an [Achieve] Goal on another intention.
-     * This enables internal lifecycle concurrency.
-     * @param goal the [String] representing the [Atom] that describes the Goal to [Achieve].
-     */
-    fun spawn(goal: String) = spawn(Achieve.of(atomOf(goal)))
-
-    /**
      * Handler for the creation of a [GeneratePlan] Goal, optionally deciding to force the allocation on a new intention.
      * The allocation of a goal in a fresh intention enables internal lifecycle concurrency.
      * @param goal the [Struct] that describes the Goal to [GeneratePlan].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun generate(goal: Struct, parallel: Boolean = false) {
+    fun generate(goal: Goal, parallel: Boolean = false) {
         val genGoal = GeneratePlan.of(goal)
         goals += if (parallel) Spawn.of(genGoal) else genGoal
     }
-
-    /**
-     * Handler for the creation of a [GeneratePlan] Goal, optionally deciding to force the allocation on a new intention.
-     * The allocation of a goal in a fresh intention enables internal lifecycle concurrency.
-     * @param struct the [String] representing the [Atom] that describes the Goal to [GeneratePlan].
-     * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
-     */
-    fun generate(struct: String, parallel: Boolean = false) = generate(atomOf(struct), parallel)
 
     /**
      * Handler for the creation of an [Achieve] Goal, optionally deciding to force the allocation on a new intention.

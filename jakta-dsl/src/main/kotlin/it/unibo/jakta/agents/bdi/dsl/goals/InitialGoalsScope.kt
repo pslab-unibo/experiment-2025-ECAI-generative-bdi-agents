@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.dsl.goals
 
+import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.dsl.Builder
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
@@ -33,9 +34,11 @@ class InitialGoalsScope :
 
     fun achieve(goal: String): Trigger = AchievementGoalInvocation(atomOf(goal))
 
-    fun test(goal: Struct): Trigger = TestGoalInvocation(goal)
+    fun test(belief: Belief): Trigger = TestGoalInvocation(belief)
 
-    fun test(goal: String): Trigger = TestGoalInvocation(atomOf(goal))
+    fun test(goal: Struct): Trigger = TestGoalInvocation(Belief.from(goal))
+
+    fun test(goal: String): Trigger = TestGoalInvocation(Belief.from(atomOf(goal)))
 
     override fun build() = Pair(triggers.toList(), admissibleGoals)
 }

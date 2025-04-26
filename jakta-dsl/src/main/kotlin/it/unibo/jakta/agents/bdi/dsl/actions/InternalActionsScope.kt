@@ -16,7 +16,7 @@ class InternalActionsScope :
         f: InternalActionScope.() -> Unit,
     ): InternalAction =
         object : AbstractInternalAction(name, arity) {
-            override val purpose = purpose
+            override var purpose = purpose
 
             override fun action(request: InternalRequest) {
                 InternalActionScope(this, request).f()

@@ -16,7 +16,7 @@ class ExternalActionsScope :
         f: ExternalActionScope.() -> Unit,
     ): ExternalAction =
         object : AbstractExternalAction(name, arity) {
-            override val purpose = purpose
+            override var purpose = purpose
 
             override fun action(request: ExternalRequest) {
                 ExternalActionScope(this, request).f()
