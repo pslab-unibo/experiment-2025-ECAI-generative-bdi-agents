@@ -15,7 +15,8 @@ internal data class PlanLibraryImpl(override val plans: List<Plan>) : PlanLibrar
 
     override fun getPlan(planID: PlanID): Plan? = plans.firstOrNull { it.id == planID }
 
-    override fun addPlan(plan: Plan): PlanLibrary = PlanLibrary.of(plans + plan)
+    override fun addPlan(plan: Plan): PlanLibrary =
+        PlanLibrary.of((plans + plan).distinctBy { it.id })
 
     override fun addPlan(planID: PlanID): PlanLibrary =
         plans.firstOrNull { it.id == planID }?.let { addPlan(it) } ?: this
