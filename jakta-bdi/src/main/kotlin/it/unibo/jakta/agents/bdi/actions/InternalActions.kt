@@ -5,7 +5,7 @@ import it.unibo.tuprolog.core.Substitution
 
 object InternalActions {
     object Print : AbstractInternalAction("print", "message", "payload") {
-        override val purpose = "prints a `Message` and its `Payload`"
+        override var purpose: String? = "prints a `Message` and its `Payload`"
 
         override fun action(request: InternalRequest) {
             val payload = request.arguments.joinToString(" ") {
@@ -19,7 +19,7 @@ object InternalActions {
     }
 
     object Fail : AbstractInternalAction("fail") {
-        override val purpose = "makes the agent fail its current intention"
+        override var purpose: String? = "makes the agent fail its current intention"
 
         override fun action(request: InternalRequest) {
             result = Substitution.failed()
@@ -27,7 +27,7 @@ object InternalActions {
     }
 
     object Stop : AbstractInternalAction("stop") {
-        override val purpose = "stops the agent"
+        override var purpose: String? = "stops the agent"
 
         override fun action(request: InternalRequest) {
             stopAgent()
@@ -35,7 +35,7 @@ object InternalActions {
     }
 
     object Pause : AbstractInternalAction("pause") {
-        override val purpose = "pauses the agent"
+        override var purpose: String? = "pauses the agent"
 
         override fun action(request: InternalRequest) {
             pauseAgent()
@@ -43,7 +43,7 @@ object InternalActions {
     }
 
     object Sleep : AbstractInternalAction("sleep", "time") {
-        override val purpose = "makes the agent sleep for `Time` milliseconds"
+        override var purpose: String? = "makes the agent sleep for `Time` milliseconds"
 
         override fun action(request: InternalRequest) {
             if (request.arguments[0].isInteger) {

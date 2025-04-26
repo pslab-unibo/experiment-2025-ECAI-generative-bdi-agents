@@ -19,8 +19,6 @@ import it.unibo.tuprolog.solve.Signature
 abstract class AbstractExternalAction(override val extendedSignature: ExtendedSignature) : ExternalAction,
     AbstractAction<EnvironmentChange, ExternalResponse, ExternalRequest>(extendedSignature) {
 
-    override val purpose: String? = null
-
     constructor(name: String) : this(ExtendedSignature(Signature(name, 0), emptyList()))
 
     constructor(name: String, arity: Int) : this(ExtendedSignature(Signature(name, arity), emptyList()))

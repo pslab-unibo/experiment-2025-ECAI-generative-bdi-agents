@@ -1,4 +1,4 @@
-package it.unibo.jakta.agents.bdi.plangeneration
+package it.unibo.jakta.agents.bdi
 
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Term

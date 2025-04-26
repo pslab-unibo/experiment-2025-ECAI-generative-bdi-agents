@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.plans
 
+import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
@@ -36,6 +37,11 @@ interface Plan {
     fun toActivationRecord(): ActivationRecord
 
     companion object {
+        fun of(
+            id: PlanID,
+            goals: List<Goal>,
+        ): Plan = PlanImpl(id, id.trigger, id.context, goals)
+
         fun of(
             id: PlanID? = null,
             trigger: Trigger,
@@ -86,11 +92,11 @@ interface Plan {
         }
 
         fun ofTestGoalInvocation(
-            value: Struct,
+            belief: Belief,
             goals: List<Goal>,
             guard: Struct = Truth.TRUE,
         ): Plan {
-            val trigger = TestGoalInvocation(value)
+            val trigger = TestGoalInvocation(belief)
             return of(PlanID(trigger, guard), trigger, guard, goals)
         }
 
@@ -101,6 +107,26 @@ interface Plan {
         ): Plan {
             val trigger = TestGoalFailure(value)
             return of(PlanID(trigger, guard), trigger, guard, goals)
+        }
+
+        fun formatPlanToString(
+            trigger: Trigger,
+            guard: Struct,
+            goals: List<Goal>,
+            parentGenerationGoal: Any? = null,
+        ): String = buildString {
+            appendLine("Plan(")
+            if (parentGenerationGoal != null) {
+                appendLine("  parentGenerationGoal = $parentGenerationGoal,")
+            }
+            appendLine("  trigger = $trigger,")
+            appendLine("  guard = ${termFormatter.format(guard)},")
+            appendLine("  goals = [")
+            goals.forEach { goal ->
+                appendLine("    $goal,")
+            }
+            appendLine("  ]")
+            append(")")
         }
     }
 }

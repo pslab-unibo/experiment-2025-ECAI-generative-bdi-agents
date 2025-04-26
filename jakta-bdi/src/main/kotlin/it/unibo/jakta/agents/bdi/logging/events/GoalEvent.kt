@@ -13,7 +13,7 @@ sealed interface GoalEvent : LogEvent {
         override val metadata: Map<String, Any?> = super.metadata + buildMap {
             put("goal", goal)
             put("trigger", planID.trigger)
-            put("guard", planID.guard)
+            put("guard", planID.context)
         }
     }
 }
