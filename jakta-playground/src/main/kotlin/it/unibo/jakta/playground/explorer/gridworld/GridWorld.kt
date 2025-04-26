@@ -71,10 +71,12 @@ class GridWorld(
     private fun updatedPercepts(): List<Belief> {
         val currentState = getCurrentState() ?: return emptyList()
 
+        val directionBeliefs = beliefFactory.createDirectionBeliefs(currentState)
+        val objectBeliefs = beliefFactory.createObjectBeliefs(currentState)
         val obstacleBeliefs = beliefFactory.createObstacleBeliefs(grid, currentState)
         val thereIsBeliefs = beliefFactory.createThereIsBeliefs(currentState)
 
-        return obstacleBeliefs + thereIsBeliefs
+        return directionBeliefs + objectBeliefs + obstacleBeliefs + thereIsBeliefs
     }
 
     override fun copy(

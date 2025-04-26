@@ -11,36 +11,32 @@ class PromptScope private constructor(
 
     fun section(title: String, f: PromptScope.() -> Unit = {}) {
         val text = PromptScope(headingLevel + 1).also(f).build()
-        if (text.isNotBlank()) {
-            sections.add(PromptSection(title, text))
-        }
+        sections.add(PromptSection(title, text))
     }
 
     fun fromFile(filePath: String) {
         val text = readResourceFile(filePath)
-        if (text.isNotBlank()) {
-            sections.add(PromptSection(null, text))
-        }
+        sections.add(PromptSection(text = text))
     }
 
-    fun <T> fromFormatter(input: T, formatter: (T) -> String) {
+    fun <T> fromFormatter(input: T, formatter: (T) -> String?) {
         val text = formatter(input)
-        if (text.isNotBlank()) {
-            sections.add(PromptSection(null, text))
+        if (text != null) {
+            sections.add(PromptSection(text = text))
+        } else {
+            sections.add(PromptSection(text = "None."))
         }
     }
 
     fun fromString(text: String) {
-        if (text.isNotBlank()) {
-            sections.add(PromptSection(null, text))
-        }
+        sections.add(PromptSection(text = text))
     }
 
     fun buildAsMessage(): ChatMessage = ChatMessage(ChatRole.System, build())
 
     override fun build(): String = sections.joinToString(separator = "\n") { it.toString(headingLevel) }.trim()
 
-    private data class PromptSection(val title: String?, val text: String) {
+    private data class PromptSection(val title: String? = null, val text: String) {
         fun toString(level: Int): String {
             return when {
                 title != null -> {

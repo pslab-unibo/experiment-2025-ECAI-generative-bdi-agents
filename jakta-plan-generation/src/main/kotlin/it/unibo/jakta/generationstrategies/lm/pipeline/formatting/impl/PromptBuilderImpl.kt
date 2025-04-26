@@ -77,11 +77,11 @@ class PromptBuilderImpl(
                         formatAsBulletList(it, actionsFormatter::format)
                     }
                 }
-            }
 
-            section("Remarks") {
-                fromFormatter(remarks) {
-                    formatAsBulletList(it) { remarks.map { r -> r.value } }
+                section("Remarks") {
+                    fromFormatter(remarks) {
+                        formatAsBulletList(it) { remarks.map { r -> r.value } }
+                    }
                 }
             }
 
@@ -99,12 +99,12 @@ class PromptBuilderImpl(
     private fun <T> formatAsBulletList(
         items: Collection<T>,
         formatter: (Collection<T>) -> List<String>,
-    ): String {
+    ): String? {
         val res = formatter(items)
         return if (res.isNotEmpty()) {
             res.joinToString(separator = "\n") { "- $it" }
         } else {
-            ""
+            null
         }
     }
 }

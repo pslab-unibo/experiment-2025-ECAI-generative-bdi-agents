@@ -11,16 +11,15 @@ import it.unibo.jakta.agents.bdi.dsl.plans
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld
-import it.unibo.jakta.playground.explorer.gridworld.GridWorld.Companion.directions
-import it.unibo.jakta.playground.explorer.gridworld.GridWorld.Companion.objects
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 import it.unibo.tuprolog.core.Var
 
 object ExplorerBot {
-    val Direction = Var.of("Direction")
-    val NewDirection = Var.of("NewDirection")
-    val Object = Var.of("Object")
+    private val Direction = Var.of("Direction")
+    private val NewDirection = Var.of("NewDirection")
+    private val Object = Var.of("Object")
+
     fun baselinePlans() =
         plans {
             +achieve("reach"(Object)) onlyIf {
@@ -64,21 +63,6 @@ object ExplorerBot {
                 +achieve("reach"("home"))
             }
             beliefs {
-                env.data.directions()?.forEach {
-                    +fact { "direction"(it) }.meaning {
-                        "${args[0]} is a $functor"
-                    }
-                }
-                env.data.objects()?.forEach {
-                    +fact { "object"(it.key) }.meaning {
-                        "${args[0]} is an $functor"
-                    }
-                }
-
-                +fact { "direction"("here") }.meaning {
-                    "${args[0]} denotes the null $functor w.r.t. the agent's current location"
-                }
-
                 admissible {
                     +fact { "obstacle"("Direction") }.meaning {
                         "there is an $functor to the ${args[0]}"

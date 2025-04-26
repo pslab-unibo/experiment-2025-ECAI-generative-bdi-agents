@@ -14,8 +14,10 @@ class ContextFilterImpl : ContextFilter {
         context: AgentContext,
         externalActions: List<ExternalAction>,
     ): AgentContext {
-        val trigger = createNewTriggerFromGoal(initialGoal.goal)
-            ?.let { getFailureTrigger(it) }
+        /*
+         * Do not show to the LM the special plan that makes the generation start when a plan is not available.
+         */
+        val trigger = createNewTriggerFromGoal(initialGoal.goal)?.let { getFailureTrigger(it) }
         return if (trigger != null) {
             val id = GenerationPlanBuilder.getGenerationPlanID(trigger)
             context.copy(
