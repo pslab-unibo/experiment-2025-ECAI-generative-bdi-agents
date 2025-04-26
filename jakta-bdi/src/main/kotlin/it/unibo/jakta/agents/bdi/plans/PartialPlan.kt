@@ -32,7 +32,7 @@ interface PartialPlan : Plan {
             PartialPlanImpl(
                 id,
                 id.trigger,
-                id.context,
+                id.guard,
                 goals,
                 parentGenerationGoal,
                 generationConfig,

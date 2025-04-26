@@ -40,7 +40,7 @@ interface Plan {
         fun of(
             id: PlanID,
             goals: List<Goal>,
-        ): Plan = PlanImpl(id, id.trigger, id.context, goals)
+        ): Plan = PlanImpl(id, id.trigger, id.guard, goals)
 
         fun of(
             id: PlanID? = null,

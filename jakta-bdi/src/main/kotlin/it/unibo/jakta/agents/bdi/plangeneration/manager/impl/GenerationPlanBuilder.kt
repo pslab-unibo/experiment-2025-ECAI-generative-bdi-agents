@@ -39,7 +39,7 @@ object GenerationPlanBuilder {
     fun getGenerationPlanID(trigger: Trigger) =
         PlanID(
             trigger = trigger,
-            context = Belief.fromSelfSource(
+            guard = Belief.fromSelfSource(
                 Struct.of("missing_plan_for", trigger.value),
             ).rule.head,
         )
