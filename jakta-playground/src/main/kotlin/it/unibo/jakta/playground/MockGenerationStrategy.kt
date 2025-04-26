@@ -53,7 +53,7 @@ object MockGenerationStrategy {
         val requestHandler = RequestHandler.Companion.of(api = api)
         val responseParser = Parser.Companion.of()
         val planGenerator = LMPlanGenerator.Companion.of(requestHandler, responseParser)
-        return LMGenerationStrategyImpl(planGenerator, PromptBuilder.Companion.of())
+        return LMGenerationStrategyImpl(planGenerator, PromptBuilder.of())
     }
 
     fun createOneStepStrategyWithMockedParser(trace: List<ParserResult>): LMGenerationStrategy {
@@ -73,7 +73,7 @@ object MockGenerationStrategy {
 
         val responseParser = Parser.Companion.of()
         val planGenerator = LMPlanGenerator.Companion.of(requestHandler, responseParser)
-        return LMGenerationStrategyImpl(planGenerator, PromptBuilder.Companion.of())
+        return LMGenerationStrategyImpl(planGenerator, PromptBuilder.of())
     }
 
     fun toGuard(vararg struct: Struct) =

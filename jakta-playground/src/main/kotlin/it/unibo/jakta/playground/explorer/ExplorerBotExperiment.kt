@@ -11,6 +11,8 @@ import it.unibo.jakta.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneratio
 import it.unibo.jakta.playground.experiment.Experiment
 import it.unibo.jakta.playground.explorer.ExplorerBot.explorerBot
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld
+import it.unibo.jakta.playground.getDirectionToMove
+import it.unibo.jakta.playground.move
 
 class ExplorerBotExperiment : Experiment() {
     override fun createMas(
@@ -21,20 +23,22 @@ class ExplorerBotExperiment : Experiment() {
         generationStrategy = genStrat
         loggingConfig = logConfig
 
-        timeoutAgent(timeout)
-
         environment {
             from(GridWorld())
             actions {
-                action("move", "Direction") {
-                    val direction = arguments[0].castToAtom().value
-                    updateData("directionToMove" to direction)
+                action(move).meaning {
+                    "move in the given direction: ${args[0]}"
+                }
+                action(getDirectionToMove).meaning {
+                    "provides a Direction free of obstacles where the agent can then move"
                 }
                 removeAgents(agents.map { it.name })
             }
         }
 
         explorerBot()
+
+        timeoutAgent(timeout)
     }
 
     override fun createLoggingConfig(expName: String) = loggingConfig {
