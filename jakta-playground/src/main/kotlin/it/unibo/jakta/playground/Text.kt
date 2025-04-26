@@ -250,7 +250,7 @@ val text6 = """
     EVENT: achieve move_towards(Direction, Object)
     CONDITIONS:
       - direction(Direction)
-      - ~obstacle(Direction)
+      - not(obstacle(Direction))
     OPERATIONS:
       - execute move(Direction)
       - achieve reach(Object)
