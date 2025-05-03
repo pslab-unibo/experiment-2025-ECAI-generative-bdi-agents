@@ -32,24 +32,19 @@ class ParserImpl : Parser {
         val newAdmissibleGoals = mutableSetOf<AdmissibleGoal>()
 
         val parsedBlocks = blocks.map { content ->
+            val processedContent = content.replace("`", "")
             try {
-                parsePlanData(content) ?: run {
+                yaml.decodeFromString(PlanData.serializer(), processedContent)
+            } catch (_: Exception) {
+                if (processedContent.trim() == "- <none>" || processedContent.trim() == "<none>") {
+                    emptyList()
+                } else {
                     try {
-                        yaml.decodeFromString(PlanData.serializer(), content)
+                        yaml.decodeFromString(ListSerializer(TemplateData.serializer()), processedContent)
                     } catch (_: Exception) {
-                        if (content.trim() == "- <none>" || content.trim() == "<none>") {
-                            emptyList()
-                        } else {
-                            try {
-                                yaml.decodeFromString(ListSerializer(TemplateData.serializer()), content)
-                            } catch (_: Exception) {
-                                return GenericParserFailure("Unsupported block format inside ticks")
-                            }
-                        }
+                        emptyList()
                     }
                 }
-            } catch (e: Exception) {
-                return GenericParserFailure("Error parsing content: ${e.message}")
             }
         }
 
@@ -93,68 +88,16 @@ class ParserImpl : Parser {
         }
     }
 
-    private fun parsePlanData(content: String): PlanData? {
-        val lines = content.lines()
-
-        var event = ""
-        val conditions = mutableListOf<String>()
-        val operations = mutableListOf<String>()
-
-        var currentSection = ""
-
-        for (line in lines) {
-            val trimmedLine = line.trim()
-
-            if (trimmedLine.isEmpty()) continue
-
-            when {
-                trimmedLine.startsWith("EVENT:") -> {
-                    event = trimmedLine.substringAfter("EVENT:").trim()
-                    currentSection = "EVENT"
-                }
-                trimmedLine.startsWith("CONDITIONS:") -> {
-                    currentSection = "CONDITIONS"
-                }
-                trimmedLine.startsWith("OPERATIONS:") -> {
-                    currentSection = "OPERATIONS"
-                }
-                // Handle list items or values within the current section
-                else -> {
-                    when (currentSection) {
-                        "CONDITIONS" -> {
-                            if (trimmedLine == "<none>") {
-                                conditions.add("<none>")
-                            } else if (trimmedLine.startsWith("-")) {
-                                conditions.add(trimmedLine.substringAfter("-").trim())
-                            }
-                        }
-                        "OPERATIONS" -> {
-                            if (trimmedLine == "<none>") {
-                                operations.add("<none>")
-                            } else if (trimmedLine.startsWith("-")) {
-                                operations.add(trimmedLine.substringAfter("-").trim())
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return if (event.isNotEmpty()) {
-            PlanData(event, conditions, operations)
-        } else {
-            null
-        }
-    }
-
     private fun convertToPlan(plan: PlanData): NewPlan? {
         val trigger = parseTriggerWithAchieveFallback(plan.event)
         val guard = processGuard(plan)
 
-        val goals = if (plan.operations.contains("<none>")) {
-            listOf(EmptyGoal())
-        } else {
-            plan.operations.mapNotNull { op -> tangleGoal(op) }
+        val goals = plan.operations.mapNotNull {
+            if (it.contains("<none>")) {
+                EmptyGoal()
+            } else {
+                tangleGoal(it)
+            }
         }
 
         return if (trigger != null && guard != null) {
@@ -176,7 +119,7 @@ class ParserImpl : Parser {
         tangleTrigger(input) ?: tangleStruct(input)?.let { AchievementGoalInvocation(it) }
 
     private fun extractCodeBlocks(input: String): List<String> {
-        val regex = """```(?:\w*\n)?([^`]*?)```""".toRegex(RegexOption.DOT_MATCHES_ALL)
+        val regex = """```(?:\w*\n)?([\s\S]*?)```""".toRegex()
         val matches = regex.findAll(input)
 
         return matches.flatMap { matchResult ->

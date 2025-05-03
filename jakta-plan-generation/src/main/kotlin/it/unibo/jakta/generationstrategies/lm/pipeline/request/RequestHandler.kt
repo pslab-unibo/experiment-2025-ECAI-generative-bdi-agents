@@ -10,7 +10,7 @@ import it.unibo.jakta.generationstrategies.lm.pipeline.request.impl.RequestHandl
 interface RequestHandler {
     val api: OpenAI?
     val streamProcessor: StreamProcessor
-    val generationConfig: LMGenerationConfig
+    val generationConfig: LMGenerationConfig.LMGenerationConfigContainer
 
     suspend fun requestTextCompletion(
         generationState: LMGenerationState,
@@ -19,9 +19,9 @@ interface RequestHandler {
 
     companion object {
         fun of(
+            generationConfig: LMGenerationConfig.LMGenerationConfigContainer,
             api: OpenAI? = null,
             streamProcessor: StreamProcessor = StreamProcessor.of(),
-            generationConfig: LMGenerationConfig = LMGenerationConfig(),
         ): RequestHandler = RequestHandlerImpl(api, streamProcessor, generationConfig)
     }
 }

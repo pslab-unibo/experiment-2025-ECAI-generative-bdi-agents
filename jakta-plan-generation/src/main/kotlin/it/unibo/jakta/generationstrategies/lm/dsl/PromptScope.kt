@@ -1,10 +1,10 @@
-package it.unibo.jakta.generationstrategies.lm.pipeline.formatting.impl
+package it.unibo.jakta.generationstrategies.lm.dsl
 
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import it.unibo.jakta.agents.bdi.dsl.Builder
 
-class PromptScope private constructor(
+class PromptScope(
     private val headingLevel: Int = 1,
 ) : Builder<String> {
     private val sections = mutableListOf<PromptSection>()
@@ -49,8 +49,6 @@ class PromptScope private constructor(
     }
 
     companion object {
-        fun prompt(block: PromptScope.() -> Unit) = PromptScope().apply(block)
-
         private fun readResourceFile(resourcePath: String): String {
             val classLoader = object {}.javaClass.enclosingClass?.classLoader ?: ClassLoader.getSystemClassLoader()
             val inputStream = classLoader.getResourceAsStream(resourcePath) ?: return "File not found: $resourcePath"

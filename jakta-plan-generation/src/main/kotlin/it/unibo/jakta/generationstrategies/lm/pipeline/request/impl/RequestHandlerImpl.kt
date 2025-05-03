@@ -3,7 +3,7 @@ package it.unibo.jakta.generationstrategies.lm.pipeline.request.impl
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
-import it.unibo.jakta.generationstrategies.lm.LMGenerationConfig
+import it.unibo.jakta.generationstrategies.lm.LMGenerationConfig.LMGenerationConfigContainer
 import it.unibo.jakta.generationstrategies.lm.LMGenerationState
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserFailure.NetworkRequestFailure
@@ -14,7 +14,7 @@ import it.unibo.jakta.generationstrategies.lm.pipeline.request.StreamProcessor
 class RequestHandlerImpl(
     override val api: OpenAI?,
     override val streamProcessor: StreamProcessor,
-    override val generationConfig: LMGenerationConfig,
+    override val generationConfig: LMGenerationConfigContainer,
 ) : RequestHandler {
     override suspend fun requestTextCompletion(
         generationState: LMGenerationState,
@@ -27,7 +27,7 @@ class RequestHandlerImpl(
     }
 
     private fun makeTextCompletionRequest(
-        cfg: LMGenerationConfig,
+        cfg: LMGenerationConfigContainer,
         state: LMGenerationState,
     ): ChatCompletionRequest =
         ChatCompletionRequest(
