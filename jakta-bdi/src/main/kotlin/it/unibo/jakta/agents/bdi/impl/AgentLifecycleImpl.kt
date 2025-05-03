@@ -32,7 +32,6 @@ import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GenerationFailure.GenericGenerationFailure
-import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.ActionNotFound
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.ActionSubstitutionFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.InvalidActionArityError
@@ -306,11 +305,13 @@ internal data class AgentLifecycleImpl(
                     }
 
                     else -> {
-                        val failedGoal = intention.currentPlan().trigger
-                        val newEvent = Event.ofTestGoalFailure(failedGoal.value, intention)
+                        val newEvent = Event.ofTestGoalInvocation(nextGoal, intention)
                         ExecutionResult(
-                            context.copy(events = context.events + newEvent),
-                            GoalFailure.TestGoalFailureFeedback(nextGoal.value),
+                            context.copy(
+                                intentions = IntentionPool.of(context.intentions - intention.id),
+                                events = context.events + newEvent,
+                            ),
+                            GoalExecutionSuccess(nextGoal),
                         ).also {
                             agent.logger?.implementation(EventChange(newEvent, ADDITION))
                         }
