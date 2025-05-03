@@ -1,7 +1,7 @@
 package it.unibo.jakta.agents.bdi.executionstrategies.feedback
 
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.events.Trigger
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.triggerFormatter
 
 sealed interface NegativeFeedback : ExecutionFeedback {
     data class InapplicablePlan(
@@ -17,7 +17,7 @@ sealed interface NegativeFeedback : ExecutionFeedback {
     class PlanNotFound(
         val trigger: Trigger,
     ) : NegativeFeedback {
-        override val description =
-            "No relevant plans found for the given trigger: ${termFormatter.format(trigger.value)}"
+        private val formattedTrigger = triggerFormatter.format(trigger)
+        override val description = "No relevant plans found for the given trigger: $formattedTrigger"
     }
 }

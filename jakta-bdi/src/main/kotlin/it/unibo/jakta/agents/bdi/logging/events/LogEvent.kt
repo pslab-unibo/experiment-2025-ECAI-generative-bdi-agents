@@ -4,6 +4,6 @@ interface LogEvent {
     val name: String get() = this.javaClass.simpleName
     val description: String
     val metadata: Map<String, Any?> get() = buildMap {
-        put("type", name)
+        put("eventType", name)
     }
 }

@@ -11,14 +11,6 @@ class InvalidationStrategyImpl(
     override val logger: KLogger?,
 ) : InvalidationStrategy {
 
-    override fun reset(
-        context: AgentContext,
-    ): ExecutionResult {
-        return ExecutionResult(
-            newAgentContext = AgentContext.of(),
-        )
-    }
-
     override fun invalidate(
         failedPlanID: PlanID,
         context: AgentContext,

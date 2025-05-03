@@ -15,8 +15,8 @@ sealed interface ActionEvent : LogEvent {
             "Added $actionType action $actionName"
 
         override val metadata = super.metadata + buildMap {
-            put("name", actionName)
-            put("type", actionType)
+            put("actionName", actionName)
+            put("actionType", actionType)
         }
     }
 

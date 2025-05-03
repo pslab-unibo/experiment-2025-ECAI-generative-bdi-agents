@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.environment
 
+import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.AgentID
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
@@ -19,6 +20,8 @@ interface Environment {
     val data: Map<String, Any>
 
     val perception: Perception
+
+    val logger: KLogger?
 
     fun getNextMessage(agentName: String): Message?
 
@@ -46,6 +49,7 @@ interface Environment {
         messageBoxes: Map<AgentID, MessageQueue> = this.messageBoxes,
         perception: Perception = this.perception,
         data: Map<String, Any> = this.data,
+        logger: KLogger? = this.logger,
     ): Environment
 
     companion object {
@@ -56,6 +60,7 @@ interface Environment {
             messageBoxes: Map<AgentID, MessageQueue> = emptyMap(),
             perception: Perception = Perception.empty(),
             data: Map<String, Any> = emptyMap(),
+            logger: KLogger? = null,
         ): Environment = EnvironmentImpl(
             externalActions,
             agentIDs,

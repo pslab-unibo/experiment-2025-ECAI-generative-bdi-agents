@@ -3,6 +3,7 @@ package it.unibo.jakta.agents.bdi.plangeneration.manager
 import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.events.Event
+import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.plangeneration.manager.impl.UnavailablePlanStrategyImpl
@@ -16,6 +17,12 @@ interface UnavailablePlanStrategy {
         selectedEvent: Event,
         relevantPlans: List<Plan>,
         isApplicablePlansEmpty: Boolean,
+        context: AgentContext,
+        generationStrategy: GenerationStrategy?,
+    ): ExecutionResult
+
+    fun handlePlanNotFound(
+        trigger: Trigger,
         context: AgentContext,
         generationStrategy: GenerationStrategy?,
     ): ExecutionResult

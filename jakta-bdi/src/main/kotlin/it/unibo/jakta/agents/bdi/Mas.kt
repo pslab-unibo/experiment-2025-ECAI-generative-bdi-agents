@@ -11,10 +11,15 @@ import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
 
 interface Mas {
     val environment: Environment
+
     val agents: Iterable<Agent>
+
     val executionStrategy: ExecutionStrategy
+
     val generationStrategy: GenerationStrategy?
+
     val loggingConfig: LoggingConfig?
+
     val logger: KLogger?
 
     fun start()

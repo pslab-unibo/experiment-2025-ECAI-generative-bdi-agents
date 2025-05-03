@@ -9,17 +9,12 @@ import it.unibo.jakta.agents.bdi.plans.PlanID
 interface InvalidationStrategy {
     val logger: KLogger?
 
-    fun reset(context: AgentContext): ExecutionResult
-
     fun invalidate(
         failedPlanID: PlanID,
         context: AgentContext,
     ): ExecutionResult
 
     companion object {
-        const val MAX_ACHIEVED_GOALS = 200
-        const val MAX_TIMES_FAILING = 3
-
         fun of(logger: KLogger? = null) = InvalidationStrategyImpl(logger)
     }
 }

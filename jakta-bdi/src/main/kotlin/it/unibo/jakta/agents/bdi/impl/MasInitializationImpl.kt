@@ -35,13 +35,14 @@ class MasInitializationImpl(override val mas: Mas) : MasInitialization {
     private fun addAgentsToEnvironment(mas: Mas): Mas {
         val updatedEnvironment = mas.agents.fold(mas.environment) { env, agent ->
             env.addAgent(agent)
-        }
+        }.copy(logger = mas.logger)
+
         return mas.copy(environment = updatedEnvironment)
     }
 
     private fun logInitialState(mas: Mas): Mas {
         mas.environment.externalActions.values.forEach { action ->
-            mas.logger?.implementation(ActionAddition(action))
+            mas.environment.logger?.implementation(ActionAddition(action))
         }
 
         mas.agents.forEach { logAgentState(it) }

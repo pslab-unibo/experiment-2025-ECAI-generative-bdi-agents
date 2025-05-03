@@ -21,4 +21,6 @@ class ActExternallyImpl(override val value: Struct) : ActExternally {
         if (value != other.value) return false
         return true
     }
+
+    override fun hashCode(): Int = value.hashCode()
 }

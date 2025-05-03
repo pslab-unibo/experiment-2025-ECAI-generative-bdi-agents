@@ -1,6 +1,6 @@
 package it.unibo.jakta.agents.bdi.executionstrategies.feedback
 
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Term
@@ -14,12 +14,13 @@ sealed interface GoalFailure : NegativeFeedback {
         val providedArguments: List<Term>,
         override val previousGoals: List<Goal> = emptyList(),
     ) : GoalFailure {
-        override val description =
-            "Failed to invoke action ${actionSignature.name} with the provided arguments"
+        private val actionName = actionSignature.name
+
+        override val description = "Failed to invoke action $actionName with the provided arguments"
 
         override val metadata = super.metadata + buildMap {
-            "action" to actionSignature.name
-            "providedArguments" to providedArguments
+            "actionName" to actionName
+            "providedArguments" to providedArguments.map { termFormatter.format(it) }
         }
     }
 
@@ -28,26 +29,26 @@ sealed interface GoalFailure : NegativeFeedback {
         val providedArguments: List<Term>,
         override val previousGoals: List<Goal> = emptyList(),
     ) : GoalFailure {
-        override val description =
-            "Failed substitution of ${actionSignature.name}"
+        private val actionName = actionSignature.name
+
+        override val description = "Failed substitution of $actionName"
 
         override val metadata = super.metadata + buildMap {
-            "action" to actionSignature.name
-            "providedArguments" to providedArguments
+            "actionName" to actionName
+            "providedArguments" to providedArguments.map { termFormatter.format(it) }
         }
     }
 
     data class ActionNotFound(
         val availableActions: List<Signature>,
-        val actionNotFound: String,
+        val actionNotFoundName: String,
         override val previousGoals: List<Goal> = emptyList(),
     ) : GoalFailure {
-        override val description =
-            "The $actionNotFound action was not found among the available ones"
+        override val description = "The $actionNotFoundName action was not found among the available ones"
 
         override val metadata = super.metadata + buildMap {
             "availableActions" to availableActions.map { it.name }
-            "actionNotFound" to actionNotFound
+            "actionNotFound" to actionNotFoundName
         }
     }
 
@@ -55,7 +56,8 @@ sealed interface GoalFailure : NegativeFeedback {
         val goalTested: Struct,
         override val previousGoals: List<Goal> = emptyList(),
     ) : GoalFailure {
-        override val description =
-            "Could not solve for the given goal ${termFormatter.format(goalTested)} with the current belief base"
+        private val goal = termFormatter.format(goalTested)
+
+        override val description = "Could not solve for the given goal $goal with the current belief base"
     }
 }

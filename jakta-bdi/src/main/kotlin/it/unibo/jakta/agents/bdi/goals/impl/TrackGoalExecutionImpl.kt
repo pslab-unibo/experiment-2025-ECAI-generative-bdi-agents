@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.goals.impl
 
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.goalFormatter
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
 import it.unibo.tuprolog.core.Struct
@@ -14,7 +15,7 @@ internal class TrackGoalExecutionImpl(
     override fun applySubstitution(substitution: Substitution) =
         TrackGoalExecutionImpl(goal.applySubstitution(substitution))
 
-    override fun toString(): String = "TrackGoalExecution($goal)"
+    override fun toString(): String = "TrackGoalExecution(${goalFormatter.format(goal)})"
 
     override fun copy(value: Struct): Goal = TrackGoalExecutionImpl(goal.copy(value = value))
 

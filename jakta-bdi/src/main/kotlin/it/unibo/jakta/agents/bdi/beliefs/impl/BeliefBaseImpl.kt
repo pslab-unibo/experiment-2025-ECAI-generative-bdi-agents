@@ -2,14 +2,13 @@ package it.unibo.jakta.agents.bdi.beliefs.impl
 
 import it.unibo.jakta.agents.bdi.Jakta.parseClause
 import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.isBelief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.beliefs.BeliefUpdate
 import it.unibo.jakta.agents.bdi.beliefs.RetrieveResult
+import it.unibo.jakta.agents.bdi.visitors.SourceAnonymizerVisitor
 import it.unibo.tuprolog.collections.ClauseMultiSet
 import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.Var
 import it.unibo.tuprolog.solve.Solution
 import it.unibo.tuprolog.solve.Solver
 import it.unibo.tuprolog.solve.flags.TrackVariables
@@ -50,11 +49,16 @@ internal class BeliefBaseImpl private constructor(
 
     override fun remove(belief: Belief): RetrieveResult {
         return if (beliefs.count(belief.rule) > 0) {
-            val foundBelief = first { it == belief }
-            RetrieveResult(
-                listOf(BeliefUpdate.removal(foundBelief)),
-                BeliefBase.of(filter { it != foundBelief }),
-            )
+            val foundBelief = firstOrNull { it == belief }
+            if (foundBelief != null) {
+                RetrieveResult(
+                    listOf(BeliefUpdate.removal(foundBelief)),
+                    BeliefBase.of(filter { it != foundBelief }),
+                )
+            } else {
+                // The belief to remove is not found
+                RetrieveResult(listOf(), this)
+            }
         } else {
             RetrieveResult(listOf(), this)
         }
@@ -88,22 +92,23 @@ internal class BeliefBaseImpl private constructor(
         }.iterator()
 
     override fun solveAll(struct: Struct, ignoreSource: Boolean): Sequence<Solution> =
-        if (struct.isBelief()) {
+        if (ignoreSource) {
             createSolver().solve(createAllSourcesMatchingStruct(struct))
         } else {
             createSolver().solve(struct)
         }
 
     override fun solve(struct: Struct, ignoreSource: Boolean): Solution =
-        if (struct.isBelief()) {
+        if (ignoreSource) {
             createSolver().solveOnce(createAllSourcesMatchingStruct(struct))
         } else {
             createSolver().solveOnce(struct)
         }
 
-    private fun createAllSourcesMatchingStruct(struct: Struct) = struct.setArgs(
-        listOf(Struct.of("source", Var.anonymous())) + struct.args.drop(1),
-    )
+    private fun createAllSourcesMatchingStruct(struct: Struct): Struct {
+        val visitor = SourceAnonymizerVisitor()
+        return visitor.visit(struct).castToStruct()
+    }
 
     private fun createSolver(): Solver =
         Solver.prolog.newBuilder()

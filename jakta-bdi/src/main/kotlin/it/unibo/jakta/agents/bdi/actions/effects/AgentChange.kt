@@ -2,15 +2,15 @@ package it.unibo.jakta.agents.bdi.actions.effects
 
 import it.unibo.jakta.agents.bdi.Jakta.capitalize
 import it.unibo.jakta.agents.bdi.Jakta.removeSource
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
+import it.unibo.jakta.agents.bdi.Jakta.source
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.context.ContextUpdate
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
 import it.unibo.jakta.agents.bdi.events.Event
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.triggerFormatter
 import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.logging.events.BdiEvent.Companion.eventType
-import it.unibo.jakta.agents.bdi.logging.events.BdiEvent.Companion.triggerDescription
 import it.unibo.jakta.agents.bdi.plans.Plan
 
 sealed interface AgentChange : SideEffect
@@ -34,10 +34,6 @@ data class BeliefChange(
 
     override val description =
         "$changeTypeDescription ${belief.removeSource()} from source ${belief.source()}"
-
-    companion object {
-        fun Belief.source() = rule.head.args.first().castToStruct().args.first().toString().capitalize()
-    }
 }
 
 data class IntentionChange(
@@ -55,12 +51,14 @@ data class EventChange(
 ) : InternalChange {
     override val name = "Event${changeType.name.lowercase().capitalize()}"
 
+    private val trigger = triggerFormatter.format(event.trigger)
+
     override val description =
-        "$changeTypeDescription ${eventType(event)} event ${triggerDescription(event.trigger)}"
+        "$changeTypeDescription ${eventType(event)} event $trigger"
 
     override val metadata = super.metadata + buildMap {
         put("changeType", changeType)
-        put("trigger", event.trigger)
+        put("eventTrigger", trigger)
         put("intention", event.intention)
     }
 }
@@ -71,15 +69,13 @@ data class PlanChange(
 ) : InternalChange {
     override val name = "Plan${changeType.name.lowercase().capitalize()}"
 
-    override val description = "$changeTypeDescription plan: ${termFormatter.format(
-        plan.trigger.value,
-    )} to the plan library"
+    private val trigger = triggerFormatter.format(plan.trigger)
+
+    override val description = "$changeTypeDescription plan: $trigger to the plan library"
 
     override val metadata = super.metadata + buildMap {
         put("changeType", changeType)
-        put("trigger", plan.trigger)
-        put("guard", plan.guard)
-        put("goals", plan.goals)
+        put("plan", plan)
     }
 }
 

@@ -22,23 +22,23 @@ class GoalTrackingStrategyImpl(
      * Otherwise, invalidate the plan library, intention and any event and return the failure feedback.
      */
     override fun trackGoalExecution(
-        goal: TrackGoalExecution,
+        genGoal: TrackGoalExecution,
         intention: Intention,
         context: AgentContext,
         environment: Environment,
         runIntention: (Intention, AgentContext, Environment) -> ExecutionResult,
     ): ExecutionResult {
-        logger?.info { "Tracking execution of goal ${goal.goal}" }
+        logger?.info { "Tracking execution of goal ${genGoal.goal}" }
 
-        val goalToExecute = goal.goal
-        val newIntention = intention.replace(goal, goalToExecute)
+        val goalToExecute = genGoal.goal
+        val newIntention = intention.replace(genGoal, goalToExecute)
 
         val result = runIntention(newIntention, context, environment)
 
         val updatedRes = if (result.feedback is NegativeFeedback) {
             result
         } else {
-            val updatedPlanLibrary = goal.untrack(intention.currentPlan(), result.newAgentContext.planLibrary)
+            val updatedPlanLibrary = genGoal.untrack(intention.currentPlan(), result.newAgentContext.planLibrary)
             result.copy(
                 newAgentContext = result.newAgentContext.copy(
                     planLibrary = updatedPlanLibrary,

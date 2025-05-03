@@ -1,10 +1,10 @@
 package it.unibo.jakta.agents.bdi
 
 import it.unibo.jakta.agents.bdi.beliefs.Belief
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
 import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Clause
 import it.unibo.tuprolog.core.Struct
-import it.unibo.tuprolog.core.TermFormatter
 import it.unibo.tuprolog.core.Truth
 import it.unibo.tuprolog.core.operators.Operator
 import it.unibo.tuprolog.core.operators.OperatorSet
@@ -19,10 +19,6 @@ object Jakta {
         Operator("&", Specifier.XFY, 1000),
         Operator("|", Specifier.XFY, 1100),
         Operator("~", Specifier.FX, 900),
-    )
-
-    val termFormatter: TermFormatter = TermFormatter.prettyExpressions(
-        operatorSet = OperatorSet.DEFAULT + operators,
     )
 
     private val parser = TermParser.withOperators(OperatorSet.DEFAULT + operators)
@@ -57,7 +53,7 @@ object Jakta {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
 
-    fun String.dropNumbersFromWords() = this.replace(Regex("(?<=\\w)\\d+"), "")
+    fun String.dropNumbers() = this.replace(Regex("(?<=\\w)\\d+"), "")
 
     fun Belief.removeSource(): Struct = this.rule.head.removeSource()
 
@@ -85,4 +81,6 @@ object Jakta {
             }
         }
     }
+
+    fun Belief.source() = rule.head.args.first().castToStruct().args.first().toString().capitalize()
 }

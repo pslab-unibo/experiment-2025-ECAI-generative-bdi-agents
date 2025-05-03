@@ -1,20 +1,18 @@
 package it.unibo.jakta.agents.bdi.logging.events
 
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.triggerFormatter
 import it.unibo.jakta.agents.bdi.plans.Plan
 
 sealed interface PlanEvent : LogEvent {
     data class PlanSelected(
         val plan: Plan,
     ) : PlanEvent {
-        val trigger = termFormatter.format(plan.trigger.value)
+        val trigger = triggerFormatter.format(plan.trigger)
 
         override val description = "Selected plan $trigger"
 
         override val metadata = super.metadata + buildMap {
-            put("trigger", plan.trigger)
-            put("guard", plan.guard)
-            put("goals", plan.goals)
+            put("plan", plan)
         }
     }
 }

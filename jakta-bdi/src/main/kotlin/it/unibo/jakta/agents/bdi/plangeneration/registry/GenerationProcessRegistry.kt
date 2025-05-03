@@ -5,7 +5,7 @@ import it.unibo.jakta.agents.bdi.plangeneration.GenerationState
 
 interface GenerationProcessRegistry : Map<GeneratePlan, GenerationState> {
 
-    fun updateGenerationProcess(goal: GeneratePlan, generationState: GenerationState): GenerationProcessRegistry
+    fun updateGenerationProcess(generationState: GenerationState): GenerationProcessRegistry
 
     fun nextGenerationState(): GenerationState?
 

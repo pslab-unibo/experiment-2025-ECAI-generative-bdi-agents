@@ -1,10 +1,9 @@
-package it.unibo.jakta.generationstrategies.lm.pipeline.formatting
+package it.unibo.jakta.agents.bdi.formatters
 
-import it.unibo.jakta.agents.bdi.GuardFlattenerVisitor.Companion.flattenAnd
 import it.unibo.jakta.agents.bdi.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.Jakta.dropNumbersFromWords
+import it.unibo.jakta.agents.bdi.Jakta.dropNumbers
+import it.unibo.jakta.agents.bdi.Jakta.operators
 import it.unibo.jakta.agents.bdi.Jakta.removeSource
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.actions.Action
 import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.Belief
@@ -33,10 +32,14 @@ import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.TrackGoalExecution
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
-import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.tuprolog.core.Truth
+import it.unibo.tuprolog.core.TermFormatter
+import it.unibo.tuprolog.core.operators.OperatorSet
 
-object Formatters {
+object DefaultFormatters {
+    val termFormatter: TermFormatter = TermFormatter.prettyExpressions(
+        operatorSet = OperatorSet.DEFAULT + operators,
+    )
+
     val goalFormatter = object : Formatter<Goal> {
         override fun format(goal: Goal): String =
             when (goal) {
@@ -64,7 +67,7 @@ object Formatters {
 
                     "$prefix ${termFormatter.format(term)}"
                 }
-            }.dropNumbersFromWords()
+            }.dropNumbers()
     }
 
     val triggerFormatter = object : Formatter<Trigger> {
@@ -81,7 +84,7 @@ object Formatters {
                 is AchievementGoalTrigger -> "achievement goal trigger from $goal"
                 is BeliefBaseRevision -> "belief revision trigger from $goal"
                 is TestGoalTrigger -> "test goal trigger from $goal"
-            }.dropNumbersFromWords()
+            }.dropNumbers()
         }
     }
 
@@ -92,14 +95,23 @@ object Formatters {
         override fun format(item: T): String {
             val res = itemToString(item)
             val resWithPurpose = purposeProvider(item)?.let { "$res: $it" } ?: res
-            return resWithPurpose.dropNumbersFromWords()
+            return resWithPurpose.dropNumbers()
         }
     }
 
-    val beliefsFormatter = createFormatter(
-        { termFormatter.format(it.rule.head.removeSource()) },
-        Belief::purpose,
-    )
+    val beliefsFormatter = object : Formatter<Belief> {
+        private fun String.dropIfContainsSpecialBelief(): String {
+            return if (this.contains("missing_plan_for")) "" else this
+        }
+
+        override fun format(item: Belief): String {
+            val res = termFormatter.format(item.rule.head.removeSource())
+            val resWithPurpose = item.purpose?.let { "$res: $it" } ?: res
+            return resWithPurpose
+                .dropIfContainsSpecialBelief()
+                .dropNumbers()
+        }
+    }
 
     val admissibleBeliefsFormatter = createFormatter(
         { termFormatter.format(it.rule.head.removeSource()) },
@@ -110,32 +122,6 @@ object Formatters {
         { triggerFormatter.format(it.trigger) },
         { it.trigger.purpose },
     )
-
-    val planFormatter = object : Formatter<Plan> {
-        override fun format(item: Plan): String = StringBuilder().apply {
-            appendLine("```yaml")
-            appendLine("EVENT: ${triggerFormatter.format(item.trigger)}")
-            append("CONDITIONS:")
-            if (item.guard == Truth.TRUE) {
-                appendLine(" <none>")
-            } else {
-                append("\n")
-                item.guard.flattenAnd().forEach {
-                    appendLine("- ${termFormatter.format(it)}")
-                }
-            }
-            append("OPERATIONS:")
-            if (item.goals.size == 1 && item.goals.first() is EmptyGoal) {
-                appendLine(" <none>")
-            } else {
-                append("\n")
-                item.goals.forEach {
-                    appendLine("- ${goalFormatter.format(it)}")
-                }
-            }
-            appendLine("```")
-        }.toString().dropNumbersFromWords()
-    }
 
     val actionsFormatter = object : Formatter<Action<*, *, *>> {
         override fun format(item: Action<*, *, *>): String = StringBuilder().apply {
@@ -150,6 +136,6 @@ object Formatters {
             }
             append(")")
             if (item.purpose != null) append(": ${item.purpose}")
-        }.toString().dropNumbersFromWords()
+        }.toString().dropNumbers()
     }
 }

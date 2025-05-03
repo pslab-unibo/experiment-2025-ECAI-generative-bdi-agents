@@ -7,9 +7,9 @@ import it.unibo.jakta.agents.bdi.logging.LoggingConfig
 
 interface GenerationStrategy {
     val generator: Generator
+    val generationConfig: GenerationConfig
 
     fun requestBlockingGeneration(
-        generationStrategy: GenerationStrategy,
         generationState: GenerationState,
     ): GenerationResult
 
@@ -19,4 +19,8 @@ interface GenerationStrategy {
         externalActions: List<ExternalAction>,
         loggingConfig: LoggingConfig? = null,
     ): GenerationState
+
+    fun updateGenerationConfig(
+        generationConfig: GenerationConfig,
+    ): GenerationStrategy
 }

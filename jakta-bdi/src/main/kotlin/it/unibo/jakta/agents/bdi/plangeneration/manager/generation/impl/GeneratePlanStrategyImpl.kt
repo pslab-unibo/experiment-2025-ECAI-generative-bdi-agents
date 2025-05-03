@@ -32,9 +32,13 @@ class GeneratePlanStrategyImpl(
     ): ExecutionResult {
         logger?.info { "Started the plan generation procedure for goal $genGoal" }
 
+        val updatedGenerationStrategy = genGoal.generationConfig
+            ?.let { generationStrategy.updateGenerationConfig(it) }
+            ?: generationStrategy
+
         val generationState = stateManager.setupGenerationStart(
             context,
-            generationStrategy,
+            updatedGenerationStrategy,
             genGoal,
             environment,
         )
@@ -42,7 +46,7 @@ class GeneratePlanStrategyImpl(
         /*
          * Request the plan generation.
          */
-        val planGenResult = generationStrategy.requestBlockingGeneration(generationStrategy, generationState)
+        val planGenResult = updatedGenerationStrategy.requestBlockingGeneration(generationState)
 
         return when (planGenResult) {
             is GenerationFailureResult -> errorHandler.handleFailure(genGoal, intention, context, planGenResult)

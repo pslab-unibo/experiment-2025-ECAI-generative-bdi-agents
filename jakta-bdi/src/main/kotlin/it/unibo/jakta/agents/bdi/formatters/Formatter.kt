@@ -1,4 +1,4 @@
-package it.unibo.jakta.generationstrategies.lm.pipeline.formatting
+package it.unibo.jakta.agents.bdi.formatters
 
 /**
  * Generic formatter interface for converting objects of type T to strings.
@@ -18,5 +18,5 @@ interface Formatter<T> {
      * @param items The items to format
      * @return A list of formatted string representations
      */
-    fun format(items: Collection<T>): List<String> = items.mapNotNull { format(it) }
+    fun format(items: Iterable<T>): List<String> = items.mapNotNull { format(it) }
 }

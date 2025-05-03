@@ -7,9 +7,7 @@ sealed interface IntentionEvent : LogEvent {
 
     override val metadata: Map<String, Any?>
         get() = super.metadata + buildMap {
-            put("plan", intention.currentPlan())
-            put("nextGoal", intention.nextGoal())
-            put("goalQueue", intention.recordStack)
+            put("intention", intention)
         }
 
     data class AssignPlanToNewIntention(

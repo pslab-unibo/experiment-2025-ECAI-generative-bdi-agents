@@ -3,6 +3,7 @@ package it.unibo.jakta.agents.bdi.events
 import it.unibo.jakta.agents.bdi.Documentable
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
 import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.tuprolog.core.Struct
@@ -195,7 +196,8 @@ class TestGoalInvocation(
         purpose: String?,
     ): Trigger = TestGoalInvocation(Belief.from(value), purpose)
 
-    override fun toString(): String = "TestGoalInvocation(value=$value, purpose=$purpose)"
+    override fun toString(): String =
+        "TestGoalInvocation(value=${termFormatter.format(value)}, purpose=$purpose)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

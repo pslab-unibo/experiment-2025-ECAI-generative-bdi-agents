@@ -8,10 +8,9 @@ class GenerationProcessRegistryImpl(
 ) : GenerationProcessRegistry, LinkedHashMap<GeneratePlan, GenerationState>(from) {
 
     override fun updateGenerationProcess(
-        goal: GeneratePlan,
         generationState: GenerationState,
     ): GenerationProcessRegistry =
-        GenerationProcessRegistryImpl(this + Pair(goal, generationState))
+        GenerationProcessRegistryImpl(this + Pair(generationState.goal, generationState))
 
     override fun nextGenerationState(): GenerationState? {
         if (this.isEmpty()) return null

@@ -9,15 +9,6 @@ import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth
 
 interface PartialPlan : Plan {
-    /**
-     * Keeps a reference to the plan that started the generation
-     * process from which this plan was generated.
-     *
-     * Used when a generation process ends and the remaining
-     * partial plans need to be eliminated or when feedback
-     * for the applicability of a plan is given to the
-     * corresponding generation process to which it belongs.
-     */
     val parentGenerationGoal: GeneratePlan?
 
     val generationConfig: GenerationConfig?

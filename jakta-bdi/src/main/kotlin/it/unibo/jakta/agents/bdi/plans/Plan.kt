@@ -1,6 +1,5 @@
 package it.unibo.jakta.agents.bdi.plans
 
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
@@ -12,6 +11,7 @@ import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.PlanApplicabilityResult
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.plans.impl.PlanImpl
 import it.unibo.tuprolog.core.Struct
@@ -27,7 +27,11 @@ interface Plan {
     fun isApplicable(event: Event, beliefBase: BeliefBase): Boolean
 
     /** Determine if the plan is applicable and provide feedback */
-    fun checkApplicability(event: Event, beliefBase: BeliefBase): PlanApplicabilityResult
+    fun checkApplicability(
+        event: Event,
+        beliefBase: BeliefBase,
+        ignoreSource: Boolean = false,
+    ): PlanApplicabilityResult
 
     /** Returns the computed applicable plan */
     fun applicablePlan(event: Event, beliefBase: BeliefBase): Plan

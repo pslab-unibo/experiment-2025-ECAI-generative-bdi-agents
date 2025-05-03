@@ -20,7 +20,7 @@ class TemplateUpdater(
     ): Set<AdmissibleBelief> {
         val newAdmissibleBeliefs = planGenResult.generatedAdmissibleBeliefs
         val oldAdmissibleBeliefs = context.admissibleBeliefs
-        return (newAdmissibleBeliefs + oldAdmissibleBeliefs).distinctBy { it.rule }.toSet()
+        return (oldAdmissibleBeliefs + newAdmissibleBeliefs).distinctBy { it.rule.head.functor }.toSet()
     }
 
     /**
@@ -34,6 +34,6 @@ class TemplateUpdater(
     ): Set<AdmissibleGoal> {
         val newAdmissibleGoals = planGenResult.generatedAdmissibleGoals
         val oldAdmissibleGoals = context.admissibleGoals
-        return (newAdmissibleGoals + oldAdmissibleGoals).distinctBy { it.trigger }.toSet()
+        return (oldAdmissibleGoals + newAdmissibleGoals).distinctBy { it.trigger.value.functor }.toSet()
     }
 }

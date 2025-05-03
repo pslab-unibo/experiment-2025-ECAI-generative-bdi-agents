@@ -27,7 +27,7 @@ class GenerationResultBuilderImpl(
         val updatedPlanLibrary = planLibraryUpdater.update(context, planGenResult)
         val updatedAdmissibleGoals = templateUpdater.updateAdmissibleGoals(context, planGenResult)
         val updatedAdmissibleBeliefs = templateUpdater.updateAdmissibleBeliefs(context, planGenResult)
-        val updatedGenProcesses = generationProcessUpdater.update(context, genGoal, planGenResult)
+        val updatedGenProcesses = generationProcessUpdater.update(context, planGenResult)
 
         return ExecutionResult(
             context.copy(

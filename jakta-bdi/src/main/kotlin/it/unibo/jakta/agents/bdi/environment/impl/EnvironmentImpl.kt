@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.environment.impl
 
+import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.Agent
 import it.unibo.jakta.agents.bdi.AgentID
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
@@ -15,6 +16,7 @@ open class EnvironmentImpl(
     override val messageBoxes: Map<AgentID, MessageQueue> = mapOf(),
     override var perception: Perception,
     override val data: Map<String, Any> = emptyMap(),
+    override val logger: KLogger? = null,
 ) : Environment {
     override fun getNextMessage(agentName: String): Message? = messageBoxes[agentIDs[agentName]]?.lastOrNull()
 
@@ -80,12 +82,14 @@ open class EnvironmentImpl(
         messageBoxes: Map<AgentID, MessageQueue>,
         perception: Perception,
         data: Map<String, Any>,
+        logger: KLogger?,
     ): Environment = EnvironmentImpl(
         externalActions,
         agentIDs,
         messageBoxes,
         perception,
         data,
+        logger,
     )
 
     override fun toString(): String = """
@@ -94,7 +98,8 @@ open class EnvironmentImpl(
            actions=${externalActions.values},
            agents=${agentIDs.values}, 
            messages=${messageBoxes.keys},
-           perception=$perception
+           perception=$perception,
+           logger=$logger,
         )
     """.trimIndent()
 }

@@ -1,4 +1,4 @@
-package it.unibo.jakta.agents.bdi
+package it.unibo.jakta.agents.bdi.visitors
 
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Term

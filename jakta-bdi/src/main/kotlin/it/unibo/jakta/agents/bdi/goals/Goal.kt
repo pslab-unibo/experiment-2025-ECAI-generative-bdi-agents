@@ -12,6 +12,7 @@ import it.unibo.jakta.agents.bdi.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TestImpl
 import it.unibo.jakta.agents.bdi.goals.impl.TrackGoalExecutionImpl
 import it.unibo.jakta.agents.bdi.goals.impl.UpdateBeliefImpl
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
@@ -118,8 +119,13 @@ sealed interface DeclarativeGoal : Goal {
 }
 
 interface GeneratePlan : DeclarativeGoal {
+    val generationConfig: GenerationConfig?
+
     companion object {
-        fun of(goal: Goal): GeneratePlan = GeneratePlanImpl(goal)
+        fun of(
+            goal: Goal,
+            generationConfig: GenerationConfig? = null,
+        ): GeneratePlan = GeneratePlanImpl(goal, generationConfig)
     }
 }
 

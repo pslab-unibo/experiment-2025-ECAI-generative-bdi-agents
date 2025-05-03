@@ -32,7 +32,7 @@ class GenerationErrorHandler(
         planGenResult: GenerationFailureResult,
     ): ExecutionResult {
         val errorMsg = "Failed generation due to: ${planGenResult.errorMsg}"
-        val updatedGenProcesses = generationProcessUpdater.update(context, genGoal, planGenResult)
+        val updatedGenProcesses = generationProcessUpdater.update(context, planGenResult)
         return ExecutionResult(
             context.copy(
                 intentions = context.intentions.updateIntention(intention.pop()),
