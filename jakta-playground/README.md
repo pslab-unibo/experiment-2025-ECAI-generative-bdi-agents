@@ -1,12 +1,17 @@
 # jakta-playground
 
+## Prerequisites
+
+1. Add an openrouter API key to a `.env` file at the root of the repo (see `.env.template` for reference).
+
+2. Run `chmod +x runner.sh` to make the script executable.
+
+## Evaluation
+
 To run the DVC pipeline:
 
 ```shell
 ../gradlew dvc -Pargs="repro"
-# or if using python
-source build/python/bin/activate
-dvc repro
 ```
 
 This will start the evaluation with the parameters
@@ -14,7 +19,7 @@ specified in the `params.yaml` file and by running the `runExperiment` gradle ta
 
 The results will be logged under the `./experiments/` directory.
 
-## Directory structure
+### Directory structure
 
 The first level contains the name of the provider and the second level the name of the model.
 For each model, one or more runs are available. 
