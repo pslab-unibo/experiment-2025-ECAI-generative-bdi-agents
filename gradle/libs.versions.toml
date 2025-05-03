@@ -12,6 +12,7 @@ kotlinxPlugin = "2.1.0"
 kotlinCoroutines = "1.10.1"
 mockk = "1.13.17"
 kaml = "0.77.0"
+logstash = "8.1"
 
 [libraries]
 alchemist-api = { module = "it.unibo.alchemist:alchemist-api", version.ref = "alchemist" }
@@ -42,14 +43,15 @@ tuprolog-dsl-theory = { module = "it.unibo.tuprolog:dsl-theory-jvm", version.ref
 tuprolog-dsl-solve = { module = "it.unibo.tuprolog:dsl-solve-jvm", version.ref = "tuprolog" }
 tuprolog-oop-lib = { module = "it.unibo.tuprolog:oop-lib-jvm", version.ref = "tuprolog" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
 openai = { module = "com.aallam.openai:openai-client", version.ref = "openai" }
 kotlin-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logback-logstash = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash" }
 
 [bundles]
-kotlin-logging = [ "logback", "kotlin-logging" ]
+kotlin-logging = [ "logback", "kotlin-logging", "logback-logstash" ]
 kotlin-testing = [
     "kotest-junit5-jvm",
     "kotest-assertions-core-jvm",
