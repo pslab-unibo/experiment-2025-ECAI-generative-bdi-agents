@@ -1,9 +1,9 @@
 package it.unibo.jakta.agents.bdi.dsl.beliefs
 
 import it.unibo.jakta.agents.bdi.Jakta.removeSource
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefsScope.Companion.createBelief
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
 import it.unibo.tuprolog.core.Fact
 
 object BeliefMetadata {

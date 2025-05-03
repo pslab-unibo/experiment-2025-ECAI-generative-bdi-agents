@@ -1,7 +1,5 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
-import it.unibo.jakta.agents.bdi.GuardFlattenerVisitor.Companion.flattenAnd
-import it.unibo.jakta.agents.bdi.Jakta.toLeftNestedAnd
 import it.unibo.jakta.agents.bdi.Prolog2Jakta
 import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.goals.EmptyGoal
@@ -30,12 +28,11 @@ data class PlanScope(
     infix fun onlyIf(guards: GuardScope.() -> Struct): PlanScope {
         guard = GuardScope(scope).let(guards)
         guard = guard.accept(Prolog2Jakta).castToStruct()
-        guard.flattenAnd().toLeftNestedAnd()?.let { guard = it }
         return this
     }
 
     infix fun then(body: BodyScope.() -> Unit): PlanScope {
-        goals += BodyScope(scope).also(body).build()
+        goals += BodyScope(scope, generationConfig).also(body).build()
         return this
     }
 

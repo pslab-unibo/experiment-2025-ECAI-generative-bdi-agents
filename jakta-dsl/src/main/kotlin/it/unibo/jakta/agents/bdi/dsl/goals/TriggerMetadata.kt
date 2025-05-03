@@ -1,8 +1,8 @@
 package it.unibo.jakta.agents.bdi.dsl.goals
 
 import it.unibo.jakta.agents.bdi.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.Jakta.termFormatter
 import it.unibo.jakta.agents.bdi.events.Trigger
+import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
 
 object TriggerMetadata {
     class TriggerContext(val trigger: Trigger) {

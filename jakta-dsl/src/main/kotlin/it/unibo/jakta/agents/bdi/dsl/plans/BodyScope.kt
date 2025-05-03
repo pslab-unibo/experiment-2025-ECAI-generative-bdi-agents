@@ -14,6 +14,7 @@ import it.unibo.jakta.agents.bdi.goals.RemoveBelief
 import it.unibo.jakta.agents.bdi.goals.Spawn
 import it.unibo.jakta.agents.bdi.goals.Test
 import it.unibo.jakta.agents.bdi.goals.UpdateBelief
+import it.unibo.jakta.agents.bdi.plangeneration.GenerationConfig
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.dsl.jakta.JaktaLogicProgrammingScope
@@ -26,6 +27,7 @@ import kotlin.reflect.KFunction
  */
 class BodyScope(
     private val lpScope: Scope,
+    private val generationConfig: GenerationConfig? = null,
 ) : Builder<List<Goal>>, JaktaLogicProgrammingScope by JaktaLogicProgrammingScope.of(lpScope) {
 
     /**
@@ -63,7 +65,7 @@ class BodyScope(
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
     fun generate(goal: Goal, parallel: Boolean = false) {
-        val genGoal = GeneratePlan.of(goal)
+        val genGoal = GeneratePlan.of(goal, generationConfig)
         goals += if (parallel) Spawn.of(genGoal) else genGoal
     }
 
