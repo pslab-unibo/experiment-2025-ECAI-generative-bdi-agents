@@ -32,12 +32,13 @@ import it.unibo.jakta.agents.bdi.events.EventQueue
 import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GenerationFailure.GenericGenerationFailure
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.ActionNotFound
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.ActionSubstitutionFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.InvalidActionArityError
-import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.TestGoalFailureFeedback
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalSuccess.GoalExecutionSuccess
-import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.PositiveFeedback
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.PositiveFeedback.GenerationRequested
 import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.Act
 import it.unibo.jakta.agents.bdi.goals.ActExternally
@@ -64,8 +65,6 @@ import it.unibo.jakta.agents.bdi.logging.events.PlanEvent.PlanSelected
 import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.messages.Tell
 import it.unibo.jakta.agents.bdi.plangeneration.manager.GenerationManager
-import it.unibo.jakta.agents.bdi.plangeneration.manager.InvalidationStrategy.Companion.MAX_ACHIEVED_GOALS
-import it.unibo.jakta.agents.bdi.plangeneration.manager.InvalidationStrategy.Companion.MAX_TIMES_FAILING
 import it.unibo.jakta.agents.bdi.plans.Plan
 import it.unibo.jakta.agents.bdi.plans.PlanLibrary
 import it.unibo.jakta.agents.fsm.Activity
@@ -311,7 +310,7 @@ internal data class AgentLifecycleImpl(
                         val newEvent = Event.ofTestGoalFailure(failedGoal.value, intention)
                         ExecutionResult(
                             context.copy(events = context.events + newEvent),
-                            TestGoalFailureFeedback(nextGoal.value),
+                            GoalFailure.TestGoalFailureFeedback(nextGoal.value),
                         ).also {
                             agent.logger?.implementation(EventChange(newEvent, ADDITION))
                         }
@@ -507,7 +506,7 @@ internal data class AgentLifecycleImpl(
                     agent.logger?.implementation(PlanSelected(selectedPlan))
                 }
             } else {
-                // Invalidate plans if in a generation process and/or start a new generation process.
+                // Invalidate partial plans and/or start a new generation process.
                 val result = generationManager.unavailablePlanStrategy.handleUnavailablePlans(
                     selectedEvent,
                     relevantPlans.plans,
@@ -523,7 +522,7 @@ internal data class AgentLifecycleImpl(
                 newPlanLibrary = newContext.planLibrary
                 newBeliefBase = newContext.beliefBase
 
-                if (selectedEvent.isInternal()) {
+                if (selectedEvent.isInternal() && result.feedback !is GenerationRequested) {
                     newIntentionPool = newIntentionPool.deleteIntention(selectedEvent.intention!!.id).also {
                         agent.logger?.implementation(IntentionChange(selectedEvent.intention!!, REMOVAL))
                     }
@@ -565,67 +564,28 @@ internal data class AgentLifecycleImpl(
                 ).also { r -> r.feedback?.let { agent.logger?.implementation(it) } }
 
                 val currentState = agent.context.generationProcesses.nextGenerationState()
+                val context = executionResult.newAgentContext
                 executionResult = if (currentState != null) {
-                    if (executionResult.feedback is NegativeFeedback) {
-                        val currentFailures = currentState.consecutiveFailureCount + 1
-                        if (currentState.achievedGoalsHistory.size >= MAX_ACHIEVED_GOALS) {
-                            agent.logger?.error {
-                                "The agent might have entered a recursive loop after executing " +
-                                    "${currentState.achievedGoalsHistory.size} goals and will be stopped"
-                            }
-                            controller?.stop()
-                            generationManager.invalidationStrategy.reset(agent.context)
-                        } else if (currentFailures >= MAX_TIMES_FAILING) {
-                            agent.logger?.error {
-                                "The agent has failed $currentFailures generations in a row and will be stopped"
-                            }
-                            controller?.stop()
-                            generationManager.invalidationStrategy.reset(agent.context)
-                        } else if (scheduledIntention.nextGoal() is GeneratePlan) {
-                            val updatedState = currentState.copy(
-                                consecutiveFailureCount = currentFailures,
-                            )
-                            val context = executionResult.newAgentContext
+                    if (executionResult.feedback is PositiveFeedback) {
+                        if (executionResult.feedback is PositiveFeedback.GenerationCompleted) {
+                            val generationProcesses = context
+                                .generationProcesses
+                                .deleteGenerationProcess(currentState.goal)
                             executionResult.copy(
                                 newAgentContext = context.copy(
-                                    generationProcesses = context.generationProcesses.updateGenerationProcess(
-                                        currentState.goal,
-                                        updatedState,
-                                    ),
+                                    generationProcesses = generationProcesses,
                                 ),
                             )
                         } else {
                             executionResult
                         }
                     } else {
-                        if (currentState.achievedGoalsHistory.size >= MAX_ACHIEVED_GOALS) {
-                            agent.logger?.error {
-                                "The agent might have entered a recursive loop after executing " +
-                                    "${currentState.achievedGoalsHistory.size} goals and will be stopped"
-                            }
-                            controller?.stop()
-                            generationManager.invalidationStrategy.reset(agent.context)
-                        } else {
-                            val currentFailures = if (scheduledIntention.nextGoal() is GeneratePlan) {
-                                0
-                            } else {
-                                currentState.consecutiveFailureCount
-                            }
-                            val updatedAchievedGoalsHistory = currentState
-                                .achievedGoalsHistory + scheduledIntention.nextGoal()
-                            val updatedState = currentState.copy(
-                                achievedGoalsHistory = updatedAchievedGoalsHistory,
-                                consecutiveFailureCount = currentFailures,
-                            )
-                            val context = executionResult.newAgentContext
-                            executionResult.copy(
-                                newAgentContext = context.copy(
-                                    generationProcesses = context.generationProcesses.updateGenerationProcess(
-                                        currentState.goal,
-                                        updatedState,
-                                    ),
-                                ),
-                            )
+                        executionResult.copy(
+                            newAgentContext = context.copy(
+                                intentions = context.intentions.deleteIntention(scheduledIntention.id),
+                            ),
+                        ).also {
+                            agent.logger?.implementation(IntentionChange(scheduledIntention, REMOVAL))
                         }
                     }
                 } else {
