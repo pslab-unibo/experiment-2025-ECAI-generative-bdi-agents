@@ -25,11 +25,6 @@ abstract class Experiment : CliktCommand() {
     private val expRunnerLogger = logger("ExperimentRunner")
     private val urlRegex = "^https?://([\\w.-]+)(:\\d+)?(/.*)?$".toRegex()
 
-    val logServerURL: String by option()
-        .default(DEFAULT_LOG_SERVER_URL)
-        .help("Number of greetings")
-        .check("value must be a valid URL") { it.matches(urlRegex) }
-
     val logToFile: Boolean by option()
         .flag()
         .help("Whether to output log to the local filesystem.")
@@ -44,7 +39,7 @@ abstract class Experiment : CliktCommand() {
         .help("The minimum log level")
 
     val logDir: String by option()
-        .default("logs")
+        .default(DEFAULT_LOG_DIR)
         .help("Whether to output log to the local filesystem.")
 
     val lmServerUrl: String by option()
@@ -85,11 +80,6 @@ abstract class Experiment : CliktCommand() {
             it >= MIN_TEMPERATURE && it <= MAX_TEMPERATURE
         }
 
-    val timeout: Int by option()
-        .int()
-        .default(DEFAULT_TIMEOUT)
-        .help("How many seconds the MAS can run before being shutdown.")
-
     override fun run() {
         expRunnerLogger.info { "Experiment started" }
         val expName = nameGenerator.randomName()
@@ -112,10 +102,9 @@ abstract class Experiment : CliktCommand() {
     abstract fun createGenerationStrategy(): GenerationStrategy?
 
     companion object {
-        val DEFAULT_LOG_LEVEL = LogbackLogLevel.DEBUG
-        const val DEFAULT_TIMEOUT = 240
+        const val DEFAULT_LOG_DIR = "logs"
+        val DEFAULT_LOG_LEVEL = LogbackLogLevel.INFO
         const val MIN_TEMPERATURE = 0.0
         const val MAX_TEMPERATURE = 2.0
-        const val DEFAULT_LOG_SERVER_URL = "http://localhost:8081"
     }
 }

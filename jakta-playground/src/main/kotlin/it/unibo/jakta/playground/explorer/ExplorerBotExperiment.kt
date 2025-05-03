@@ -1,7 +1,5 @@
 package it.unibo.jakta.playground.explorer
 
-import it.unibo.jakta.agents.bdi.dsl.MasScope
-import it.unibo.jakta.agents.bdi.dsl.environment.EnvironmentScope
 import it.unibo.jakta.agents.bdi.dsl.loggingConfig
 import it.unibo.jakta.agents.bdi.dsl.mas
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
@@ -23,6 +21,8 @@ class ExplorerBotExperiment : Experiment() {
         generationStrategy = genStrat
         loggingConfig = logConfig
 
+        explorerBot()
+
         environment {
             from(GridWorld())
             actions {
@@ -32,52 +32,23 @@ class ExplorerBotExperiment : Experiment() {
                 action(getDirectionToMove).meaning {
                     "provides a Direction free of obstacles where the agent can then move"
                 }
-                removeAgents(agents.map { it.name })
             }
         }
-
-        explorerBot()
-
-        timeoutAgent(timeout)
     }
 
     override fun createLoggingConfig(expName: String) = loggingConfig {
-        logServerURL = this@ExplorerBotExperiment.logServerURL
         logToFile = this@ExplorerBotExperiment.logToFile
         logToConsole = this@ExplorerBotExperiment.logToConsole
         logLevel = this@ExplorerBotExperiment.logLevel.level
-        logDir = "${this@ExplorerBotExperiment.logDir}/$expName"
+        logDir = "${this@ExplorerBotExperiment.logDir}/$modelId/$expName"
     }
 
-    override fun createGenerationStrategy() = oneStepGeneration {
-        url = lmServerUrl
-        token = lmServerToken
-        model = modelId
-        maxTokens = this@ExplorerBotExperiment.maxTokens
-        temperature = this@ExplorerBotExperiment.temperature
-    }
-
-    companion object {
-        fun EnvironmentScope.removeAgents(agentIds: List<String>) =
-            actions {
-                action("removeAgents", 0) {
-                    agentIds.forEach {
-                        println("[$sender] Removed $it")
-                        removeAgent(it)
-                    }
-                }
-            }
-
-        fun MasScope.timeoutAgent(timeoutSeconds: Int) =
-            agent("timeout") {
-                goals { +achieve("timeout"(timeoutSeconds * 1000)) }
-                plans {
-                    +achieve("timeout"(N)) then {
-                        execute("print"("Sleeping for", N))
-                        execute("sleep"(N))
-                        execute("removeAgents")
-                    }
-                }
-            }
-    }
+    override fun createGenerationStrategy() =
+        oneStepGeneration {
+            url = lmServerUrl
+            token = lmServerToken
+            model = modelId
+            maxTokens = this@ExplorerBotExperiment.maxTokens
+            temperature = this@ExplorerBotExperiment.temperature
+        }
 }

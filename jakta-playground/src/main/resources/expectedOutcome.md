@@ -14,10 +14,8 @@ OPERATIONS:
 Separate plans with a bar such as `---`.
 Represent the lack of conditions or operations with the word `<none>`.
 
-Events must be prefixed with either "achieve" or "test".
 Events can be drawn from the admissible goals.
 Conditions can be logic formulas over the beliefs, possibly involving negation and logical connectives.
-Operations must be prefixed with one of: "execute", "achieve", "test", "add", "remove", or "update".
 Operations can be drawn from the admissible actions or from the admissible goals.
 You can invent new admissible goals or beliefs, but you cannot invent admissible actions.
 Only use FOL syntax, with no quantifiers.
@@ -34,5 +32,5 @@ For example:
 
 Be as general and minimal as possible: use variables instead of constants where appropriate, reuse patterns across plans, and avoid over-specification.
 
-Do not show intermediate attempts, incorrect plans, rejected versions, or any reasoning.
-The output must be a final, clean, and minimal plan set only.
+Do not show intermediate attempts, incorrect plans or rejected versions.
+The output must be a block containing the admissible goals and beliefs and a block containing the final, clean, and minimal plan set only.

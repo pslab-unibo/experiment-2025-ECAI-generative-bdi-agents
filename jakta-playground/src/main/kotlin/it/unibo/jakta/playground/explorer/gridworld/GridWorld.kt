@@ -1,10 +1,12 @@
 package it.unibo.jakta.playground.explorer.gridworld
 
+import io.github.oshai.kotlinlogging.KLogger
 import it.unibo.jakta.agents.bdi.AgentID
 import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.environment.impl.EnvironmentImpl
+import it.unibo.jakta.agents.bdi.logging.implementation
 import it.unibo.jakta.agents.bdi.messages.MessageQueue
 import it.unibo.jakta.agents.bdi.perception.Perception
 
@@ -14,6 +16,7 @@ class GridWorld(
     messageBoxes: Map<AgentID, MessageQueue> = emptyMap(),
     override var perception: Perception = Perception.empty(),
     data: Map<String, Any> = defaultData,
+    override val logger: KLogger? = null,
 ) : EnvironmentImpl(externalActions, agentIDs, messageBoxes, perception, data) {
 
     private val grid: Grid = createGrid()
@@ -60,7 +63,15 @@ class GridWorld(
         val newPosition = currentState.agentPosition.move(direction)
 
         return if (grid.isInBoundaries(newPosition) && !grid.isObstacle(newPosition)) {
-            this.copy(data = data.updateCurrentPosition(Cell(newPosition.x, newPosition.y)))
+            val newPosition = Cell(newPosition.x, newPosition.y)
+            data.objects()?.let { objects ->
+                objects.forEach { (objectName, objectCell) ->
+                    if (objectCell == newPosition) {
+                        logger?.implementation(ObjectReachedEvent(objectName))
+                    }
+                }
+            }
+            this.copy(data = data.updateCurrentPosition(newPosition))
         } else {
             this
         }
@@ -85,7 +96,8 @@ class GridWorld(
         messageBoxes: Map<AgentID, MessageQueue>,
         perception: Perception,
         data: Map<String, Any>,
-    ): GridWorld = GridWorld(agentIDs, externalActions, messageBoxes, perception, data)
+        logger: KLogger?,
+    ): GridWorld = GridWorld(agentIDs, externalActions, messageBoxes, perception, data, logger)
 
     companion object {
         @Suppress("UNCHECKED_CAST")

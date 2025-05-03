@@ -1,2 +1,10 @@
-datasets: [ "blocksworld" ]
-models: [ "phi4" ]
+models: [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "google/gemma-3-12b-it:free",
+]
+temperature: 0.5
+maxTokens: 4096
+repetitions: 5
+timeout: 60
+provider: "https://openrouter.ai/api/v1/"

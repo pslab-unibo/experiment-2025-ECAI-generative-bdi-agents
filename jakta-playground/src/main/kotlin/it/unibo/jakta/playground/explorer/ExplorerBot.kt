@@ -17,36 +17,24 @@ import it.unibo.tuprolog.core.Var
 
 object ExplorerBot {
     private val Direction = Var.of("Direction")
-    private val NewDirection = Var.of("NewDirection")
     private val Object = Var.of("Object")
 
     fun baselinePlans() =
         plans {
             +achieve("reach"(Object)) onlyIf {
                 "there_is"(Object, "here").fromPercept
-            } then {
-                execute("print"("reached", Object))
-                execute("stop")
             }
             +achieve("reach"(Object)) onlyIf {
-                not("there_is"(Object, "here").fromPercept)
-            } then {
-                execute("getDirectionToMove"(Direction))
-                achieve("move_towards"(Direction, Object))
-            }
-            +achieve("move_towards"(Direction, Object)) onlyIf {
-                "direction"(Direction).fromSelf and
-                    not("obstacle"(Direction)).fromPercept
+                "there_is"(Object, Direction).fromPercept
             } then {
                 execute("move"(Direction))
-                achieve("reach"(Object))
             }
-            +achieve("move_towards"(Direction, Object)) onlyIf {
-                "direction"(Direction).fromSelf and
-                    "obstacle"(Direction).fromPercept
+            +achieve("reach"(Object)) onlyIf {
+                not("there_is"(Object, `_`).fromPercept)
             } then {
-                execute("getDirectionToMove"(NewDirection))
-                achieve("move_towards"(NewDirection, Object))
+                execute("getDirectionToMove"(Direction))
+                execute("move"(Direction))
+                achieve("reach"(Object))
             }
         }
 
@@ -87,7 +75,7 @@ object ExplorerBot {
             val output = request.arguments[0].asVar()
 
             val belief = Belief.wrap(
-                Struct.of("not", Struct.of("obstacle", Var.of("Direction"))),
+                Struct.of("free", Var.of("Direction")),
                 wrappingTag = SOURCE_PERCEPT,
             )
 
