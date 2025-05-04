@@ -32,7 +32,7 @@ class PromptScope(
         sections.add(PromptSection(text = text))
     }
 
-    fun buildAsMessage(): ChatMessage = ChatMessage(ChatRole.System, build())
+    fun buildAsMessage(): ChatMessage = ChatMessage(ChatRole.User, build())
 
     override fun build(): String = sections.joinToString(separator = "\n") { it.toString(headingLevel) }.trim()
 
