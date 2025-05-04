@@ -8,13 +8,11 @@ You encode plans as triplets of the form (event, condition, operation), where "e
 Events must be prefixed with a keyword according to their type:
 
 - `achieve`: use when defining goals that the agent should actively work towards achieving. Once triggered, it initiates a plan to achieve a specific outcome. For example, "achieve reach(home)" means the agent wants to reach a state where it is at home.
-- `test`: use when the agent needs to verify a condition or belief without necessarily changing the environment;
 
 Operations must be prefixed with a keyword according to their type:
 
 - `execute`: use for primitive actions that directly interact with the environment or other agents. These are atomic operations that can't be decomposed further. For example, `execute move(north)`;
 - `achieve`: use to set a new subgoal that needs to be achieved, which will trigger another plan. For example, `achieve reach(rock)`;
-- `test`: use to check if a belief exists in the belief base without modifying it. For example, `test there_is(home, north)`;
 - `add`: use to add a new belief to the belief base. For example, `add visited(current_location)`;
 - `remove`: use to remove an existing belief from the belief base. For example, `remove obstacle(north)`;
 - `update`: use to modify an existing belief in the belief base. For example, `update position(X, Y)` to change the agent's position.

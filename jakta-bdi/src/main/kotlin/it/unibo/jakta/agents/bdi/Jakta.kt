@@ -53,6 +53,10 @@ object Jakta {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
 
+    fun String.dropBackticks() = this.replace("`", "")
+
+    fun String.dropSquareBrackets() = this.replace(Regex("[\\[\\]]"), "")
+
     fun String.dropNumbers() = this.replace(Regex("(?<=\\w)\\d+"), "")
 
     fun Belief.removeSource(): Struct = this.rule.head.removeSource()

@@ -24,14 +24,13 @@ import it.unibo.jakta.agents.bdi.context.AgentContext
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.context.ContextUpdate.REMOVAL
 import it.unibo.jakta.agents.bdi.environment.Environment
-import it.unibo.jakta.agents.bdi.events.AchievementGoalFailure
 import it.unibo.jakta.agents.bdi.events.BeliefBaseAddition
 import it.unibo.jakta.agents.bdi.events.BeliefBaseRemoval
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.EventQueue
-import it.unibo.jakta.agents.bdi.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GenerationFailure.GenericGenerationFailure
+import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.ActionNotFound
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.ActionSubstitutionFailure
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.GoalFailure.InvalidActionArityError
@@ -120,12 +119,7 @@ internal data class AgentLifecycleImpl(
             }
 
             false ->
-                when (event.trigger) {
-                    is AchievementGoalFailure, is TestGoalFailure ->
-                        event.intention!!.copy(recordStack = listOf(planActivationRecord))
-//                     else -> intentions[event.intention!!.id]!!.push(plan.toActivationRecord())
-                    else -> event.intention!!.pop().push(planActivationRecord)
-                }.also {
+                event.intention!!.pop().push(planActivationRecord).also {
                     agent.logger?.implementation(AssignPlanToExistingIntention(it))
                 }
         }
@@ -305,13 +299,11 @@ internal data class AgentLifecycleImpl(
                     }
 
                     else -> {
-                        val newEvent = Event.ofTestGoalInvocation(nextGoal, intention)
+                        val failedGoal = intention.currentPlan().trigger
+                        val newEvent = Event.ofTestGoalFailure(failedGoal.value, intention)
                         ExecutionResult(
-                            context.copy(
-                                intentions = IntentionPool.of(context.intentions - intention.id),
-                                events = context.events + newEvent,
-                            ),
-                            GoalExecutionSuccess(nextGoal),
+                            context.copy(events = context.events + newEvent),
+                            GoalFailure.TestGoalFailureFeedback(nextGoal.value),
                         ).also {
                             agent.logger?.implementation(EventChange(newEvent, ADDITION))
                         }
@@ -564,8 +556,8 @@ internal data class AgentLifecycleImpl(
                     environment,
                 ).also { r -> r.feedback?.let { agent.logger?.implementation(it) } }
 
-                val currentState = agent.context.generationProcesses.nextGenerationState()
                 val context = executionResult.newAgentContext
+                val currentState = context.generationProcesses.nextGenerationState()
                 executionResult = if (currentState != null) {
                     if (executionResult.feedback is PositiveFeedback) {
                         if (executionResult.feedback is PositiveFeedback.GenerationCompleted) {

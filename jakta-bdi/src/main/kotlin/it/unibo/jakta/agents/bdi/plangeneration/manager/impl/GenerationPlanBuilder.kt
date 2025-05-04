@@ -11,7 +11,6 @@ import it.unibo.jakta.agents.bdi.goals.Achieve
 import it.unibo.jakta.agents.bdi.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.goals.Goal
 import it.unibo.jakta.agents.bdi.goals.Test
-import it.unibo.jakta.agents.bdi.intentions.Intention
 import it.unibo.jakta.agents.bdi.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.plans.PlanID
 import it.unibo.tuprolog.core.Struct
@@ -39,15 +38,15 @@ object GenerationPlanBuilder {
             else -> null
         }
 
-    fun getFailureEvent(
-        trigger: Trigger,
-        intention: Intention? = null,
-    ): Event? =
-        when (trigger) {
+    fun getFailureEvent(selectedEvent: Event): Event? {
+        val trigger = selectedEvent.trigger
+        val intention = selectedEvent.intention
+        return when (trigger) {
             is AchievementGoalInvocation -> Event.ofAchievementGoalFailure(trigger.value, intention)
             is TestGoalInvocation -> Event.ofTestGoalFailure(trigger.value, intention)
             else -> null
         }
+    }
 
     fun getMissingPlanBelief(term: Term) = Belief.fromSelfSource(Struct.of("missing_plan_for", term))
 

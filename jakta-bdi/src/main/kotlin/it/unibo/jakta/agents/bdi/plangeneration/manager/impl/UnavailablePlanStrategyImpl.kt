@@ -7,7 +7,6 @@ import it.unibo.jakta.agents.bdi.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
 import it.unibo.jakta.agents.bdi.events.Event
 import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
-import it.unibo.jakta.agents.bdi.events.Trigger
 import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.ExecutionFeedback
 import it.unibo.jakta.agents.bdi.executionstrategies.feedback.NegativeFeedback.InapplicablePlan
@@ -36,7 +35,7 @@ class UnavailablePlanStrategyImpl(
         generationStrategy: GenerationStrategy?,
     ): ExecutionResult {
         return when {
-            relevantPlans.isEmpty() -> handlePlanNotFound(selectedEvent.trigger, context, generationStrategy)
+            relevantPlans.isEmpty() -> handlePlanNotFound(selectedEvent, context, generationStrategy)
             isApplicablePlansEmpty ->
                 handleFailedPlanPreconditions(selectedEvent, relevantPlans, context)
             // not expected since either relevantPlans and/or applicablePlans should be empty
@@ -45,11 +44,11 @@ class UnavailablePlanStrategyImpl(
     }
 
     override fun handlePlanNotFound(
-        trigger: Trigger,
+        selectedEvent: Event,
         context: AgentContext,
         generationStrategy: GenerationStrategy?,
     ): ExecutionResult {
-        val initialGoal = trigger
+        val initialGoal = selectedEvent.trigger
         val newPlan = if (generationStrategy != null &&
             (initialGoal is AchievementGoalInvocation || initialGoal is TestGoalInvocation)
         ) {
@@ -63,7 +62,7 @@ class UnavailablePlanStrategyImpl(
             PlanNotFound(initialGoal)
         }
 
-        return createResult(initialGoal, context, feedback, newPlan)
+        return createResult(selectedEvent, context, feedback, newPlan)
     }
 
     private fun handleFailedPlanPreconditions(
@@ -71,7 +70,6 @@ class UnavailablePlanStrategyImpl(
         relevantPlans: List<Plan>,
         context: AgentContext,
     ): ExecutionResult {
-        val initialGoal = selectedEvent.trigger
         val feedback = InapplicablePlan(
             relevantPlans
                 .map {
@@ -89,18 +87,19 @@ class UnavailablePlanStrategyImpl(
                 },
         )
 
-        return createResult(initialGoal, context, feedback)
+        return createResult(selectedEvent, context, feedback)
     }
 
     private fun createResult(
-        failureTrigger: Trigger,
+        selectedEvent: Event,
         context: AgentContext,
         feedback: ExecutionFeedback,
         newPlan: PartialPlan? = null,
     ): ExecutionResult =
         if (newPlan != null) {
+            val failureTrigger = selectedEvent.trigger
             val newBelief = getMissingPlanBelief(failureTrigger.value)
-            val newEvent = getFailureEvent(failureTrigger)
+            val newEvent = getFailureEvent(selectedEvent)
             ExecutionResult(
                 newAgentContext = context.copy(
                     planLibrary = context.planLibrary.addPlan(newPlan),

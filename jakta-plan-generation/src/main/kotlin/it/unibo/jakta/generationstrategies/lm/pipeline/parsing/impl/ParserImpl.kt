@@ -1,6 +1,8 @@
 package it.unibo.jakta.generationstrategies.lm.pipeline.parsing.impl
 
 import com.charleskorn.kaml.Yaml
+import it.unibo.jakta.agents.bdi.Jakta.dropBackticks
+import it.unibo.jakta.agents.bdi.Jakta.dropSquareBrackets
 import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.SOURCE_SELF
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
@@ -32,7 +34,7 @@ class ParserImpl : Parser {
         val newAdmissibleGoals = mutableSetOf<AdmissibleGoal>()
 
         val parsedBlocks = blocks.map { content ->
-            val processedContent = content.replace("`", "")
+            val processedContent = content.dropBackticks().dropSquareBrackets()
             try {
                 yaml.decodeFromString(PlanData.serializer(), processedContent)
             } catch (_: Exception) {
@@ -126,6 +128,12 @@ class ParserImpl : Parser {
             val blockContent = matchResult.groupValues[1].trim()
             if (blockContent.contains("\n---\n")) {
                 blockContent.split("\n---\n").map { it.trim() }
+            } else if (blockContent.contains("\nEVENT: ")) {
+                // Handle YAML format with multiple events in one block
+                val eventBlocks = blockContent.split("\nEVENT: ")
+                    .filter { it.isNotEmpty() }
+                    .map { if (it.startsWith("EVENT: ")) it else "EVENT: $it" }
+                eventBlocks
             } else {
                 listOf(blockContent)
             }
