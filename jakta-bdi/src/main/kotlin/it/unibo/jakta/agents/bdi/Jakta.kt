@@ -53,6 +53,15 @@ object Jakta {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
 
+    fun String.removeColonsFromQuotedStrings(): String {
+        val regex = """"([^"]*?)"""".toRegex()
+        return this.replace(regex) { matchResult ->
+            val quotedContent = matchResult.groupValues[1]
+            val contentWithoutColons = quotedContent.replace(":", "")
+            "\"$contentWithoutColons\""
+        }
+    }
+
     fun String.dropBackticks() = this.replace("`", "")
 
     fun String.dropSquareBrackets() = this.replace(Regex("[\\[\\]]"), "")

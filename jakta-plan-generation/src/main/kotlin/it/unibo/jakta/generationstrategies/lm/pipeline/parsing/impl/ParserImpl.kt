@@ -3,6 +3,7 @@ package it.unibo.jakta.generationstrategies.lm.pipeline.parsing.impl
 import com.charleskorn.kaml.Yaml
 import it.unibo.jakta.agents.bdi.Jakta.dropBackticks
 import it.unibo.jakta.agents.bdi.Jakta.dropSquareBrackets
+import it.unibo.jakta.agents.bdi.Jakta.removeColonsFromQuotedStrings
 import it.unibo.jakta.agents.bdi.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.SOURCE_SELF
 import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
@@ -34,7 +35,11 @@ class ParserImpl : Parser {
         val newAdmissibleGoals = mutableSetOf<AdmissibleGoal>()
 
         val parsedBlocks = blocks.map { content ->
-            val processedContent = content.dropBackticks().dropSquareBrackets()
+            val processedContent = content
+                .dropBackticks()
+                .dropSquareBrackets()
+                .removeColonsFromQuotedStrings()
+
             try {
                 yaml.decodeFromString(PlanData.serializer(), processedContent)
             } catch (_: Exception) {
@@ -93,7 +98,6 @@ class ParserImpl : Parser {
     private fun convertToPlan(plan: PlanData): NewPlan? {
         val trigger = parseTriggerWithAchieveFallback(plan.event)
         val guard = processGuard(plan)
-
         val goals = plan.operations.mapNotNull {
             if (it.contains("<none>")) {
                 EmptyGoal()
