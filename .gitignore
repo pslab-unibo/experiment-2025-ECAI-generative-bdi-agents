@@ -4,6 +4,6 @@ build/
 .vscode
 bin
 .run
+.env
 .kotlin
 logs
-experiments

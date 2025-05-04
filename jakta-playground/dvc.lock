@@ -15,8 +15,8 @@ stages:
     outs:
     - path: experiments/meta-llama/llama-3.3-70b-instruct:free
       hash: md5
-      md5: b60e027951ccea15eac50f14cfb797c5.dir
-      size: 359028
+      md5: 4a856008b57d4cfd320a66b9ba7cbb4c.dir
+      size: 29220893
       nfiles: 30
   testGeneration@deepseek/deepseek-chat-v3-0324:free:
     cmd: ../gradlew runExperiment --args=" --lm-server-url=https://openrouter.ai/api/v1/
@@ -55,15 +55,15 @@ stages:
     outs:
     - path: experiments/google/gemma-3-27b-it:free
       hash: md5
-      md5: b74331030754dbdee3f33314166abebd.dir
-      size: 447150
-      nfiles: 30
+      md5: 231988aec19f4ed5ddca5314db0ce767.dir
+      size: 319994
+      nfiles: 34
   testGeneration@google/gemma-3-12b-it:free:
     cmd: ./runner.sh "google/gemma-3-12b-it:free" "5" "60" "https://openrouter.ai/api/v1/"
       "0.5" "4096"
     outs:
     - path: experiments/google/gemma-3-12b-it:free
       hash: md5
-      md5: 9da68eaec05a3fa94ae262ba0d0f8083.dir
-      size: 420762
-      nfiles: 34
+      md5: 458f4282eb39743e29223ed8d675feab.dir
+      size: 267801
+      nfiles: 30
