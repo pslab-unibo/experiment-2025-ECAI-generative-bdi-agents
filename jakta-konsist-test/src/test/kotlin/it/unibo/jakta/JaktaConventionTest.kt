@@ -1,13 +1,13 @@
 package it.unibo.jakta
 
 import com.lemonappdev.konsist.api.KoModifier
-import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.ext.list.modifierprovider.withAbstractModifier
 import com.lemonappdev.konsist.api.ext.list.withNameEndingWith
 import com.lemonappdev.konsist.api.ext.list.withPackage
 import com.lemonappdev.konsist.api.ext.list.withParentInterfaceOf
 import com.lemonappdev.konsist.api.verify.assertTrue
 import io.kotest.core.spec.style.FreeSpec
+import it.unibo.jakta.Konsist.projectScope
 import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
 import it.unibo.tuprolog.core.visitors.DefaultTermVisitor
@@ -58,8 +58,4 @@ class JaktaConventionTest :
                 .withAbstractModifier()
                 .assertTrue { it.hasNameStartingWith("Abstract") }
         }
-    }) {
-    companion object {
-        val projectScope = Konsist.scopeFromProduction()
-    }
-}
+    })

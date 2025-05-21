@@ -1,9 +1,9 @@
 package it.unibo.jakta
 
-import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.architecture.KoArchitectureCreator.assertArchitecture
 import com.lemonappdev.konsist.api.architecture.Layer
 import io.kotest.core.spec.style.FreeSpec
+import it.unibo.jakta.Konsist.projectScope
 
 class JaktaArchitectureTest :
     FreeSpec({
@@ -27,8 +27,4 @@ class JaktaArchitectureTest :
                     fsmLayer.dependsOnNothing()
                 }
         }
-    }) {
-    companion object {
-        val projectScope = Konsist.scopeFromProduction()
-    }
-}
+    })
