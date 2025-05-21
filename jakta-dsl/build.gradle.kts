@@ -3,6 +3,6 @@ dependencies {
 
     api(libs.tuprolog.dsl.theory)
     api(libs.tuprolog.dsl.core)
-
-    implementation(libs.bundles.kotlin.logging)
+    api(libs.koin.core)
+    api(libs.bundles.kotlin.logging)
 }

@@ -1,3 +1,3 @@
 dependencies {
-    implementation(libs.kotlin.logging)
+    implementation(libs.bundles.kotlin.logging)
 }

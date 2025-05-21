@@ -1,10 +1,17 @@
-import org.gradle.kotlin.dsl.register
-import java.io.OutputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlinx)
+    alias(libs.plugins.ksp)
+}
+
+repositories {
+    maven("https://maven.tryformation.com/releases") {
+        content {
+            includeGroup("com.jillesvangurp")
+        }
+    }
 }
 
 dependencies {
@@ -12,12 +19,19 @@ dependencies {
     api(project(":jakta-plan-generation"))
 
     implementation(libs.bundles.kotlin.testing)
+    implementation(libs.bundles.kotlin.logging)
     implementation(libs.kotlin.coroutines)
     implementation(libs.openai)
+    implementation(libs.clikt)
+    implementation(libs.bundles.koin)
+    implementation(libs.ktsearch)
+    ksp(libs.koin.ksp.compiler)
+}
 
-    implementation("io.kotest:kotest-framework-datatest:5.9.1")
-    implementation("com.github.ajalt.clikt:clikt:5.0.1")
-    implementation("com.github.ajalt.clikt:clikt-markdown:5.0.1")
+kotlin {
+    sourceSets.main.configure {
+        kotlin.srcDir("build/generated/ksp/src/main/kotlin")
+    }
 }
 
 tasks.register<JavaExec>("runExperiment") {
@@ -26,80 +40,38 @@ tasks.register<JavaExec>("runExperiment") {
     properties.load(keystoreFile.inputStream())
 
     environment = mapOf("API_KEY" to properties.getProperty("API_KEY"))
-    description = "Run a multi-agent system with the given experimental config."
+    description = "Run the explorer agent sample with the given experimental config."
     group = "application"
 
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass = "${project.group}.playground.explorer.ExperimentRunnerKt"
 }
 
-fun findExecutablePath(
-    name: String,
-    vararg otherNames: String,
-    test: (File) -> Boolean = { true },
-): File? {
-    val names = listOf(name, *otherNames).flatMap { listOf(it, "$it.exe") }
-    return System.getenv("PATH")
-        .split(File.pathSeparatorChar)
-        .asSequence()
-        .map { File(it) }
-        .flatMap { path -> names.asSequence().map { path.resolve(it) } }
-        .filter { it.exists() }
-        .filter(test)
-        .firstOrNull()
-}
+tasks.register<JavaExec>("replayExperiment") {
+    description = "Run the explorer agent sample by reusing already generated responses."
+    group = "application"
 
-val globalPython = findExecutablePath("python3", "python") { path ->
-    exec {
-        errorOutput = OutputStream.nullOutputStream()
-        standardOutput = OutputStream.nullOutputStream()
-        commandLine(path, "--version")
-    }.exitValue == 0
-}?.absolutePath
+    val baseExpDir = project.rootProject.projectDir.resolve("jakta-playground")
+    val expDir = project.findProperty("expDir") as? String ?: "experiments"
+    val additionalArgs =
+        mutableListOf<String>().apply {
+            add("--exp-dir")
+            add(baseExpDir.resolve(expDir).toString())
 
-val localPythonEnvRoot = projectDir.resolve("build").resolve("python")
-
-val localPython get() = fileTree(localPythonEnvRoot) {
-    include("**/python")
-    include("**/python.exe")
-}.firstOrNull()?.absolutePath
-
-val python get() = localPython ?: globalPython ?: error("Python executable not found")
-
-tasks.register<Exec>("createVenv") {
-    description = "Create a virtual environment."
-    group = "build"
-
-    outputs.dir(localPythonEnvRoot)
-    workingDir(projectDir)
-    commandLine(python, "-m", "venv", localPythonEnvRoot.path)
-
-    doLast {
-        when (val path = localPython) {
-            null -> error("Virtual environment creation failed")
-            else -> println("Created local Python environment in $path")
+            if (project.hasProperty("logToFile")) {
+                add("--log-to-file")
+            }
         }
-    }
+
+    args = additionalArgs
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "${project.group}.playground.ExperimentReplayerKt"
 }
 
-fun projectArgs(): List<String> =
-    (project.findProperty("args") as? String)
-        ?.split("\\s+".toRegex())
-        ?: listOf("--version")
-
-tasks.register<Exec>("python") {
-    description = "Run a python command."
+tasks.register<JavaExec>("runBaseline") {
+    description = "Run the explorer agent sample with the baseline plans."
     group = "application"
 
-    workingDir(projectDir)
-    commandLine(listOf(python, "-m") + projectArgs())
-}
-
-tasks.register<Exec>("dvc") {
-    description = "Run a dvc command."
-    group = "application"
-
-    workingDir(projectDir)
-    val dvcExecutable = "$localPythonEnvRoot/bin/dvc"
-    commandLine(listOf(dvcExecutable) + projectArgs())
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "${project.group}.playground.BaselineExplorerKt"
 }
