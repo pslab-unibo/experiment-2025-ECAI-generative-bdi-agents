@@ -1,7 +1,9 @@
 package it.unibo.jakta.agents.bdi
 
-import it.unibo.jakta.agents.bdi.environment.Environment
-import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.bdi.engine.Agent
+import it.unibo.jakta.agents.bdi.engine.Mas
+import it.unibo.jakta.agents.bdi.engine.environment.Environment
+import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionStrategy
 
 fun main() {
     val e = Environment.of()
