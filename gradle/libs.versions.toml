@@ -1,18 +1,23 @@
 [versions]
 kotest = "5.9.1"
-kotlin = "2.1.0"
-mockito = "5.15.2"
+kotlin = "2.1.21"
 tuprolog = "1.0.4"
 alchemist = "37.0.1"
 ktor = "3.0.1"
-logback = "1.4.14"
-kotlinLogging = "7.0.3"
 openai = "4.0.1"
 kotlinxPlugin = "2.1.0"
 kotlinCoroutines = "1.10.1"
 mockk = "1.13.17"
 kaml = "0.77.0"
-logstash = "8.1"
+clikt = "5.0.1"
+kotlinx = "1.8.1"
+ktsearch = "2.4.1"
+log4j = "2.24.3"
+konsist = "0.17.3"
+koin = "4.0.3"
+ksp = "2.1.21-2.0.1"
+koinAnnotation = "2.0.1-RC1"
+kotestKoin = "1.3.0"
 
 [libraries]
 alchemist-api = { module = "it.unibo.alchemist:alchemist-api", version.ref = "alchemist" }
@@ -27,7 +32,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 kotest-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+kotest-koin = { module = "io.kotest.extensions:kotest-extensions-koin", version.ref = "kotestKoin" }
 tuprolog-full = { module = "it.unibo.tuprolog:2p-jvm", version.ref = "tuprolog" }
 tuprolog-ide = { module = "it.unibo.tuprolog:ide", version.ref = "tuprolog" }
 tuprolog-repl = { module = "it.unibo.tuprolog:repl-jvm", version.ref = "tuprolog" }
@@ -46,38 +51,57 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 openai = { module = "com.aallam.openai:openai-client", version.ref = "openai" }
 kotlin-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
-logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-logstash = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j" }
+log4j-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+ktsearch = { module = "com.jillesvangurp:search-client-jvm", version.ref = "ktsearch" }
+konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-annotation = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotation" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
+koin-ksp-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotation" }
 
 [bundles]
-kotlin-logging = [ "logback", "kotlin-logging", "logback-logstash" ]
+koin = [
+    "koin-core",
+    "koin-annotation",
+    "koin-test"
+]
+kotlin-logging = [
+    "log4j-json",
+    "log4j-core",
+    "log4j-api",
+    "log4j-slf4j"
+]
 kotlin-testing = [
     "kotest-junit5-jvm",
     "kotest-assertions-core-jvm",
-    "mockito-core",
-    "kotlin-mockk"
+    "kotest-koin",
+    "kotlin-mockk",
 ]
 alchemist-api = [
     "alchemist",
-    "alchemist-api"
+    "alchemist-api",
 ]
-
 alchemist-dev = [
     "alchemist-euclidean-geometry",
     "alchemist-maps",
     "alchemist-physics",
     "alchemist-ui-tooling",
-    "alchemist-swingui"
+    "alchemist-swingui",
 ]
 
 [plugins]
 dokka = "org.jetbrains.dokka:2.0.0"
 gitSemVer = { id = "org.danilopianini.git-sensitive-semantic-versioning", version = "3.1.7" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-qa = { id = "org.danilopianini.gradle-kotlin-qa", version = "0.70.2" }
+kotlin-qa = { id = "org.danilopianini.gradle-kotlin-qa", version = "0.86.2" }
 multiJvmTesting = { id = "org.danilopianini.multi-jvm-test-plugin", version = "3.1.2" }
 publishOnCentral =  { id = "org.danilopianini.publish-on-central", version = "8.0.1"}
 taskTree = { id = "com.dorongold.task-tree", version = "4.0.0" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinx = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxPlugin"}
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
