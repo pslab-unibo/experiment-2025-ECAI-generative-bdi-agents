@@ -1,11 +1,13 @@
 package it.unibo.jakta.agents.bdi.dsl.actions
 
-import it.unibo.jakta.agents.bdi.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.actions.Action
+import it.unibo.jakta.agents.bdi.engine.Jakta.capitalize
+import it.unibo.jakta.agents.bdi.engine.actions.Action
 
 object ActionMetadata {
-    class ActionContext(val action: Action<*, *, *>) {
-        val functor = action.extendedSignature.name
-        val args = action.extendedSignature.parameterNames.map { "`${it.capitalize()}`" }
+    class ActionContext(
+        val action: Action<*, *, *>,
+    ) {
+        val functor = action.actionSignature.name
+        val args = action.actionSignature.parameterNames.map { "`${it.capitalize()}`" }
     }
 }

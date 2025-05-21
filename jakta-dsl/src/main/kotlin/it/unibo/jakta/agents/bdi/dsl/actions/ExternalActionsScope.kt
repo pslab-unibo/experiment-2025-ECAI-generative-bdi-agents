@@ -1,13 +1,12 @@
 package it.unibo.jakta.agents.bdi.dsl.actions
 
-import it.unibo.jakta.agents.bdi.actions.ExternalAction
-import it.unibo.jakta.agents.bdi.actions.ExternalRequest
-import it.unibo.jakta.agents.bdi.actions.ExternalResponse
-import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
-import it.unibo.jakta.agents.bdi.actions.impl.AbstractExternalAction
+import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
+import it.unibo.jakta.agents.bdi.engine.actions.ExternalRequest
+import it.unibo.jakta.agents.bdi.engine.actions.ExternalResponse
+import it.unibo.jakta.agents.bdi.engine.actions.effects.EnvironmentChange
 
 class ExternalActionsScope :
-    ActionsScope<EnvironmentChange, ExternalResponse, ExternalRequest, ExternalAction, ExternalActionScope>() {
+    AbstractActionsScope<EnvironmentChange, ExternalResponse, ExternalRequest, ExternalAction, ExternalActionScope>() {
     public override fun newAction(
         name: String,
         arity: Int,
@@ -15,7 +14,7 @@ class ExternalActionsScope :
         purpose: String?,
         f: ExternalActionScope.() -> Unit,
     ): ExternalAction =
-        object : AbstractExternalAction(name, arity) {
+        object : it.unibo.jakta.agents.bdi.engine.actions.impl.AbstractExternalAction(name, arity) {
             override var purpose = purpose
 
             override fun action(request: ExternalRequest) {

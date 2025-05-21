@@ -1,5 +1,5 @@
 package it.unibo.jakta.agents.bdi.dsl
 
-interface Builder<T> {
+interface ScopeBuilder<T> {
     fun build(): T
 }

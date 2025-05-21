@@ -1,32 +1,39 @@
 package it.unibo.jakta.agents.bdi.dsl.actions
 
-import it.unibo.jakta.agents.bdi.actions.Action
-import it.unibo.jakta.agents.bdi.actions.ActionRequest
-import it.unibo.jakta.agents.bdi.actions.ActionResponse
-import it.unibo.jakta.agents.bdi.actions.effects.SideEffect
-import it.unibo.jakta.agents.bdi.dsl.Builder
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 import it.unibo.jakta.agents.bdi.dsl.actions.ActionMetadata.ActionContext
+import it.unibo.jakta.agents.bdi.engine.actions.Action
+import it.unibo.jakta.agents.bdi.engine.actions.ActionRequest
+import it.unibo.jakta.agents.bdi.engine.actions.ActionResponse
+import it.unibo.jakta.agents.bdi.engine.actions.effects.SideEffect
 import it.unibo.tuprolog.core.Term
 import kotlin.reflect.KFunction
 
-abstract class ActionsScope<C, Res, Req, A, As> : Builder<Map<String, A>>
+abstract class AbstractActionsScope<C, Res, Req, A, As> :
+    ScopeBuilder<Map<String, A>>
     where C : SideEffect,
           Res : ActionResponse<C>,
           Req : ActionRequest<C, Res>,
           A : Action<C, Res, Req>,
           As : ActionScope<C, Res, Req, A> {
-
     private val actions = mutableListOf<A>()
 
-    fun action(name: String, vararg parameterNames: String, f: As.() -> Unit): Action<*, *, *> {
+    fun action(
+        name: String,
+        vararg parameterNames: String,
+        f: As.() -> Unit,
+    ): Action<*, *, *> {
         val parameterNames = parameterNames.toList()
         return newAction(name, parameterNames.size, parameterNames, f = f).also {
             actions += it
         }
     }
 
-    fun action(name: String, arity: Int, f: As.() -> Unit) =
-        newAction(name, arity, emptyList(), f = f).also { actions += it }
+    fun action(
+        name: String,
+        arity: Int,
+        f: As.() -> Unit,
+    ) = newAction(name, arity, emptyList(), f = f).also { actions += it }
 
     fun action(method: KFunction<*>) =
         newAction(

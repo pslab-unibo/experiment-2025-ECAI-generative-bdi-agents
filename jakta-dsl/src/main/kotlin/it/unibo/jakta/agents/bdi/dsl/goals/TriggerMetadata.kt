@@ -1,11 +1,13 @@
 package it.unibo.jakta.agents.bdi.dsl.goals
 
-import it.unibo.jakta.agents.bdi.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.events.Trigger
-import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
+import it.unibo.jakta.agents.bdi.engine.Jakta.capitalize
+import it.unibo.jakta.agents.bdi.engine.events.Trigger
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.termFormatter
 
 object TriggerMetadata {
-    class TriggerContext(val trigger: Trigger) {
+    class TriggerContext(
+        val trigger: Trigger,
+    ) {
         val functor = trigger.value.functor
         val args = trigger.value.args.map { "`${termFormatter.format(it).capitalize()}`" }
     }

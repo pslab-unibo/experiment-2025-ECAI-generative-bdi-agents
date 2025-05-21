@@ -1,13 +1,12 @@
 package it.unibo.jakta.agents.bdi.dsl.actions
 
-import it.unibo.jakta.agents.bdi.actions.InternalAction
-import it.unibo.jakta.agents.bdi.actions.InternalRequest
-import it.unibo.jakta.agents.bdi.actions.InternalResponse
-import it.unibo.jakta.agents.bdi.actions.effects.AgentChange
-import it.unibo.jakta.agents.bdi.actions.impl.AbstractInternalAction
+import it.unibo.jakta.agents.bdi.engine.actions.InternalAction
+import it.unibo.jakta.agents.bdi.engine.actions.InternalRequest
+import it.unibo.jakta.agents.bdi.engine.actions.InternalResponse
+import it.unibo.jakta.agents.bdi.engine.actions.effects.AgentChange
 
 class InternalActionsScope :
-    ActionsScope<AgentChange, InternalResponse, InternalRequest, InternalAction, InternalActionScope>() {
+    AbstractActionsScope<AgentChange, InternalResponse, InternalRequest, InternalAction, InternalActionScope>() {
     public override fun newAction(
         name: String,
         arity: Int,
@@ -15,7 +14,7 @@ class InternalActionsScope :
         purpose: String?,
         f: InternalActionScope.() -> Unit,
     ): InternalAction =
-        object : AbstractInternalAction(name, arity) {
+        object : it.unibo.jakta.agents.bdi.engine.actions.impl.AbstractInternalAction(name, arity) {
             override var purpose = purpose
 
             override fun action(request: InternalRequest) {

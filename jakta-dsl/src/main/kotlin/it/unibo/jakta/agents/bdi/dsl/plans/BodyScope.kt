@@ -1,20 +1,20 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
-import it.unibo.jakta.agents.bdi.actions.ExternalAction
-import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.agents.bdi.goals.Achieve
-import it.unibo.jakta.agents.bdi.goals.Act
-import it.unibo.jakta.agents.bdi.goals.ActExternally
-import it.unibo.jakta.agents.bdi.goals.ActInternally
-import it.unibo.jakta.agents.bdi.goals.AddBelief
-import it.unibo.jakta.agents.bdi.goals.GeneratePlan
-import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.goals.RemoveBelief
-import it.unibo.jakta.agents.bdi.goals.Spawn
-import it.unibo.jakta.agents.bdi.goals.Test
-import it.unibo.jakta.agents.bdi.goals.UpdateBelief
-import it.unibo.jakta.agents.bdi.plangeneration.GenerationConfig
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
+import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.goals.Achieve
+import it.unibo.jakta.agents.bdi.engine.goals.Act
+import it.unibo.jakta.agents.bdi.engine.goals.ActExternally
+import it.unibo.jakta.agents.bdi.engine.goals.ActInternally
+import it.unibo.jakta.agents.bdi.engine.goals.AddBelief
+import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
+import it.unibo.jakta.agents.bdi.engine.goals.Goal
+import it.unibo.jakta.agents.bdi.engine.goals.RemoveBelief
+import it.unibo.jakta.agents.bdi.engine.goals.Spawn
+import it.unibo.jakta.agents.bdi.engine.goals.Test
+import it.unibo.jakta.agents.bdi.engine.goals.UpdateBelief
+import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.dsl.jakta.JaktaLogicProgrammingScope
@@ -28,8 +28,8 @@ import kotlin.reflect.KFunction
 class BodyScope(
     private val lpScope: Scope,
     private val generationConfig: GenerationConfig? = null,
-) : Builder<List<Goal>>, JaktaLogicProgrammingScope by JaktaLogicProgrammingScope.of(lpScope) {
-
+) : ScopeBuilder<List<Goal>>,
+    JaktaLogicProgrammingScope by JaktaLogicProgrammingScope.of(lpScope) {
     /**
      * The list of goals that the agent is going to execute in the during the plan execution.
      */
@@ -64,7 +64,10 @@ class BodyScope(
      * @param goal the [Struct] that describes the Goal to [GeneratePlan].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun generate(goal: Goal, parallel: Boolean = false) {
+    fun generate(
+        goal: Goal,
+        parallel: Boolean = false,
+    ) {
         val genGoal = GeneratePlan.of(goal, generationConfig)
         goals += if (parallel) Spawn.of(genGoal) else genGoal
     }
@@ -75,7 +78,10 @@ class BodyScope(
      * @param goal the [Struct] that describes the Goal to [Achieve].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun achieve(goal: Struct, parallel: Boolean = false) {
+    fun achieve(
+        goal: Struct,
+        parallel: Boolean = false,
+    ) {
         goals += if (parallel) Spawn.of(Achieve.of(goal)) else Achieve.of(goal)
     }
 
@@ -85,7 +91,10 @@ class BodyScope(
      * @param goal the [String] representing the [Atom] that describes the Goal to [Achieve].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun achieve(goal: String, parallel: Boolean = false) = achieve(atomOf(goal), parallel)
+    fun achieve(
+        goal: String,
+        parallel: Boolean = false,
+    ) = achieve(atomOf(goal), parallel)
 
     /**
      * Handler for the addition of a [Belief] in the [BeliefBase] annotated with self source.
@@ -140,7 +149,10 @@ class BodyScope(
      * @param struct the [Struct] that invokes the action.
      * @param externalOnly forces to search for action body only into [ExternalActions].
      */
-    fun execute(struct: Struct, externalOnly: Boolean = false) {
+    fun execute(
+        struct: Struct,
+        externalOnly: Boolean = false,
+    ) {
         goals += if (externalOnly) ActExternally.of(struct) else Act.of(struct)
     }
 
@@ -151,32 +163,46 @@ class BodyScope(
      * @param input the [String] representing the [Atom] that invokes the action.
      * @param externalOnly forces to search for action body only into [ExternalActions].
      */
-    fun execute(input: String, externalOnly: Boolean = false) = execute(atomOf(input), externalOnly)
+    fun execute(
+        input: String,
+        externalOnly: Boolean = false,
+    ) = execute(atomOf(input), externalOnly)
 
-    data class NamedWrapperForLambdas(val backingLambda: () -> Unit) : () -> Unit by backingLambda
+    data class NamedWrapperForLambdas(
+        val backingLambda: () -> Unit,
+    ) : () -> Unit by backingLambda
 
-    fun execute(externalAction: ExternalAction, vararg args: Any): Unit = when {
-        externalAction.signature.arity == 0 -> {
-            check(args.isEmpty()) { "External action ${externalAction.signature.name} does not accept parameters" }
-            execute(externalAction.signature.name)
-        }
-        else -> {
-            val argRefs = args.map {
-                @Suppress("UNCHECKED_CAST")
-                when {
-                    it::class.qualifiedName != null -> ObjectRef.of(it)
-                    it is Function<*> -> NamedWrapperForLambdas(it as () -> Unit)
-                    else -> error("Unsupported argument type: ${it::class.simpleName}")
-                }
+    fun execute(
+        externalAction: ExternalAction,
+        vararg args: Any,
+    ): Unit =
+        when {
+            externalAction.signature.arity == 0 -> {
+                check(args.isEmpty()) { "External action ${externalAction.signature.name} does not accept parameters" }
+                execute(externalAction.signature.name)
             }
-            execute(externalAction.signature.name.invoke(ObjectRef.of(argRefs[0]), *argRefs.drop(1).toTypedArray()))
+            else -> {
+                val argRefs =
+                    args.map {
+                        @Suppress("UNCHECKED_CAST")
+                        when {
+                            it::class.qualifiedName != null -> ObjectRef.of(it)
+                            it is Function<*> -> NamedWrapperForLambdas(it as () -> Unit)
+                            else -> error("Unsupported argument type: ${it::class.simpleName}")
+                        }
+                    }
+                execute(externalAction.signature.name.invoke(ObjectRef.of(argRefs[0]), *argRefs.drop(1).toTypedArray()))
+            }
         }
-    }
 
-    fun execute(method: KFunction<*>, vararg args: Any): Unit = when {
-        method.parameters.isEmpty() -> execute(method.name)
-        else -> execute(method.name.invoke(args[0], *args.drop(1).toTypedArray()))
-    }
+    fun execute(
+        method: KFunction<*>,
+        vararg args: Any,
+    ): Unit =
+        when {
+            method.parameters.isEmpty() -> execute(method.name)
+            else -> execute(method.name.invoke(args[0], *args.drop(1).toTypedArray()))
+        }
 
     /**
      * Handler for the creation of a [ActInternally] Goal.
@@ -196,9 +222,10 @@ class BodyScope(
      * Handler for the addition of a goals' list.
      * @param goalList the [List] of [Goal]s the agent is going to perform.
      */
-    fun from(goalList: List<Goal>) = goalList.forEach {
-        goals += it
-    }
+    fun from(goalList: List<Goal>) =
+        goalList.forEach {
+            goals += it
+        }
 
     override fun build(): List<Goal> = goals.toList()
 }

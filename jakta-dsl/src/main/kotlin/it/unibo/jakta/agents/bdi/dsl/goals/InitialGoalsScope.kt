@@ -1,18 +1,17 @@
 package it.unibo.jakta.agents.bdi.dsl.goals
 
-import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.agents.bdi.events.AchievementGoalInvocation
-import it.unibo.jakta.agents.bdi.events.AdmissibleGoal
-import it.unibo.jakta.agents.bdi.events.TestGoalInvocation
-import it.unibo.jakta.agents.bdi.events.Trigger
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.events.AchievementGoalInvocation
+import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
+import it.unibo.jakta.agents.bdi.engine.events.TestGoalInvocation
+import it.unibo.jakta.agents.bdi.engine.events.Trigger
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.dsl.jakta.JaktaLogicProgrammingScope
 
 class InitialGoalsScope :
-    Builder<Pair<Iterable<Trigger>, Set<AdmissibleGoal>>>,
+    ScopeBuilder<Pair<Iterable<Trigger>, Set<AdmissibleGoal>>>,
     JaktaLogicProgrammingScope by JaktaLogicProgrammingScope.empty() {
-
     private val triggers = mutableListOf<Trigger>()
     private val admissibleGoals = mutableSetOf<AdmissibleGoal>()
 

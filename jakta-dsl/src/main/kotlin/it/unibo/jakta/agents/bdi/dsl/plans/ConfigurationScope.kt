@@ -1,11 +1,10 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
-import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
+import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
 
-class ConfigurationScope : Builder<PlanConfiguration> {
+class ConfigurationScope : ScopeBuilder<PlanConfiguration> {
     var generationStrategy: GenerationStrategy? = null
 
-    override fun build(): PlanConfiguration =
-        PlanConfiguration(generationStrategy)
+    override fun build(): PlanConfiguration = PlanConfiguration(generationStrategy)
 }

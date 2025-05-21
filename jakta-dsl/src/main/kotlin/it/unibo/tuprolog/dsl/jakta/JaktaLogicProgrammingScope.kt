@@ -8,6 +8,7 @@ import it.unibo.tuprolog.dsl.LogicProgrammingScopeWithSubstitutions
 import it.unibo.tuprolog.dsl.LogicProgrammingScopeWithVariables
 import it.unibo.tuprolog.dsl.MinimalLogicProgrammingScope
 import it.unibo.tuprolog.dsl.Termificator
+import it.unibo.tuprolog.dsl.jakta.impl.JaktaLogicProgrammingScopeImpl
 import it.unibo.tuprolog.dsl.theory.LogicProgrammingScopeWithTheories
 import it.unibo.tuprolog.dsl.unify.LogicProgrammingScopeWithUnification
 import it.unibo.tuprolog.theory.IndexedTheoryFactory

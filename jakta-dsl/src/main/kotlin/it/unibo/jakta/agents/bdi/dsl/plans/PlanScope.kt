@@ -1,16 +1,15 @@
 package it.unibo.jakta.agents.bdi.dsl.plans
 
-import it.unibo.jakta.agents.bdi.Prolog2Jakta
-import it.unibo.jakta.agents.bdi.events.Trigger
-import it.unibo.jakta.agents.bdi.goals.EmptyGoal
-import it.unibo.jakta.agents.bdi.goals.Goal
-import it.unibo.jakta.agents.bdi.plangeneration.GenerationConfig
-import it.unibo.jakta.agents.bdi.plans.PartialPlan
-import it.unibo.jakta.agents.bdi.plans.Plan
+import it.unibo.jakta.agents.bdi.engine.Prolog2Jakta
+import it.unibo.jakta.agents.bdi.engine.events.Trigger
+import it.unibo.jakta.agents.bdi.engine.goals.EmptyGoal
+import it.unibo.jakta.agents.bdi.engine.goals.Goal
+import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
+import it.unibo.jakta.agents.bdi.engine.plans.PartialPlan
+import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth
-import kotlin.collections.plus
 import kotlin.reflect.KClass
 
 data class PlanScope(
@@ -36,18 +35,19 @@ data class PlanScope(
         return this
     }
 
-    fun build(): Plan = if (generationConfig != null) {
-        PartialPlan.of(
-            trigger = trigger,
-            goals = goals.ifEmpty { listOf(EmptyGoal()) },
-            guard = guard,
-            generationConfig = generationConfig!!,
-        )
-    } else {
-        Plan.of(
-            trigger = trigger,
-            goals = goals.ifEmpty { listOf(EmptyGoal()) },
-            guard = guard,
-        )
-    }
+    fun build(): Plan =
+        if (generationConfig != null) {
+            PartialPlan.of(
+                trigger = trigger,
+                goals = goals.ifEmpty { listOf(EmptyGoal()) },
+                guard = guard,
+                generationConfig = generationConfig!!,
+            )
+        } else {
+            Plan.of(
+                trigger = trigger,
+                goals = goals.ifEmpty { listOf(EmptyGoal()) },
+                guard = guard,
+            )
+        }
 }

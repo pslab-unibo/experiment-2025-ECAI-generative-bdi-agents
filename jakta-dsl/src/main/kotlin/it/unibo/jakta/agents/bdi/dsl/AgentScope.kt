@@ -1,19 +1,23 @@
 package it.unibo.jakta.agents.bdi.dsl
 
-import it.unibo.jakta.agents.bdi.Agent
-import it.unibo.jakta.agents.bdi.actions.InternalActions
 import it.unibo.jakta.agents.bdi.dsl.actions.InternalActionsScope
 import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefsScope
 import it.unibo.jakta.agents.bdi.dsl.goals.InitialGoalsScope
 import it.unibo.jakta.agents.bdi.dsl.plans.PlansScope
-import it.unibo.jakta.agents.bdi.events.Event
-import it.unibo.jakta.agents.bdi.executionstrategies.TimeDistribution
-import it.unibo.jakta.agents.bdi.executionstrategies.setTimeDistribution
-import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.plans.Plan
-import it.unibo.jakta.agents.bdi.plans.PlanLibrary
+import it.unibo.jakta.agents.bdi.engine.Agent
+import it.unibo.jakta.agents.bdi.engine.MasID
+import it.unibo.jakta.agents.bdi.engine.actions.InternalActions
+import it.unibo.jakta.agents.bdi.engine.events.Event
+import it.unibo.jakta.agents.bdi.engine.executionstrategies.TimeDistribution
+import it.unibo.jakta.agents.bdi.engine.executionstrategies.setTimeDistribution
+import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.plans.Plan
+import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 
-class AgentScope(val name: String? = null) : Builder<Agent> {
+class AgentScope(
+    val masID: MasID,
+    val name: String? = null,
+) : ScopeBuilder<Agent> {
     private val actionsScope by lazy { InternalActionsScope() }
     private val internalActions by lazy { InternalActions.default() + actionsScope.build() }
 
@@ -63,16 +67,18 @@ class AgentScope(val name: String? = null) : Builder<Agent> {
         val planLibrary = PlanLibrary.of(this.plans + plansScope.build())
         val (goals, admissibleGoals) = initialGoals
 
-        var agent = Agent.of(
-            name = name.orEmpty(),
-            beliefBase = beliefs.first,
-            generationStrategy = generationStrategy,
-            events = goals.map { Event.of(it) },
-            planLibrary = planLibrary,
-            internalActions = internalActions,
-            admissibleGoals = admissibleGoals,
-            admissibleBeliefs = beliefs.second,
-        )
+        var agent =
+            Agent.of(
+                masID = masID,
+                name = name.orEmpty(),
+                beliefBase = beliefs.first,
+                generationStrategy = generationStrategy,
+                events = goals.map { Event.of(it) },
+                planLibrary = planLibrary,
+                internalActions = internalActions,
+                admissibleGoals = admissibleGoals,
+                admissibleBeliefs = beliefs.second,
+            )
         if (this::time.isInitialized) {
             agent = agent.setTimeDistribution(time)
         }

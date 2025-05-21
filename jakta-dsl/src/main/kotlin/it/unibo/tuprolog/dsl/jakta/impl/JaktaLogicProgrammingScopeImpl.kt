@@ -1,8 +1,9 @@
-package it.unibo.tuprolog.dsl.jakta
+package it.unibo.tuprolog.dsl.jakta.impl
 
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.VariablesProvider
 import it.unibo.tuprolog.dsl.Termificator
+import it.unibo.tuprolog.dsl.jakta.JaktaLogicProgrammingScope
 import it.unibo.tuprolog.theory.TheoryFactory
 import it.unibo.tuprolog.unify.Unificator
 

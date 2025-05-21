@@ -16,11 +16,11 @@ fun main() {
             beliefs {
                 val first = "cell"(A, B, C)
                 val second = "cell"(X, Y, Z)
-                rule { first.fromSelf impliedBy second }
-                fact { "good"("ice-cream").fromSelf }
+                +rule { first.fromSelf impliedBy second }
+                +fact { "good"("ice-cream").fromSelf }
             }
             goals {
-                achieve("eat"("ice-cream"))
+                +achieve("eat"("ice-cream"))
             }
             plans {
                 +achieve("eat"("ice-cream")) onlyIf { "good"("ice-cream").fromSelf } then {

@@ -1,20 +1,23 @@
 package it.unibo.jakta.agents.bdi.dsl.beliefs
 
-import it.unibo.jakta.agents.bdi.Jakta.removeSource
-import it.unibo.jakta.agents.bdi.beliefs.Belief
 import it.unibo.jakta.agents.bdi.dsl.beliefs.BeliefsScope.Companion.createBelief
-import it.unibo.jakta.agents.bdi.formatters.DefaultFormatters.termFormatter
+import it.unibo.jakta.agents.bdi.engine.Jakta.removeSource
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.termFormatter
 import it.unibo.tuprolog.core.Fact
 
 object BeliefMetadata {
-    class BeliefContext(val belief: Belief) {
+    class BeliefContext(
+        val belief: Belief,
+    ) {
         val functor = belief.rule.head.functor
-        val args = belief
-            .rule
-            .head
-            .removeSource()
-            .args
-            .map { "`${termFormatter.format(it)}`" }
+        val args =
+            belief
+                .rule
+                .head
+                .removeSource()
+                .args
+                .map { "`${termFormatter.format(it)}`" }
     }
 
     fun Belief.meaning(block: BeliefContext.() -> String): Belief {

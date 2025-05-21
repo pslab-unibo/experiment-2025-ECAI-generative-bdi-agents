@@ -1,11 +1,10 @@
 package it.unibo.jakta.agents.bdi.dsl.environment
 
-import it.unibo.jakta.agents.bdi.dsl.Builder
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 import it.unibo.jakta.agents.bdi.dsl.actions.ExternalActionsScope
-import it.unibo.jakta.agents.bdi.environment.Environment
+import it.unibo.jakta.agents.bdi.engine.environment.Environment
 
-class EnvironmentScope : Builder<Environment> {
-
+class EnvironmentScope : ScopeBuilder<Environment> {
     private val actionsScopes by lazy { ExternalActionsScope() }
     private var environment = Environment.of()
 
@@ -17,7 +16,8 @@ class EnvironmentScope : Builder<Environment> {
         this.environment = environment
     }
 
-    override fun build(): Environment = environment.copy(
-        externalActions = actionsScopes.build(),
-    )
+    override fun build(): Environment =
+        environment.copy(
+            externalActions = actionsScopes.build(),
+        )
 }

@@ -1,15 +1,22 @@
 package it.unibo.jakta.agents.bdi.dsl.logging
 
-import ch.qos.logback.classic.Level
-import it.unibo.jakta.agents.bdi.dsl.Builder
-import it.unibo.jakta.agents.bdi.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_DIR
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_LEVEL
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_SERVER_URL
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_TO_CONSOLE
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_TO_FILE
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_TO_SERVER
+import org.apache.logging.log4j.Level
 
-class LoggingConfigScope : Builder<LoggingConfig> {
-    var logServerURL: String? = null
-    var logToFile: Boolean = false
-    var logToConsole: Boolean = true
-    var logLevel: Level = Level.INFO
-    var logDir: String = "logs"
+class LoggingConfigScope : ScopeBuilder<LoggingConfig> {
+    var logServerUrl: String = LOG_SERVER_URL
+    var logDir: String = LOG_DIR
+    var logToFile: Boolean = LOG_TO_FILE
+    var logToConsole: Boolean = LOG_TO_CONSOLE
+    var logToServer: Boolean = LOG_TO_SERVER
+    var logLevel: Level = LOG_LEVEL
 
     fun debug() {
         logLevel = Level.DEBUG
@@ -27,34 +34,12 @@ class LoggingConfigScope : Builder<LoggingConfig> {
         logLevel = Level.ERROR
     }
 
-    /**
-     * Enables file logging with an optional custom directory.
-     *
-     * @param directory The directory where log files will be stored. The default is "logs".
-     */
-    fun enableFileLogging(directory: String = "logs") {
-        logToFile = true
-        logDir = directory
-    }
-
-    fun disableConsoleLogging() {
-        logToConsole = false
-    }
-
-    /**
-     * Sets up remote logging to a server.
-     *
-     * @param url The URL of the logging server.
-     */
-    fun remoteLogging(url: String) {
-        logServerURL = url
-    }
-
     override fun build(): LoggingConfig =
         LoggingConfig(
-            logServerURL = logServerURL,
+            logServerURL = logServerUrl,
             logToFile = logToFile,
             logToConsole = logToConsole,
+            logToServer = logToServer,
             logLevel = logLevel,
             logDir = logDir,
         )

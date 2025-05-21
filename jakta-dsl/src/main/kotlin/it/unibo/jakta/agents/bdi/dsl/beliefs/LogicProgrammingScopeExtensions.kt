@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:no-empty-file")
+
 package it.unibo.jakta.agents.bdi.dsl.beliefs
 
 // context(LogicProgrammingScope)
