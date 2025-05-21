@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "it.unibo.jakta"
@@ -59,7 +61,7 @@ allprojects {
     }
 
     multiJvm {
-        jvmVersionForCompilation.set(17)
+        jvmVersionForCompilation.set(21)
     }
 
     signing {
@@ -98,8 +100,8 @@ allprojects {
                 showStandardStreams = true
                 showCauses = true
                 showStackTraces = true
-                events(*org.gradle.api.tasks.testing.logging.TestLogEvent.values())
-                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                events(*TestLogEvent.values())
+                exceptionFormat = TestExceptionFormat.FULL
             }
         }
     }
