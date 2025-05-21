@@ -2,20 +2,22 @@ package it.unibo.jakta.agents.dsl
 
 import it.unibo.alchemist.jakta.properties.JaktaEnvironmentForAlchemist
 import it.unibo.alchemist.model.Position
-import it.unibo.jakta.agents.bdi.Agent
-import it.unibo.jakta.agents.bdi.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.dsl.AgentScope
-import it.unibo.jakta.agents.bdi.dsl.Builder
 import it.unibo.jakta.agents.bdi.dsl.JaktaDSL
+import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 import it.unibo.jakta.agents.bdi.dsl.actions.ExternalActionsScope
-import it.unibo.jakta.agents.bdi.environment.Environment
+import it.unibo.jakta.agents.bdi.engine.Agent
+import it.unibo.jakta.agents.bdi.engine.MasID
+import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
+import it.unibo.jakta.agents.bdi.engine.environment.Environment
 
 class WrappedAgent(
     val agent: Agent,
     val actions: Map<String, ExternalAction>,
 )
 
-class JaktaForAlchemistMasScope : Builder<WrappedAgent> {
+class JaktaForAlchemistMasScope : ScopeBuilder<WrappedAgent> {
+    private val masID = MasID()
     lateinit var agents: Agent
     var actions: Map<String, ExternalAction> = emptyMap()
 
@@ -29,16 +31,18 @@ class JaktaForAlchemistMasScope : Builder<WrappedAgent> {
         return this
     }
 
-    fun agent(name: String, f: AgentScope.() -> Unit): JaktaForAlchemistMasScope {
-        agents = AgentScope(name).also(f).build()
+    fun agent(
+        name: String,
+        f: AgentScope.() -> Unit,
+    ): JaktaForAlchemistMasScope {
+        agents = AgentScope(masID, name).also(f).build()
         return this
     }
 
     override fun build(): WrappedAgent = WrappedAgent(agents, actions)
 }
 
-class JaktaForAlchemistEnvironmentScope : Builder<Map<String, ExternalAction>> {
-
+class JaktaForAlchemistEnvironmentScope : ScopeBuilder<Map<String, ExternalAction>> {
     private val actionsScopes by lazy { ExternalActionsScope() }
 
     infix fun actions(actions: ExternalActionsScope.() -> Unit): JaktaForAlchemistEnvironmentScope {

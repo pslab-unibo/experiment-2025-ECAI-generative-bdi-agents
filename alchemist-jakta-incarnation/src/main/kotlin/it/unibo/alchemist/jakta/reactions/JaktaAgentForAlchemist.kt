@@ -9,17 +9,17 @@ import it.unibo.alchemist.model.Position
 import it.unibo.alchemist.model.Reaction
 import it.unibo.alchemist.model.TimeDistribution
 import it.unibo.alchemist.model.reactions.AbstractReaction
-import it.unibo.jakta.agents.bdi.Agent
-import it.unibo.jakta.agents.bdi.AgentLifecycle
-import it.unibo.jakta.agents.bdi.actions.effects.AddData
-import it.unibo.jakta.agents.bdi.actions.effects.BroadcastMessage
-import it.unibo.jakta.agents.bdi.actions.effects.EnvironmentChange
-import it.unibo.jakta.agents.bdi.actions.effects.PopMessage
-import it.unibo.jakta.agents.bdi.actions.effects.RemoveAgent
-import it.unibo.jakta.agents.bdi.actions.effects.RemoveData
-import it.unibo.jakta.agents.bdi.actions.effects.SendMessage
-import it.unibo.jakta.agents.bdi.actions.effects.SpawnAgent
-import it.unibo.jakta.agents.bdi.actions.effects.UpdateData
+import it.unibo.jakta.agents.bdi.engine.Agent
+import it.unibo.jakta.agents.bdi.engine.AgentLifecycle
+import it.unibo.jakta.agents.bdi.engine.actions.effects.AddData
+import it.unibo.jakta.agents.bdi.engine.actions.effects.BroadcastMessage
+import it.unibo.jakta.agents.bdi.engine.actions.effects.EnvironmentChange
+import it.unibo.jakta.agents.bdi.engine.actions.effects.PopMessage
+import it.unibo.jakta.agents.bdi.engine.actions.effects.RemoveAgent
+import it.unibo.jakta.agents.bdi.engine.actions.effects.RemoveData
+import it.unibo.jakta.agents.bdi.engine.actions.effects.SendMessage
+import it.unibo.jakta.agents.bdi.engine.actions.effects.SpawnAgent
+import it.unibo.jakta.agents.bdi.engine.actions.effects.UpdateData
 import it.unibo.jakta.alchemist.JaktaControllerForAlchemist
 import it.unibo.jakta.alchemist.JaktaLifecyclePhase.ACT
 import it.unibo.jakta.alchemist.JaktaLifecyclePhase.DELIBERATE
@@ -34,7 +34,6 @@ class JaktaAgentForAlchemist<P : Position<P>>(
     timeDistribution: TimeDistribution<Any?>,
     val agent: Agent,
 ) : AbstractReaction<Any?>(jaktaEnvironment.node, timeDistribution) {
-
     private val agentLifecycle = AgentLifecycle.newLifecycleFor(agent)
     private val jaktaController = JaktaControllerForAlchemist(jaktaEnvironment)
 
@@ -60,29 +59,34 @@ class JaktaAgentForAlchemist<P : Position<P>>(
         timeDistribution,
         with(agentFactory) {
             var parameterIndex = 0
-            val supportedTypes = listOf(
-                jaktaEnvironment,
-                jaktaEnvironment.node,
-                jaktaEnvironment.randomGenerator,
-                jaktaEnvironment.alchemistEnvironment,
-            )
-            val actualParameters = formalParameterTypes.map { type ->
-                val implicitParameter = supportedTypes.firstOrNull { type.isInstance(it) }
-                if (implicitParameter == null) {
-                    check(parameterIndex < parameters.size) {
-                        "Invalid number of parameters for $agentFactory: " +
-                            "expected at least $parameterIndex parameters, got ${parameters.size}"
+            val supportedTypes =
+                listOf(
+                    jaktaEnvironment,
+                    jaktaEnvironment.node,
+                    jaktaEnvironment.randomGenerator,
+                    jaktaEnvironment.alchemistEnvironment,
+                )
+            val actualParameters =
+                formalParameterTypes.map { type ->
+                    val implicitParameter = supportedTypes.firstOrNull { type.isInstance(it) }
+                    if (implicitParameter == null) {
+                        check(parameterIndex < parameters.size) {
+                            "Invalid number of parameters for $agentFactory: " +
+                                "expected at least $parameterIndex parameters, got ${parameters.size}"
+                        }
+                        parameters[parameterIndex++]
+                    } else {
+                        implicitParameter
                     }
-                    parameters[parameterIndex++]
-                } else {
-                    implicitParameter
                 }
-            }
             call(*actualParameters.toTypedArray())
         },
     )
 
-    override fun cloneOnNewNode(node: Node<Any?>, currentTime: it.unibo.alchemist.model.Time): Reaction<Any?> =
+    override fun cloneOnNewNode(
+        node: Node<Any?>,
+        currentTime: it.unibo.alchemist.model.Time,
+    ): Reaction<Any?> =
         JaktaAgentForAlchemist(
             node.asProperty<Any?, JaktaEnvironmentForAlchemist<P>>(),
             timeDistribution.cloneOnNewNode(node, currentTime),
@@ -90,26 +94,26 @@ class JaktaAgentForAlchemist<P : Position<P>>(
         )
 
     override fun execute() {
-        val sideEffects: Iterable<EnvironmentChange> = when (val timeDist = timeDistribution) {
-            is JaktaTimeDistribution -> when (timeDist.phase) {
-                SENSE -> {
-                    agentLifecycle.sense(
+        val sideEffects: Iterable<EnvironmentChange> =
+            when (val timeDist = timeDistribution) {
+                is JaktaTimeDistribution ->
+                    when (timeDist.phase) {
+                        SENSE -> {
+                            agentLifecycle.sense(jaktaEnvironment)
+                            emptyList()
+                        }
+                        DELIBERATE -> {
+                            agentLifecycle.deliberate(jaktaEnvironment)
+                            emptyList()
+                        }
+                        ACT -> agentLifecycle.act(jaktaEnvironment)
+                    }
+                else ->
+                    agentLifecycle.runOneCycle(
                         environment = jaktaEnvironment,
                         controller = jaktaController,
                     )
-                    emptyList()
-                }
-                DELIBERATE -> {
-                    agentLifecycle.deliberate()
-                    emptyList()
-                }
-                ACT -> agentLifecycle.act(jaktaEnvironment)
             }
-            else -> agentLifecycle.runOneCycle(
-                environment = jaktaEnvironment,
-                controller = jaktaController,
-            )
-        }
         sideEffects.forEach {
             when (it) {
                 is BroadcastMessage -> jaktaEnvironment.broadcastMessage(it.message)
