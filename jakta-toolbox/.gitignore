@@ -1,4 +1,4 @@
-node_modules
+infra/bridge/node_modules
 
 # Output
 .output
