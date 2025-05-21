@@ -1,13 +1,13 @@
 package it.unibo.jakta.agents.fsm
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import it.unibo.jakta.agents.fsm.impl.SimulatedTimeRunner
 import it.unibo.jakta.agents.fsm.impl.State
 import it.unibo.jakta.agents.fsm.impl.SyncRunner
 import it.unibo.jakta.agents.fsm.impl.ThreadRunner
 import it.unibo.jakta.agents.fsm.time.Time
 import it.unibo.jakta.agents.utils.Promise
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 /**
  * A [Runner] defines a Final-State Machine (FSM) lifecycle logic.
@@ -33,7 +33,7 @@ interface Runner {
      */
     val isPaused: Boolean
 
-    val logger: KLogger get() = logger {}
+    val logger: Logger get() = LogManager.getLogger()
 
     /**
      * Method that starts the FSM execution.
@@ -47,7 +47,9 @@ interface Runner {
 
         fun threadOf(activity: Activity): Runner = ThreadRunner(activity)
 
-        fun simulatedOf(activity: Activity, currentTime: () -> Time): Runner =
-            SimulatedTimeRunner(activity, currentTime)
+        fun simulatedOf(
+            activity: Activity,
+            currentTime: () -> Time,
+        ): Runner = SimulatedTimeRunner(activity, currentTime)
     }
 }
