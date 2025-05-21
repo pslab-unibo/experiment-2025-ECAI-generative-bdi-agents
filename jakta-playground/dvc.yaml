@@ -3,13 +3,13 @@ stages:
     matrix:
       model: ${models}
     cmd: >-
-      ./runner.sh
-      "${item.model}"
-      "${repetitions}"
-      "${timeout}"
-      "${provider}"
-      "${temperature}"
-      "${maxTokens}"
+      ../gradlew runExperiments
+      -Pmodel="${item.model}"
+      -Prepetitions="${repetitions}"
+      -PtimeoutSeconds="${timeout}"
+      -Pprovider="${provider}"
+      -Ptemperature="${temperature}"
+      -PmaxTokens="${maxTokens}"
     outs:
       - experiments/${item.model}:
           persist: true

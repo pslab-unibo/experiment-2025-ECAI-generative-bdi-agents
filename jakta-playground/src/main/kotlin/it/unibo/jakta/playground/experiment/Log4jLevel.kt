@@ -1,9 +1,12 @@
 package it.unibo.jakta.playground.experiment
 
-import ch.qos.logback.classic.Level
+import org.apache.logging.log4j.Level
 
-enum class LogbackLogLevel(val level: Level) {
+enum class Log4jLevel(
+    val level: Level,
+) {
     OFF(Level.OFF),
+    FATAL(Level.FATAL),
     ERROR(Level.ERROR),
     WARN(Level.WARN),
     INFO(Level.INFO),

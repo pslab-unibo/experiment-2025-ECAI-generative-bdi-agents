@@ -1,11 +1,12 @@
 package it.unibo.jakta.playground
 
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.result.ParserSuccess
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserSuccess
 
 fun main() {
+    val textToParse = ""
     val parser = Parser.of()
-    val res = parser.parse(text6)
+    val res = parser.parse(textToParse)
     if (res is ParserSuccess.NewResult) {
         println(res.plans.joinToString("\n"))
         println(res.admissibleGoals.joinToString("\n"))

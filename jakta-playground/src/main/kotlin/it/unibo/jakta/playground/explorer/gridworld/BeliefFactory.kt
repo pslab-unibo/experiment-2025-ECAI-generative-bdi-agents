@@ -1,7 +1,7 @@
 package it.unibo.jakta.playground.explorer.gridworld
 
-import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.beliefs.Belief.Companion.SOURCE_PERCEPT
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief.Companion.SOURCE_PERCEPT
 import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Struct
 
@@ -15,11 +15,12 @@ class BeliefFactory {
                 wrappingTag = SOURCE_PERCEPT,
                 purpose = "${it.id} is a $functor",
             )
-        } + Belief.wrap(
-            Struct.of("direction", Atom.of("here")),
-            wrappingTag = SOURCE_PERCEPT,
-            purpose = "here denotes the null direction w.r.t. the agent's current location",
-        )
+        } +
+            Belief.wrap(
+                Struct.of("direction", Atom.of("here")),
+                wrappingTag = SOURCE_PERCEPT,
+                purpose = "here denotes the null direction w.r.t. the agent's current location",
+            )
 
     fun createObjectBeliefs(state: GridWorldState) =
         state.objects.map {
@@ -32,33 +33,36 @@ class BeliefFactory {
             )
         }
 
-    fun createObstacleBeliefs(grid: Grid, state: GridWorldState) =
-        state.availableDirections.filter { it != Direction.HERE }.map { direction ->
-            val isObstacle = grid.isObstacleInDirection(state.agentPosition, direction)
-            if (isObstacle) {
-                val struct = Struct.of("obstacle", Atom.of(direction.id))
-                Belief.wrap(
-                    struct,
-                    wrappingTag = SOURCE_PERCEPT,
-                    purpose = "there is an obstacle to the ${direction.id}",
-                )
-            } else {
-                val struct = Struct.of("free", Atom.of(direction.id))
-                Belief.wrap(
-                    struct,
-                    wrappingTag = SOURCE_PERCEPT,
-                    purpose = "there is no obstacle to the ${direction.id}",
-                )
-            }
+    fun createObstacleBeliefs(
+        grid: Grid,
+        state: GridWorldState,
+    ) = state.availableDirections.filter { it != Direction.HERE }.map { direction ->
+        val isObstacle = grid.isObstacleInDirection(state.agentPosition, direction)
+        if (isObstacle) {
+            val struct = Struct.of("obstacle", Atom.of(direction.id))
+            Belief.wrap(
+                struct,
+                wrappingTag = SOURCE_PERCEPT,
+                purpose = "there is an obstacle to the ${direction.id}",
+            )
+        } else {
+            val struct = Struct.of("free", Atom.of(direction.id))
+            Belief.wrap(
+                struct,
+                wrappingTag = SOURCE_PERCEPT,
+                purpose = "there is no obstacle to the ${direction.id}",
+            )
         }
+    }
 
     fun createThereIsBeliefs(state: GridWorldState) =
         state.objects.mapNotNull { (objectName, position) ->
             val direction = state.agentPosition.directionTo(position)
-            if (direction != null && (
+            if (direction != null &&
+                (
                     state.agentPosition.isAdjacentTo(position) ||
                         state.agentPosition.isOn(position)
-                    )
+                )
             ) {
                 val struct = Struct.of("there_is", Atom.of(objectName), Atom.of(direction.id))
                 Belief.wrap(
@@ -86,21 +90,34 @@ class BeliefFactory {
             if (w.isEmpty()) return "a"
 
             // Words that start with a vowel letter but have a consonant sound
-            val usesAPrefix = listOf(
-                "eu", "ewe", "u", "uni", "use", "user", "util", "usu", "ubiq",
-                "uk", "one", "once", "ou",
-                "y",
-            )
+            val usesAPrefix =
+                listOf(
+                    "eu",
+                    "ewe",
+                    "u",
+                    "uni",
+                    "use",
+                    "user",
+                    "util",
+                    "usu",
+                    "ubiq",
+                    "uk",
+                    "one",
+                    "once",
+                    "ou",
+                    "y",
+                )
 
             // Words that start with a consonant letter but have a vowel sound
-            val usesAnPrefix = listOf(
-                "hour",
-                "heir",
-                "hon",
-                "honest",
-                "herb",
-                "x",
-            )
+            val usesAnPrefix =
+                listOf(
+                    "hour",
+                    "heir",
+                    "hon",
+                    "honest",
+                    "herb",
+                    "x",
+                )
 
             return when {
                 // Special case for abbreviations and acronyms

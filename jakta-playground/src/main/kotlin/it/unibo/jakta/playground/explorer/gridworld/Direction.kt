@@ -1,6 +1,10 @@
 package it.unibo.jakta.playground.explorer.gridworld
 
-enum class Direction(val dx: Int, val dy: Int, val id: String) {
+enum class Direction(
+    val dx: Int,
+    val dy: Int,
+    val id: String,
+) {
     NORTH(0, -1, "north"),
     SOUTH(0, 1, "south"),
     EAST(1, 0, "east"),
@@ -15,8 +19,12 @@ enum class Direction(val dx: Int, val dy: Int, val id: String) {
     companion object {
         fun fromId(id: String): Direction? = entries.find { it.id == id }
 
-        fun fromDeltas(dx: Int, dy: Int): Direction? = entries.find {
-            it.dx == dx.coerceIn(-1, 1) && it.dy == dy.coerceIn(-1, 1)
-        }
+        fun fromDeltas(
+            dx: Int,
+            dy: Int,
+        ): Direction? =
+            entries.find {
+                it.dx == dx.coerceIn(-1, 1) && it.dy == dy.coerceIn(-1, 1)
+            }
     }
 }

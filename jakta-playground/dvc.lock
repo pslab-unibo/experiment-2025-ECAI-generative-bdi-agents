@@ -67,3 +67,12 @@ stages:
       md5: 458f4282eb39743e29223ed8d675feab.dir
       size: 267801
       nfiles: 30
+  testGeneration@openai/gpt-4.1:
+    cmd: ../gradlew runExperiments -Pmodel="openai/gpt-4.1" -Prepetitions="1" -Ptimeout="60"
+      -Pprovider="https://testsadsasa.ai/api/v1/" -Ptemperature="0.5" -PmaxTokens="4096"
+    outs:
+    - path: experiments/openai/gpt-4.1
+      hash: md5
+      md5: 6d4f43320991e5ca7349fcb4a992f9f6.dir
+      size: 535515
+      nfiles: 60

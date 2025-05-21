@@ -2,7 +2,10 @@ package it.unibo.jakta.playground.explorer.gridworld
 
 import kotlin.math.abs
 
-data class Position(val x: Int, val y: Int) {
+data class Position(
+    val x: Int,
+    val y: Int,
+) {
     fun move(direction: Direction): Position = Position(x + direction.dx, y + direction.dy)
 
     fun directionTo(other: Position): Direction? {

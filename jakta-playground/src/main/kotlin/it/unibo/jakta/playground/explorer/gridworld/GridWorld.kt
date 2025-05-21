@@ -1,14 +1,14 @@
 package it.unibo.jakta.playground.explorer.gridworld
 
-import io.github.oshai.kotlinlogging.KLogger
-import it.unibo.jakta.agents.bdi.AgentID
-import it.unibo.jakta.agents.bdi.actions.ExternalAction
-import it.unibo.jakta.agents.bdi.beliefs.Belief
-import it.unibo.jakta.agents.bdi.beliefs.BeliefBase
-import it.unibo.jakta.agents.bdi.environment.impl.EnvironmentImpl
-import it.unibo.jakta.agents.bdi.logging.implementation
-import it.unibo.jakta.agents.bdi.messages.MessageQueue
-import it.unibo.jakta.agents.bdi.perception.Perception
+import it.unibo.jakta.agents.bdi.engine.AgentID
+import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase
+import it.unibo.jakta.agents.bdi.engine.environment.impl.EnvironmentImpl
+import it.unibo.jakta.agents.bdi.engine.logging.loggers.MasLogger
+import it.unibo.jakta.agents.bdi.engine.messages.MessageQueue
+import it.unibo.jakta.agents.bdi.engine.perception.Perception
+import it.unibo.jakta.playground.explorer.gridworld.logging.ObjectReachedEvent
 
 class GridWorld(
     agentIDs: Map<String, AgentID> = emptyMap(),
@@ -16,9 +16,8 @@ class GridWorld(
     messageBoxes: Map<AgentID, MessageQueue> = emptyMap(),
     override var perception: Perception = Perception.empty(),
     data: Map<String, Any> = defaultData,
-    override val logger: KLogger? = null,
-) : EnvironmentImpl(externalActions, agentIDs, messageBoxes, perception, data) {
-
+    override val logger: MasLogger? = null,
+) : EnvironmentImpl(externalActions, agentIDs, messageBoxes, perception, data, logger) {
     private val grid: Grid = createGrid()
     private val beliefFactory = BeliefFactory()
 
@@ -28,20 +27,24 @@ class GridWorld(
 
     private fun createGrid(): Grid {
         val gridSize = data.gridSize() ?: DEFAULT_GRID_SIZE
-        val obstacles = data.obstacles()?.map {
-            Position(it.x, it.y)
-        }?.toSet() ?: defaultObstacles.map {
-            Position(it.x, it.y)
-        }.toSet()
+        val obstacles =
+            data
+                .obstacles()
+                ?.map { Position(it.x, it.y) }
+                ?.toSet() ?: defaultObstacles
+                .map {
+                    Position(it.x, it.y)
+                }.toSet()
 
         return Grid(gridSize, obstacles)
     }
 
     private fun getCurrentState(): GridWorldState? {
         val agentPosition = data.currentPosition()?.let { Position(it.x, it.y) } ?: return null
-        val objectPositions = (data.objects() ?: defaultObjects).mapValues { (_, cell) ->
-            Position(cell.x, cell.y)
-        }
+        val objectPositions =
+            (data.objects() ?: defaultObjects).mapValues { (_, cell) ->
+                Position(cell.x, cell.y)
+            }
 
         return GridWorldState(
             grid = grid,
@@ -67,7 +70,7 @@ class GridWorld(
             data.objects()?.let { objects ->
                 objects.forEach { (objectName, objectCell) ->
                     if (objectCell == newPosition) {
-                        logger?.implementation(ObjectReachedEvent(objectName))
+                        logger?.log { ObjectReachedEvent(objectName) }
                     }
                 }
             }
@@ -96,8 +99,16 @@ class GridWorld(
         messageBoxes: Map<AgentID, MessageQueue>,
         perception: Perception,
         data: Map<String, Any>,
-        logger: KLogger?,
-    ): GridWorld = GridWorld(agentIDs, externalActions, messageBoxes, perception, data, logger)
+        logger: MasLogger?,
+    ): GridWorld =
+        GridWorld(
+            agentIDs,
+            externalActions,
+            messageBoxes,
+            perception,
+            data,
+            logger,
+        )
 
     companion object {
         @Suppress("UNCHECKED_CAST")
@@ -117,38 +128,42 @@ class GridWorld(
         @Suppress("UNCHECKED_CAST")
         internal fun Map<String, Any>.objects() = this["objects"] as? Map<String, Cell>
 
-        internal val defaultObjects = mapOf(
-            "rock" to Cell(1, 0),
-            "home" to Cell(4, 4),
-        )
+        internal val defaultObjects =
+            mapOf(
+                "rock" to Cell(1, 0),
+                "home" to Cell(4, 4),
+            )
 
-        internal val defaultObstacles = setOf(
-            Cell(2, 3), // south
-            Cell(1, 3), // south-west
-            Cell(3, 3), // south-east
-        )
+        internal val defaultObstacles =
+            setOf(
+                Cell(2, 3), // south
+                Cell(1, 3), // south-west
+                Cell(3, 3), // south-east
+            )
 
-        internal val defaultDirections = setOf(
-            "north",
-            "south",
-            "east",
-            "west",
-            "north_east",
-            "north_west",
-            "south_east",
-            "south_west",
-        )
+        internal val defaultDirections =
+            setOf(
+                "north",
+                "south",
+                "east",
+                "west",
+                "north_east",
+                "north_west",
+                "south_east",
+                "south_west",
+            )
 
         internal const val DEFAULT_GRID_SIZE = 5
 
         internal val DEFAULT_START_POSITION = Cell(2, 2)
 
-        internal val defaultData = mapOf(
-            "directions" to defaultDirections,
-            "objects" to defaultObjects,
-            "obstacles" to defaultObstacles,
-            "currentPosition" to DEFAULT_START_POSITION,
-            "gridSize" to DEFAULT_GRID_SIZE,
-        )
+        internal val defaultData =
+            mapOf(
+                "directions" to defaultDirections,
+                "objects" to defaultObjects,
+                "obstacles" to defaultObstacles,
+                "currentPosition" to DEFAULT_START_POSITION,
+                "gridSize" to DEFAULT_GRID_SIZE,
+            )
     }
 }

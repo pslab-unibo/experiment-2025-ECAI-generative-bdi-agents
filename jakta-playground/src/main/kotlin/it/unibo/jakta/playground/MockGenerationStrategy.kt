@@ -9,12 +9,11 @@ import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import io.mockk.coEvery
 import io.mockk.mockk
-import it.unibo.jakta.generationstrategies.lm.LMGenerationConfig
-import it.unibo.jakta.generationstrategies.lm.pipeline.generation.LMPlanGenerator
-import it.unibo.jakta.generationstrategies.lm.pipeline.parsing.Parser
-import it.unibo.jakta.generationstrategies.lm.pipeline.request.RequestHandler
-import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategy
-import it.unibo.jakta.generationstrategies.lm.strategy.LMGenerationStrategyImpl
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.generation.LMPlanGenerator
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestHandler
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.LMGenerationStrategy
 
 object MockGenerationStrategy {
     fun createOneStepStrategyWithMockedAPI(trace: List<String>): LMGenerationStrategy {
@@ -30,15 +29,17 @@ object MockGenerationStrategy {
 
             ChatCompletion(
                 id = "mock-completion-id",
-                choices = listOf(
-                    ChatChoice(
-                        index = 0,
-                        message = ChatMessage(
-                            role = ChatRole.Assistant,
-                            content = response,
+                choices =
+                    listOf(
+                        ChatChoice(
+                            index = 0,
+                            message =
+                                ChatMessage(
+                                    role = ChatRole.Assistant,
+                                    content = response,
+                                ),
                         ),
                     ),
-                ),
                 created = System.currentTimeMillis(),
                 model = ModelId("mock-model"),
             )
@@ -48,6 +49,6 @@ object MockGenerationStrategy {
         val requestHandler = RequestHandler.of(generationConfig = lmConfig, api = api)
         val responseParser = Parser.of()
         val planGenerator = LMPlanGenerator.of(requestHandler, responseParser)
-        return LMGenerationStrategyImpl(planGenerator, lmConfig)
+        return LMGenerationStrategy.of(planGenerator, lmConfig)
     }
 }

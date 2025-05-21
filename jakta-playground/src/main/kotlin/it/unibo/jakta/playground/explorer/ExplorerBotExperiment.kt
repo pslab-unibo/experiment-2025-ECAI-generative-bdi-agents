@@ -2,17 +2,17 @@ package it.unibo.jakta.playground.explorer
 
 import it.unibo.jakta.agents.bdi.dsl.loggingConfig
 import it.unibo.jakta.agents.bdi.dsl.mas
-import it.unibo.jakta.agents.bdi.executionstrategies.ExecutionStrategy
-import it.unibo.jakta.agents.bdi.logging.LoggingConfig
-import it.unibo.jakta.agents.bdi.plangeneration.GenerationStrategy
-import it.unibo.jakta.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
-import it.unibo.jakta.playground.experiment.Experiment
+import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
+import it.unibo.jakta.playground.experiment.AbstractExperiment
 import it.unibo.jakta.playground.explorer.ExplorerBot.explorerBot
 import it.unibo.jakta.playground.explorer.ExplorerBot.getDirectionToMove
 import it.unibo.jakta.playground.explorer.ExplorerBot.move
 import it.unibo.jakta.playground.explorer.gridworld.GridWorld
 
-class ExplorerBotExperiment : Experiment() {
+class ExplorerBotExperiment : AbstractExperiment() {
     override fun createMas(
         logConfig: LoggingConfig,
         genStrat: GenerationStrategy?,
@@ -36,12 +36,15 @@ class ExplorerBotExperiment : Experiment() {
         }
     }
 
-    override fun createLoggingConfig(expName: String) = loggingConfig {
-        logToFile = this@ExplorerBotExperiment.logToFile
-        logToConsole = this@ExplorerBotExperiment.logToConsole
-        logLevel = this@ExplorerBotExperiment.logLevel.level
-        logDir = "${this@ExplorerBotExperiment.logDir}/$modelId/$expName"
-    }
+    override fun createLoggingConfig(expName: String) =
+        loggingConfig {
+            logToFile = this@ExplorerBotExperiment.logToFile
+            logToConsole = this@ExplorerBotExperiment.logToConsole
+            logToServer = this@ExplorerBotExperiment.logToServer
+            logLevel = this@ExplorerBotExperiment.logLevel.level
+            logDir = "${this@ExplorerBotExperiment.logDir}/$expName"
+            logServerUrl = this@ExplorerBotExperiment.logServerUrl
+        }
 
     override fun createGenerationStrategy() =
         oneStepGeneration {
