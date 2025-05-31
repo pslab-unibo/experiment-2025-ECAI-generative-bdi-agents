@@ -3,9 +3,12 @@ package it.unibo.jakta.agents.bdi.engine.executionstrategies.impl
 import it.unibo.jakta.agents.bdi.engine.Agent
 import it.unibo.jakta.agents.bdi.engine.AgentLifecycle
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.utils.Promise
 
 internal abstract class AbstractSingleRunnerExecutionStrategy : ExecutionStrategy {
     protected val synchronizedAgents = SynchronizedAgents()
+
+    protected abstract val runnerPromise: Promise<Unit>?
 
     override fun spawnAgent(agent: Agent) {
         synchronizedAgents.addAgent(agent)
@@ -30,5 +33,10 @@ internal abstract class AbstractSingleRunnerExecutionStrategy : ExecutionStrateg
 
         @Synchronized
         fun getAgents(): Map<Agent, AgentLifecycle> = agents
+
+        @Synchronized
+        fun clear() {
+            agents = emptyMap()
+        }
     }
 }

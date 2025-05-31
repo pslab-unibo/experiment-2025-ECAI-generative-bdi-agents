@@ -8,8 +8,11 @@ import java.util.UUID
 @SerialName("AgentID")
 data class AgentID(
     val id: String = generateId(),
+    val name: String = id,
 ) {
     companion object {
         private fun generateId(): String = UUID.randomUUID().toString()
     }
+
+    override fun toString(): String = "$id-$name"
 }

@@ -17,7 +17,7 @@ sealed interface EnvironmentChange :
 @SerialName("SpawnAgent")
 data class SpawnAgent(
     val agent: Agent,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(agent: Agent) : this(
         agent,
@@ -29,7 +29,7 @@ data class SpawnAgent(
 @SerialName("RemoveAgent")
 data class RemoveAgent(
     val agentName: String,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(agentName: String) : this(
         agentName,
@@ -42,14 +42,12 @@ data class RemoveAgent(
 data class SendMessage(
     val message: Message,
     val recipient: String,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(message: Message, recipient: String) : this(
         message,
         recipient,
-        "Agent ${message.from} sent message ${message.type.javaClass.simpleName}" +
-            "\n\tto agent $recipient" +
-            "\n\twith content: ${message.value}",
+        "Sent message to $recipient: ${message.type.javaClass.simpleName.lowercase()} ${message.value}",
     )
 }
 
@@ -57,7 +55,7 @@ data class SendMessage(
 @SerialName("BroadcastMessage")
 data class BroadcastMessage(
     val message: Message,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(message: Message) : this(
         message,
@@ -71,7 +69,7 @@ data class BroadcastMessage(
 @SerialName("PopMessage")
 data class PopMessage(
     val agentName: String,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(agentName: String) : this(
         agentName,
@@ -85,7 +83,7 @@ data class AddData(
     val key: String,
     @Contextual
     val value: Any,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(key: String, value: Any) : this(
         key,
@@ -98,7 +96,7 @@ data class AddData(
 @SerialName("RemoveData")
 data class RemoveData(
     val key: String,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(key: String) : this(
         key,
@@ -110,7 +108,7 @@ data class RemoveData(
 @SerialName("UpdateData")
 data class UpdateData(
     val newData: Map<String, @Contextual Any>,
-    override val description: String,
+    override val description: String?,
 ) : EnvironmentChange {
     constructor(newData: Map<String, @Contextual Any>) : this(
         newData,

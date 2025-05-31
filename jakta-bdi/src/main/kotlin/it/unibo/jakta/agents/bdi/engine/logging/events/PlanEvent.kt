@@ -12,8 +12,8 @@ sealed interface PlanEvent : JaktaLogEvent {
     @SerialName("PlanSelected")
     data class PlanSelected(
         val plan: Plan,
-        override val description: String,
+        override val description: String?,
     ) : PlanEvent {
-        constructor(plan: Plan) : this(plan, "Selected plan ${triggerFormatter.format(plan.trigger)}")
+        constructor(plan: Plan) : this(plan, "Selected plan: ${triggerFormatter.format(plan.trigger)}")
     }
 }

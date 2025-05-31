@@ -21,6 +21,8 @@ import it.unibo.jakta.agents.fsm.Activity
 interface AgentLifecycle {
     val agent: Agent
 
+    var cycleCount: Long
+
     /**
      * STEP 1 of the reasoning cycle: Belief Update Function.
      * This function defines how to merge new [perceptions] into the current [beliefBase]

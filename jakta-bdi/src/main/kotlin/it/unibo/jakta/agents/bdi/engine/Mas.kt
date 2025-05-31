@@ -28,6 +28,8 @@ interface Mas {
 
     fun start()
 
+    fun stop()
+
     fun applyEnvironmentEffects(effects: Iterable<EnvironmentChange>)
 
     fun copy(

@@ -2,7 +2,7 @@
   "@timestamp": {
     "$resolver": "timestamp",
     "pattern": {
-      "format": "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      "format": "yyyy-MM-dd'T'HH:mm:ss.nnnnnn'Z'",
       "timeZone": "UTC"
     }
   },

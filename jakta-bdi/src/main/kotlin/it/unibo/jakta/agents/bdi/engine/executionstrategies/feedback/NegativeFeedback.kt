@@ -12,11 +12,12 @@ sealed interface NegativeFeedback : ExecutionFeedback {
     @SerialName("InapplicablePlan")
     data class InapplicablePlan(
         val plans: List<PlanApplicabilityResult>,
-        override val description: String,
+        override val description: String?,
     ) : NegativeFeedback {
         constructor(plans: List<PlanApplicabilityResult>) : this(
             plans,
-            "The following plans are not applicable: ${plans.joinToString(", ") { it.toString() }}",
+            "The following plans are not applicable: " +
+                plans.mapNotNull { it.trigger }.joinToString(", ") { triggerFormatter.format(it) },
         )
     }
 
@@ -24,7 +25,7 @@ sealed interface NegativeFeedback : ExecutionFeedback {
     @SerialName("PlanNotFound")
     data class PlanNotFound(
         val trigger: Trigger,
-        override val description: String,
+        override val description: String?,
     ) : NegativeFeedback {
         constructor(trigger: Trigger) : this(
             trigger,

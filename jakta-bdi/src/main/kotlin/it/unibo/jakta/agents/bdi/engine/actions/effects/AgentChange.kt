@@ -12,6 +12,7 @@ import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.triggerForm
 import it.unibo.jakta.agents.bdi.engine.intentions.Intention
 import it.unibo.jakta.agents.bdi.engine.logging.events.AgentEvent
 import it.unibo.jakta.agents.bdi.engine.logging.events.BdiEvent.Companion.eventType
+import it.unibo.jakta.agents.bdi.engine.logging.events.EventType
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -43,8 +44,8 @@ sealed interface InternalChange : AgentChange {
 data class BeliefChange(
     val belief: Belief,
     override val changeType: ContextUpdate,
-    override val eventType: String,
-    override val description: String,
+    override val eventType: EventType,
+    override val description: String?,
 ) : InternalChange {
     constructor(
         belief: Belief,
@@ -52,7 +53,7 @@ data class BeliefChange(
     ) : this(
         belief,
         changeType,
-        "Belief${changeType.name.lowercase().capitalize()}",
+        EventType("Belief${changeType.name.lowercase().capitalize()}"),
         "${InternalChange.changeTypeDescription(changeType)} ${belief.removeSource()} from source ${belief.source()}",
     )
 }
@@ -62,8 +63,8 @@ data class BeliefChange(
 data class IntentionChange(
     val intention: Intention,
     override val changeType: ContextUpdate,
-    override val eventType: String,
-    override val description: String,
+    override val eventType: EventType,
+    override val description: String?,
 ) : InternalChange {
     constructor(
         intention: Intention,
@@ -71,7 +72,7 @@ data class IntentionChange(
     ) : this(
         intention,
         changeType,
-        "Intention${changeType.name.lowercase().capitalize()}",
+        EventType("Intention${changeType.name.lowercase().capitalize()}"),
         "${InternalChange.changeTypeDescription(changeType)} intention ${intention.id.id}",
     )
 }
@@ -81,16 +82,16 @@ data class IntentionChange(
 data class EventChange(
     val event: Event,
     override val changeType: ContextUpdate,
-    override val eventType: String,
-    override val description: String,
+    override val eventType: EventType,
+    override val description: String?,
 ) : InternalChange {
     constructor(event: Event, changeType: ContextUpdate) : this(
         event,
         changeType,
-        "Event${changeType.name.lowercase().capitalize()}",
+        EventType("Event${changeType.name.lowercase().capitalize()}"),
         "${InternalChange.changeTypeDescription(changeType)} ${eventType(
             event,
-        )} event ${triggerFormatter.format(event.trigger)}",
+        )} event: ${triggerFormatter.format(event.trigger)}",
     )
 }
 
@@ -99,13 +100,13 @@ data class EventChange(
 data class PlanChange(
     val plan: Plan,
     override val changeType: ContextUpdate,
-    override val eventType: String,
-    override val description: String,
+    override val eventType: EventType,
+    override val description: String?,
 ) : InternalChange {
     constructor(plan: Plan, changeType: ContextUpdate) : this(
         plan,
         changeType,
-        "Plan${changeType.name.lowercase().capitalize()}",
+        EventType("Plan${changeType.name.lowercase().capitalize()}"),
         "${InternalChange.changeTypeDescription(changeType)} plan: ${triggerFormatter.format(
             plan.trigger,
         )} to the plan library",
@@ -120,7 +121,7 @@ sealed interface ActivityChange : AgentChange
 @SerialName("Sleep")
 data class Sleep(
     val millis: Long,
-    override val description: String,
+    override val description: String?,
 ) : ActivityChange {
     constructor(millis: Long) : this(
         millis,
@@ -131,7 +132,7 @@ data class Sleep(
 @Serializable
 @SerialName("Stop")
 data class Stop(
-    override val description: String,
+    override val description: String?,
 ) : ActivityChange {
     constructor() : this("Agent's controller entered stop state")
 }
@@ -139,7 +140,7 @@ data class Stop(
 @Serializable
 @SerialName("Pause")
 data class Pause(
-    override val description: String,
+    override val description: String?,
 ) : ActivityChange {
     constructor() : this("Agent's controller entered pause state")
 }

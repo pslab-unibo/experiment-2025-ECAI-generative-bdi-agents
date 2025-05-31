@@ -14,13 +14,13 @@ sealed interface GoalFailure : NegativeFeedback {
     @SerialName("InvalidActionArityError")
     data class InvalidActionArityError(
         val actionSignature: ActionSignature,
-        val providedArguments: String,
-        override val description: String,
+        val providedArguments: List<Term>,
+        override val description: String?,
     ) : GoalFailure {
         constructor(actionSignature: ActionSignature, providedArguments: List<Term>) : this(
             actionSignature,
-            providedArguments.joinToString(", ") { termFormatter.format(it) },
-            "The arity of the action ${actionSignature.name} is not correct: expected ${actionSignature.arity}, " +
+            providedArguments,
+            "The arity of the action \"${actionSignature.name}\" is not correct: expected ${actionSignature.arity}, " +
                 "found ${providedArguments.map { termFormatter.format(it)}}",
         )
     }
@@ -29,13 +29,13 @@ sealed interface GoalFailure : NegativeFeedback {
     @SerialName("ActionSubstitutionFailure")
     data class ActionSubstitutionFailure(
         val actionSignature: ActionSignature,
-        val providedArguments: String,
-        override val description: String,
+        val providedArguments: List<Term>,
+        override val description: String?,
     ) : GoalFailure {
         constructor(actionSignature: ActionSignature, providedArguments: List<Term>) : this(
             actionSignature,
-            providedArguments.joinToString(", ") { termFormatter.format(it) },
-            "The action ${actionSignature.name} could not be applied with the given arguments: " +
+            providedArguments,
+            "The action \"${actionSignature.name}\" could not be applied with the given arguments: " +
                 "expected ${actionSignature.arity}, found ${providedArguments.map { termFormatter.format(it) }}",
         )
     }
@@ -45,13 +45,28 @@ sealed interface GoalFailure : NegativeFeedback {
     data class ActionNotFound(
         val availableActions: List<ActionSignature>,
         val actionNotFoundName: String,
-        override val description: String,
+        override val description: String?,
     ) : GoalFailure {
         constructor(availableActions: List<ActionSignature>, actionNotFoundName: String) : this(
             availableActions,
             actionNotFoundName,
-            "The action $actionNotFoundName could not be found among the available actions: " +
+            "The action \"${actionNotFoundName}\" could not be found among the available actions: " +
                 availableActions.joinToString(", ") { it.name },
+        )
+    }
+
+    @Serializable
+    @SerialName("ActionFailure")
+    data class ActionFailure(
+        val actionSignature: ActionSignature,
+        val providedArguments: List<Term>,
+        override val description: String?,
+    ) : GoalFailure {
+        constructor(actionSignature: ActionSignature, providedArguments: List<Term>) : this(
+            actionSignature,
+            providedArguments,
+            "The action \"${actionSignature.name}\" failed with the given arguments: " +
+                "${providedArguments.map { termFormatter.format(it) }}",
         )
     }
 
@@ -59,7 +74,7 @@ sealed interface GoalFailure : NegativeFeedback {
     @SerialName("TestGoalFailureFeedback")
     data class TestGoalFailureFeedback(
         val goalTested: Struct,
-        override val description: String,
+        override val description: String?,
     ) : GoalFailure {
         constructor(goalTested: Struct) : this(goalTested, "The goal $goalTested could not be tested")
     }

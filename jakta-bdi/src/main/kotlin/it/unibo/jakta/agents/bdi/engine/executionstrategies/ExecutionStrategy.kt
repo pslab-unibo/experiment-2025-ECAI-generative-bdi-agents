@@ -10,6 +10,8 @@ import it.unibo.jakta.agents.bdi.engine.executionstrategies.impl.OneThreadPerMas
 interface ExecutionStrategy {
     fun dispatch(mas: Mas)
 
+    fun shutdown()
+
     fun spawnAgent(agent: Agent)
 
     fun removeAgent(agentName: String)

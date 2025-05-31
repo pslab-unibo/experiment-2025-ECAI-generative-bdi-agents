@@ -4,6 +4,7 @@ import it.unibo.jakta.agents.bdi.engine.AgentID
 import it.unibo.jakta.agents.bdi.engine.MasID
 import it.unibo.jakta.agents.bdi.engine.logging.LoggerFactory
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
+import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_NAME_SINGLE_FILE
 import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.implementation
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.appenders.Appenders.buildAppenders
@@ -23,7 +24,12 @@ class AgentLogger(
             agentName: String,
             loggingConfig: LoggingConfig,
         ): AgentLogger {
-            val name = "$agentName-${agentID.id}"
+            val name =
+                if (loggingConfig.logToSingleFile) {
+                    LOG_NAME_SINGLE_FILE
+                } else {
+                    "$agentName-${agentID.id}"
+                }
             val level = loggingConfig.logLevel
             val appenders = buildAppenders(name, loggingConfig)
 

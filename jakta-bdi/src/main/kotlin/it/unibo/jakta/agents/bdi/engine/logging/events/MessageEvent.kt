@@ -8,11 +8,14 @@ import kotlinx.serialization.Serializable
 @SerialName("MessageEvent")
 sealed interface MessageEvent : JaktaLogEvent {
     @Serializable
-    @SerialName("NewMessage")
-    data class NewMessage(
+    @SerialName("MessageReceived")
+    data class MessageReceived(
         val message: Message,
-        override val description: String,
+        override val description: String?,
     ) : MessageEvent {
-        constructor(message: Message) : this(message, "Received message $message")
+        constructor(message: Message) : this(
+            message,
+            "Received message from ${message.from}: ${message.type.javaClass.simpleName.lowercase()} ${message.value}",
+        )
     }
 }

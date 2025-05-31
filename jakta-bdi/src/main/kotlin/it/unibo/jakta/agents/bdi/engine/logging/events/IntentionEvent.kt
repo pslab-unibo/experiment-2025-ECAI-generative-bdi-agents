@@ -13,7 +13,7 @@ sealed interface IntentionEvent : JaktaLogEvent {
     @SerialName("IntentionCreation")
     data class AssignPlanToNewIntention(
         override val intention: Intention,
-        override val description: String,
+        override val description: String?,
     ) : IntentionEvent {
         constructor(intention: Intention) : this(intention, "Created new intention ${intention.id.id}")
     }
@@ -22,7 +22,7 @@ sealed interface IntentionEvent : JaktaLogEvent {
     @SerialName("IntentionUpdate")
     data class AssignPlanToExistingIntention(
         override val intention: Intention,
-        override val description: String,
+        override val description: String?,
     ) : IntentionEvent {
         constructor(intention: Intention) : this(intention, "Updated intention ${intention.id.id}")
     }
@@ -31,7 +31,7 @@ sealed interface IntentionEvent : JaktaLogEvent {
     @SerialName("IntentionGoalRun")
     data class IntentionGoalRun(
         override val intention: Intention,
-        override val description: String,
+        override val description: String?,
     ) : IntentionEvent {
         constructor(intention: Intention) : this(intention, "Running goal of ${intention.id.id}")
     }

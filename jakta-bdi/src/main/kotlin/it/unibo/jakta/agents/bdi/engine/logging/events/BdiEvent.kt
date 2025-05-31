@@ -12,11 +12,11 @@ sealed interface BdiEvent : JaktaLogEvent {
     @SerialName("EventSelected")
     data class EventSelected(
         val event: Event,
-        override val description: String,
+        override val description: String?,
     ) : BdiEvent {
         constructor(event: Event) : this(
             event,
-            "Selected ${eventType(event)} event ${triggerFormatter.format(event.trigger)}",
+            "Selected ${eventType(event)} event: ${triggerFormatter.format(event.trigger)}",
         )
     }
 

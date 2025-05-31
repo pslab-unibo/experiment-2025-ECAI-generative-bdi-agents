@@ -11,13 +11,11 @@ import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.AgentLogger
 import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
-import java.util.UUID
 
 internal data class AgentImpl(
     override val masID: MasID?,
     override val context: AgentContext,
     override val agentID: AgentID = AgentID(),
-    override val name: String = "Agent-" + UUID.randomUUID(),
     override val generationStrategy: GenerationStrategy? = null,
     override val loggingConfig: LoggingConfig? = null,
     override val logger: AgentLogger? = null,

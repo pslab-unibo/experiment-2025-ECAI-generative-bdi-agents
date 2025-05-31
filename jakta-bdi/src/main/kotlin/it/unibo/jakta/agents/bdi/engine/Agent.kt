@@ -18,14 +18,13 @@ import it.unibo.jakta.agents.bdi.engine.plangeneration.registry.GenerationProces
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 import it.unibo.tuprolog.utils.Taggable
-import java.util.UUID
 
 interface Agent : Taggable<Agent> {
     val masID: MasID?
 
     val agentID: AgentID
 
-    val name: String
+    val name: String get() = agentID.name
 
     val generationStrategy: GenerationStrategy?
 
@@ -92,10 +91,20 @@ interface Agent : Taggable<Agent> {
         fun empty(masID: MasID? = null): Agent = AgentImpl(masID, AgentContext.of())
 
         // CPD-OFF
+
+        /**
+         * Creates a new [Agent] instance with the provided parameters.
+         *
+         * This factory method provides different ways to create an agent by handling various combinations of
+         * [agentID] and [name] parameters:
+         * - if [name] is provided but [agentID] is null, creates a new [AgentID] with the given name
+         * - if both [agentID] and [name] are null, generates a new [AgentID] with a random UUID
+         * - otherwise uses the provided [agentID] (name parameter is ignored if [agentID] is provided)
+         */
         fun of(
             masID: MasID? = null,
-            agentID: AgentID = AgentID(),
-            name: String = "Agent-" + UUID.randomUUID(),
+            agentID: AgentID? = null,
+            name: String? = null,
             generationStrategy: GenerationStrategy? = null,
             loggingConfig: LoggingConfig? = null,
             logger: AgentLogger? = null,
@@ -107,8 +116,15 @@ interface Agent : Taggable<Agent> {
             intentions: IntentionPool = IntentionPool.empty(),
             admissibleGoals: Set<AdmissibleGoal> = emptySet(),
             admissibleBeliefs: Set<AdmissibleBelief> = emptySet(),
-        ): Agent =
-            AgentImpl(
+        ): Agent {
+            val resolvedAgentID =
+                when {
+                    name != null && agentID == null -> AgentID(name = name)
+                    agentID == null -> AgentID()
+                    else -> agentID
+                }
+
+            return AgentImpl(
                 masID,
                 AgentContext.of(
                     beliefBase,
@@ -120,31 +136,47 @@ interface Agent : Taggable<Agent> {
                     admissibleGoals,
                     admissibleBeliefs,
                 ),
-                agentID,
-                name,
+                resolvedAgentID,
                 generationStrategy,
                 loggingConfig,
                 logger,
             )
+        }
         // CPD-ON
 
+        /**
+         * Creates a new [Agent] instance with the provided parameters.
+         *
+         * This factory method provides different ways to create an agent by handling various combinations of
+         * [agentID] and [name] parameters:
+         * - if [name] is provided but [agentID] is null, creates a new [AgentID] with the given name
+         * - if both [agentID] and [name] are null, generates a new [AgentID] with a random UUID
+         * - otherwise uses the provided [agentID] (name parameter is ignored if [agentID] is provided)
+         */
         fun of(
             masID: MasID? = null,
-            agentID: AgentID = AgentID(),
-            name: String = "Agent-" + UUID.randomUUID(),
+            agentID: AgentID? = null,
+            name: String? = null,
             generationStrategy: GenerationStrategy? = null,
             loggingConfig: LoggingConfig? = null,
             logger: AgentLogger? = null,
             agentContext: AgentContext,
-        ): Agent =
-            AgentImpl(
+        ): Agent {
+            val resolvedAgentID =
+                when {
+                    name != null && agentID == null -> AgentID(name = name)
+                    agentID == null -> AgentID()
+                    else -> agentID
+                }
+
+            return AgentImpl(
                 masID,
                 agentContext,
-                agentID,
-                name,
+                resolvedAgentID,
                 generationStrategy,
                 loggingConfig,
                 logger,
             )
+        }
     }
 }

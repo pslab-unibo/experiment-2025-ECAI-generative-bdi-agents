@@ -49,6 +49,8 @@ class EmptyGoal(
     }
 
     override fun hashCode(): Int = value.hashCode()
+
+    override fun toString(): String = "Empty($value)"
 }
 
 @Serializable

@@ -9,8 +9,10 @@ data class LoggingConfig(
     val logToServer: Boolean = false,
     val logLevel: Level = Level.INFO,
     val logDir: String = LOG_DIR,
+    val logToSingleFile: Boolean = false,
 ) {
     companion object {
+        const val LOG_NAME_SINGLE_FILE = "mas_execution"
         const val LOG_SERVER_URL = "tcp://localhost:5044"
         const val LOG_TO_FILE = false
         const val LOG_TO_CONSOLE = true

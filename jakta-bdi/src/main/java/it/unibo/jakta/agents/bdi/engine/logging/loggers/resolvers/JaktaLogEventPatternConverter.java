@@ -13,7 +13,7 @@ import org.apache.logging.log4j.util.PerformanceSensitive;
 import static it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.resolveObjectMessage;
 
 @Plugin(name = "JaktaLogEventPatternConverter", category = PatternConverter.CATEGORY)
-@ConverterKeys({"m", "msg", "message"})
+@ConverterKeys({"d", "descr", "description"})
 @PerformanceSensitive("allocation")
 public class JaktaLogEventPatternConverter extends LogEventPatternConverter {
     private final MessagePatternConverter internalConverter;

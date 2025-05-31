@@ -13,7 +13,7 @@ sealed interface GoalEvent : AgentEvent {
     data class GoalAchieved(
         val goal: Goal,
         val planID: PlanID,
-        override val description: String,
+        override val description: String?,
     ) : GoalEvent {
         constructor(goal: Goal, planID: PlanID) : this(goal, planID, "Achieved goal $goal")
     }

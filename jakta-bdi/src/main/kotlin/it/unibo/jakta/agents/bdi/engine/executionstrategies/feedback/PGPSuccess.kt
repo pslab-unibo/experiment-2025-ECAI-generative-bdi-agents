@@ -3,6 +3,7 @@ package it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback
 import it.unibo.jakta.agents.bdi.engine.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.goalFormatter
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.triggerFormatter
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
@@ -17,7 +18,7 @@ sealed interface PGPSuccess : PositiveFeedback {
     data class GenerationRequested(
         val generationStrategy: GenerationStrategy?,
         val goal: GeneratePlan,
-        override val description: String,
+        override val description: String?,
     ) : PGPSuccess {
         constructor(generationStrategy: GenerationStrategy?, goal: GeneratePlan) : this(
             generationStrategy,
@@ -33,7 +34,7 @@ sealed interface PGPSuccess : PositiveFeedback {
         val plans: List<Plan>,
         val admissibleGoals: Iterable<AdmissibleGoal>,
         val admissibleBeliefs: Iterable<AdmissibleBelief>,
-        override val description: String,
+        override val description: String?,
     ) : PGPSuccess {
         constructor(
             goal: GeneratePlan,
@@ -46,7 +47,7 @@ sealed interface PGPSuccess : PositiveFeedback {
             admissibleGoals,
             admissibleBeliefs,
             "The goal ${goalFormatter.format(goal)} was successfully generated with the following plans: " +
-                plans.joinToString(", ") { it.toString() },
+                plans.joinToString(", ") { triggerFormatter.format(it.trigger) },
         )
     }
 }

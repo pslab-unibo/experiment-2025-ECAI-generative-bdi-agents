@@ -56,8 +56,10 @@ import it.unibo.jakta.agents.bdi.engine.serialization.FallbackSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.RuleSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.SignatureSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.StructSerializer
+import it.unibo.jakta.agents.bdi.engine.serialization.VarSerializer
 import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
+import it.unibo.tuprolog.core.Var
 import it.unibo.tuprolog.solve.Signature
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -68,6 +70,7 @@ import org.koin.core.annotation.Single
 class JaktaJsonModule : SerializersModuleProvider {
     override val modules =
         SerializersModule {
+            contextual(Var::class, VarSerializer)
             contextual(Struct::class, StructSerializer)
             contextual(Rule::class, RuleSerializer)
             contextual(Signature::class, SignatureSerializer)
@@ -78,8 +81,10 @@ class JaktaJsonModule : SerializersModuleProvider {
                 subclass(GoalFailure.InvalidActionArityError::class)
                 subclass(GoalFailure.ActionSubstitutionFailure::class)
                 subclass(GoalFailure.ActionNotFound::class)
+                subclass(GoalFailure.ActionFailure::class)
                 subclass(GoalFailure.TestGoalFailureFeedback::class)
                 subclass(GoalSuccess.GoalExecutionSuccess::class)
+                subclass(GoalSuccess.ActionSuccess::class)
                 subclass(NegativeFeedback.InapplicablePlan::class)
                 subclass(NegativeFeedback.PlanNotFound::class)
                 subclass(PGPFailure.GenericGenerationFailure::class)
@@ -93,7 +98,7 @@ class JaktaJsonModule : SerializersModuleProvider {
                 subclass(IntentionEvent.AssignPlanToNewIntention::class)
                 subclass(IntentionEvent.AssignPlanToExistingIntention::class)
                 subclass(IntentionEvent.IntentionGoalRun::class)
-                subclass(MessageEvent.NewMessage::class)
+                subclass(MessageEvent.MessageReceived::class)
                 subclass(PlanEvent.PlanSelected::class)
 
                 // Agent Change

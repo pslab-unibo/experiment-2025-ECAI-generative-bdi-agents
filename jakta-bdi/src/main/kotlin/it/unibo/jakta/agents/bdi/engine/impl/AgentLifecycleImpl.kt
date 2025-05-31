@@ -59,7 +59,7 @@ import it.unibo.jakta.agents.bdi.engine.logging.events.IntentionEvent.AssignPlan
 import it.unibo.jakta.agents.bdi.engine.logging.events.IntentionEvent.AssignPlanToNewIntention
 import it.unibo.jakta.agents.bdi.engine.logging.events.IntentionEvent.IntentionGoalRun
 import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
-import it.unibo.jakta.agents.bdi.engine.logging.events.MessageEvent.NewMessage
+import it.unibo.jakta.agents.bdi.engine.logging.events.MessageEvent.MessageReceived
 import it.unibo.jakta.agents.bdi.engine.logging.events.PlanEvent.PlanSelected
 import it.unibo.jakta.agents.bdi.engine.messages.Tell
 import it.unibo.jakta.agents.bdi.engine.plangeneration.manager.GenerationManager
@@ -70,7 +70,7 @@ import it.unibo.jakta.agents.fsm.Activity
 internal data class AgentLifecycleImpl(
     override var agent: Agent,
 ) : AgentLifecycle {
-    private var cycleCount = 0
+    override var cycleCount = 0L
     private var controller: Activity.Controller? = null
     private var cachedEffects = emptyList<EnvironmentChange>()
     private val isSourceIgnored = agent.generationStrategy != null
@@ -491,7 +491,7 @@ internal data class AgentLifecycleImpl(
 
         // Parse message
         if (message != null) {
-            log(NewMessage(message = message))
+            log(MessageReceived(message = message))
             newEvents =
                 when (message.type) {
                     is it.unibo.jakta.agents.bdi.engine.messages.Achieve -> {

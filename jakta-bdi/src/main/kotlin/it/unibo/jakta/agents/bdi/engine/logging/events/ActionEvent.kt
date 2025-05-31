@@ -15,13 +15,13 @@ sealed interface ActionEvent : AgentEvent {
         val action: Action<*, *, *>? = null,
         val actionType: String,
         val actionName: String,
-        override val description: String,
+        override val description: String?,
     ) : ActionEvent {
         constructor(action: Action<*, *, *>) : this(
             action,
             actionType(action),
             action.signature.name,
-            "Added ${actionType(action)} action ${action.signature.name}",
+            "Added ${actionType(action)} action: ${action.signature.name}",
         )
     }
 

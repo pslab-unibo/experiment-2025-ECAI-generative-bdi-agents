@@ -34,10 +34,9 @@ interface JaktaLogger {
         @JvmStatic
         fun resolveObjectMessage(message: ObjectMessage): String {
             val param = message.parameter
-            return if (param is JaktaLogEventContainer) {
-                param.event.description
-            } else {
-                param.toString()
+            return when (param) {
+                is JaktaLogEventContainer -> param.event.description ?: ""
+                else -> param.toString()
             }
         }
 
@@ -54,15 +53,17 @@ interface JaktaLogger {
                 return
             }
 
-            if (param is JaktaLogEventContainer) {
-                try {
-                    val jsonString = json.encodeToString(param)
-                    jsonWriter.writeRawString(jsonString)
-                } catch (_: Exception) {
-                    jsonWriter.writeString(param.toString())
+            when (param) {
+                is JaktaLogEventContainer -> {
+                    try {
+                        val jsonString = json.encodeToString(JaktaLogEventContainer.serializer(), param)
+                        jsonWriter.writeRawString(jsonString)
+                    } catch (e: Exception) {
+                        jsonWriter.writeString(param.toString())
+                    }
                 }
-            } else {
-                jsonWriter.writeString(param.toString())
+
+                else -> jsonWriter.writeString(param.toString())
             }
         }
 

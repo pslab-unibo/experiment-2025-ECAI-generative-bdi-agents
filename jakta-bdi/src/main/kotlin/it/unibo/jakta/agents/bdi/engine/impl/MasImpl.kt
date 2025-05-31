@@ -31,6 +31,8 @@ internal class MasImpl(
 ) : Mas {
     override fun start() = executionStrategy.dispatch(this)
 
+    override fun stop() = executionStrategy.shutdown()
+
     override fun applyEnvironmentEffects(effects: Iterable<EnvironmentChange>) =
         effects.forEach {
             logger?.log { it }

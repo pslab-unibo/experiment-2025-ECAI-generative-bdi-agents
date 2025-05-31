@@ -34,14 +34,14 @@ object LoggerFactory {
             val levelHighlight =
                 "%highlight{%level}{FATAL=red blink, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue, TRACE=cyan}"
             val loggerStyle = "%style{%logger{36}}{yellow}"
-            val message = "- %msg%n"
+            val message = "- %description%n"
             val fullPattern = "$levelHighlight $loggerStyle $message"
             addAttribute("pattern", fullPattern)
         }
 
     val logFilePatternLayout: LayoutComponentBuilder =
         configBuilder.newLayout("PatternLayout").apply {
-            addAttribute("pattern", "%d [%t] %-5level %logger - %msg%n")
+            addAttribute("pattern", "%d{yyyy-MM-dd HH:mm:ss.nnnnnn}%d{XXX} [%t] %-5level %logger - %description%n")
         }
 
     const val CONSOLE_APPENDER_NAME = "Console"

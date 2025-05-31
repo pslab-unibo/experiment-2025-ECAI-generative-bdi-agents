@@ -9,6 +9,6 @@ sealed interface PGPFailure : NegativeFeedback {
     @Serializable
     @SerialName("GenericGenerationFailure")
     data class GenericGenerationFailure(
-        override val description: String,
+        override val description: String?,
     ) : PGPFailure
 }
