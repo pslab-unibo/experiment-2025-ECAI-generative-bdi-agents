@@ -23,7 +23,7 @@ object BeliefMetadata {
     fun Belief.meaning(block: BeliefContext.() -> String): Belief {
         val context = BeliefContext(this)
         val purpose = context.block()
-        return this.copy(purpose = purpose)
+        return copy(purpose = purpose)
     }
 
     fun Fact.meaning(block: BeliefContext.() -> String): Belief {

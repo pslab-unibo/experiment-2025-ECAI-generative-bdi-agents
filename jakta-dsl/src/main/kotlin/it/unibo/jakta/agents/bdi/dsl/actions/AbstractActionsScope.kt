@@ -1,7 +1,6 @@
 package it.unibo.jakta.agents.bdi.dsl.actions
 
 import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
-import it.unibo.jakta.agents.bdi.dsl.actions.ActionMetadata.ActionContext
 import it.unibo.jakta.agents.bdi.engine.actions.Action
 import it.unibo.jakta.agents.bdi.engine.actions.ActionRequest
 import it.unibo.jakta.agents.bdi.engine.actions.ActionResponse
@@ -31,7 +30,7 @@ abstract class AbstractActionsScope<C, Res, Req, A, As> :
 
     fun action(
         name: String,
-        arity: Int,
+        arity: Int = 0,
         f: As.() -> Unit,
     ) = newAction(name, arity, emptyList(), f = f).also { actions += it }
 
@@ -48,18 +47,11 @@ abstract class AbstractActionsScope<C, Res, Req, A, As> :
 
     fun action(action: A) = action.also { actions += it }
 
-    fun Action<*, *, *>.meaning(block: ActionContext.() -> String): Action<*, *, *> {
-        val context = ActionContext(this)
-        val purpose = context.block()
-        this.purpose = purpose
-        return this
-    }
-
     protected abstract fun newAction(
         name: String,
         arity: Int,
         parameterNames: List<String> = emptyList(),
-        purpose: String? = null,
+        purpose: String? = "$name $parameterNames",
         f: As.() -> Unit,
     ): A
 

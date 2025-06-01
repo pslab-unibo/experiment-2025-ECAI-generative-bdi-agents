@@ -40,8 +40,8 @@ fun environment(f: EnvironmentScope.() -> Unit): Environment = EnvironmentScope(
 
 @JaktaDSL
 fun agent(
-    masID: MasID = MasID(),
     name: String,
+    masID: MasID = MasID(),
     f: AgentScope.() -> Unit,
 ): Agent = AgentScope(masID, name).also(f).build()
 

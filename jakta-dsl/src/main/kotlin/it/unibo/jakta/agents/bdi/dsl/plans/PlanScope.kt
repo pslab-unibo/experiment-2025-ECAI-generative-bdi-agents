@@ -19,7 +19,7 @@ data class PlanScope(
     private val triggerDescription: String? = null,
     private val failure: Boolean = false,
 ) {
-    private val trigger = Trigger.fromStruct(triggerStruct, triggerType, failure)
+    internal var trigger = Trigger.fromStruct(triggerStruct, triggerType, failure)
     private var guard: Struct = Truth.TRUE
     private var goals: List<Goal> = mutableListOf()
     var generationConfig: GenerationConfig? = null
