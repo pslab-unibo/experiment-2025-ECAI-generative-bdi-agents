@@ -13,7 +13,7 @@ import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
 import it.unibo.tuprolog.core.visitors.DefaultTermVisitor
 import kotlinx.serialization.Serializable
 
-class JaktaConventionTest :
+class JaktaDeclarationTest :
     FreeSpec({
         "implementation classes should have Impl suffix and reside in impl package" {
             projectScope
@@ -34,21 +34,21 @@ class JaktaConventionTest :
         "classes implementing the ScopeBuilder interface must have the suffix Scope" {
             projectScope
                 .classes()
-                .withParentInterfaceOf(ScopeBuilder::class)
+                .withParentInterfaceOf(ScopeBuilder::class, indirectParents = true)
                 .assertTrue { it.hasNameEndingWith("Scope") }
         }
 
         "classes extending the DefaultTermVisitor must have the suffix Visitor" {
             projectScope
                 .classes()
-                .withParentInterfaceOf(DefaultTermVisitor::class)
+                .withParentInterfaceOf(DefaultTermVisitor::class, indirectParents = true)
                 .assertTrue { it.hasNameEndingWith("Visitor") }
         }
 
         "classes extending JaktaLogEvent must be serializable" {
             projectScope
                 .classes()
-                .withParentInterfaceOf(JaktaLogEvent::class)
+                .withParentInterfaceOf(JaktaLogEvent::class, indirectParents = true)
                 .assertTrue { it.hasAnnotationOf(Serializable::class) }
         }
 

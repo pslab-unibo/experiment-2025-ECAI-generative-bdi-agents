@@ -2,8 +2,8 @@ dependencies {
     testImplementation(libs.konsist)
     testImplementation(libs.kotlinx.serialization.json)
 
-    api(project(":jakta-state-machine"))
-    api(project(":jakta-plan-generation"))
-    api(project(":jakta-bdi"))
-    api(project(":jakta-dsl"))
+    testImplementation(project(":jakta-state-machine"))
+    testImplementation(project(":jakta-plan-generation"))
+    testImplementation(project(":jakta-bdi"))
+    testImplementation(project(":jakta-dsl"))
 }
