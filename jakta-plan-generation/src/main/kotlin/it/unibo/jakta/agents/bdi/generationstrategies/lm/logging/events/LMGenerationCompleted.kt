@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @SerialName("LMGenerationCompleted")
 data class LMGenerationCompleted(
     val chatMessage: ChatMessage,
-    override val description: String,
+    override val description: String?,
 ) : PlanGenProcedureEvent {
     constructor(chatMessage: ChatMessage) : this(chatMessage, "New chat message")
 }

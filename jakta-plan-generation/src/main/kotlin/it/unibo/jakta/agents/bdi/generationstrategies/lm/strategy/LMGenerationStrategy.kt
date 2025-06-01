@@ -13,7 +13,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig.LMGe
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.generation.LMPlanGenerator
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestHandler
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.StreamProcessor
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestProcessor
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.impl.LMGenerationStrategyImpl
 
 interface LMGenerationStrategy : GenerationStrategy {
@@ -31,8 +31,8 @@ interface LMGenerationStrategy : GenerationStrategy {
 
         fun of(lmGenCfg: LMGenerationConfigContainer): LMGenerationStrategy {
             val api = createOpenAIApi(lmGenCfg)
-            val streamProcessor = StreamProcessor.of()
-            val requestHandler = RequestHandler.of(lmGenCfg, api, streamProcessor)
+            val requestProcessor = RequestProcessor.of()
+            val requestHandler = RequestHandler.of(lmGenCfg, api, requestProcessor)
             val responseParser = Parser.of()
             val planGenerator = LMPlanGenerator.of(requestHandler, responseParser)
 

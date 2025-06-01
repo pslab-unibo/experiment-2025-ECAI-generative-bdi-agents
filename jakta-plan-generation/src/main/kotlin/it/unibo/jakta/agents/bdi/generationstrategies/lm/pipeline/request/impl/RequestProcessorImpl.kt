@@ -7,11 +7,11 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.NetworkRequestFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.StreamProcessor
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestProcessor
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 
-internal class StreamProcessorImpl : StreamProcessor {
+internal class RequestProcessorImpl : RequestProcessor {
     override suspend fun requestGeneration(
         api: OpenAI,
         request: ChatCompletionRequest,

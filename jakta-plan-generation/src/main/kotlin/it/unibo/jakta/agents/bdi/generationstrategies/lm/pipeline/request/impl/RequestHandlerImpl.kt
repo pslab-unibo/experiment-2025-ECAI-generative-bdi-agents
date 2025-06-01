@@ -10,11 +10,11 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.NetworkRequestFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestHandler
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.StreamProcessor
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestProcessor
 
 internal class RequestHandlerImpl(
     override val api: OpenAI?,
-    override val streamProcessor: StreamProcessor,
+    override val requestProcessor: RequestProcessor,
     override val generationConfig: LMGenerationConfigContainer,
 ) : RequestHandler {
     override suspend fun requestTextCompletion(
@@ -23,7 +23,7 @@ internal class RequestHandlerImpl(
     ): ParserResult =
         if (api != null) {
             val request = makeTextCompletionRequest(generationConfig, generationState)
-            streamProcessor.requestGeneration(api, request, generationState.logger, parser).also {
+            requestProcessor.requestGeneration(api, request, generationState.logger, parser).also {
                 generationState.logger?.log { LMGenerationRequested(generationConfig) }
             }
         } else {

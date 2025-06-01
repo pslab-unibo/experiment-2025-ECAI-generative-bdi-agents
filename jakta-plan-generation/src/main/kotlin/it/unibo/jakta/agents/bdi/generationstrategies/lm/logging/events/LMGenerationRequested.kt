@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @SerialName("LMGenerationRequested")
 data class LMGenerationRequested(
     val genConfig: LMGenerationConfig,
-    override val description: String,
+    override val description: String?,
 ) : PlanGenProcedureEvent {
     constructor(genConfig: LMGenerationConfig) : this(genConfig, "LM Generation requested")
 }
