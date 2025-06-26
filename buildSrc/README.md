@@ -40,3 +40,12 @@ To initialize the DVC repo:
 # use --subdir if initializing inside a subdirectory of a parent SCM repository
 ./gradlew dvc -Pargs="init --subdir"
 ```
+
+To set up a remote, refer to: https://dvc.org/doc/user-guide/data-management/remote-storage.
+
+To push or pull data (given that a remote has been set up):
+
+```shell
+./gradlew dvc -Pargs="push"
+./gradlew dvc -Pargs="pull"
+```
