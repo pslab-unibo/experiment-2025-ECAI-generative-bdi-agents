@@ -11,5 +11,8 @@ data class LMGenerationRequested(
     val genConfig: LMGenerationConfig,
     override val description: String?,
 ) : PlanGenProcedureEvent {
-    constructor(genConfig: LMGenerationConfig) : this(genConfig, "LM Generation requested")
+    constructor(genConfig: LMGenerationConfig) : this(
+        genConfig,
+        "LM Generation requested",
+    )
 }

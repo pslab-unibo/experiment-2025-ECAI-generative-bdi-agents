@@ -16,21 +16,26 @@ import it.unibo.jakta.agents.bdi.engine.goals.EmptyGoal
 import it.unibo.jakta.agents.bdi.engine.plans.PlanID
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.GuardParser.processGuard
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.AdmissibleBeliefParseFailure
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.AdmissibleGoalParseFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.EmptyResponse
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.GenericParserFailure
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserSuccess.NewPlan
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserSuccess.NewResult
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.GenericParseFailure
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.PlanParseFailure
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestSuccess.NewPlan
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestSuccess.NewResult
 import kotlinx.serialization.builtins.ListSerializer
 
 internal class ParserImpl : Parser {
     private val yaml = Yaml.default
 
-    override fun parse(input: String): ParserResult {
+    override fun parse(input: String): RequestResult {
         val blocks = extractCodeBlocks(input)
         val newPlans = mutableListOf<NewPlan>()
         val newAdmissibleBeliefs = mutableSetOf<AdmissibleBelief>()
         val newAdmissibleGoals = mutableSetOf<AdmissibleGoal>()
+        val errors = mutableListOf<ParserFailure>()
 
         val parsedBlocks =
             blocks.map { content ->
@@ -49,51 +54,58 @@ internal class ParserImpl : Parser {
                         try {
                             yaml.decodeFromString(ListSerializer(TemplateData.serializer()), processedContent)
                         } catch (_: Exception) {
+                            errors.add(GenericParseFailure(content))
                             emptyList()
                         }
                     }
                 }
             }
 
-        val error = parsedBlocks.filterIsInstance<GenericParserFailure>().firstOrNull()
-        return if (error != null) {
-            error
-        } else {
-            parsedBlocks.forEach {
-                when (it) {
-                    is List<*> ->
-                        it.filterIsInstance<TemplateData>().forEach { template ->
-                            when (template) {
-                                is BeliefTemplate -> {
-                                    val struct = tangleStruct(template.belief)
-                                    struct?.let { v ->
-                                        newAdmissibleBeliefs.add(
-                                            AdmissibleBelief.wrap(
-                                                v,
-                                                wrappingTag = SOURCE_SELF,
-                                                purpose = template.purpose,
-                                            ),
-                                        )
-                                    }
+        parsedBlocks.forEach {
+            when (it) {
+                is List<*> ->
+                    it.filterIsInstance<TemplateData>().forEach { template ->
+                        when (template) {
+                            is BeliefTemplate -> {
+                                val struct = tangleStruct(template.belief)
+                                struct?.let { v ->
+                                    newAdmissibleBeliefs.add(
+                                        AdmissibleBelief.wrap(
+                                            v,
+                                            wrappingTag = SOURCE_SELF,
+                                            purpose = template.purpose,
+                                        ),
+                                    )
+                                } ?: run {
+                                    errors.add(AdmissibleBeliefParseFailure(template.belief))
                                 }
-                                is GoalTemplate -> {
-                                    val trigger =
-                                        parseTriggerWithAchieveFallback(template.goal)
-                                            ?.copy(purpose = template.purpose)
-                                    trigger?.let { t -> newAdmissibleGoals.add(AdmissibleGoal(t)) }
+                            }
+                            is GoalTemplate -> {
+                                val trigger =
+                                    parseTriggerWithAchieveFallback(template.goal)
+                                        ?.copy(purpose = template.purpose)
+                                trigger?.let { t -> newAdmissibleGoals.add(AdmissibleGoal(t)) } ?: run {
+                                    errors.add(AdmissibleGoalParseFailure(template.goal))
                                 }
                             }
                         }
-                    is PlanData -> convertToPlan(it)?.let { p -> newPlans.add(p) }
-                    else -> it
-                }
+                    }
+                is PlanData ->
+                    convertToPlan(it)
+                        ?.let { p -> newPlans.add(p) } ?: run {
+                        errors.add(PlanParseFailure(it))
+                    }
+                else -> it
             }
+        }
 
-            if (newPlans.isEmpty() && newAdmissibleBeliefs.isEmpty() && newAdmissibleGoals.isEmpty()) {
-                EmptyResponse(input)
-            } else {
-                NewResult(newPlans, newAdmissibleGoals, newAdmissibleBeliefs, input)
-            }
+        return if (newPlans.isEmpty() &&
+            newAdmissibleBeliefs.isEmpty() &&
+            newAdmissibleGoals.isEmpty()
+        ) {
+            EmptyResponse(input, errors)
+        } else {
+            NewResult(newPlans, newAdmissibleGoals, newAdmissibleBeliefs, input, errors)
         }
     }
 
@@ -122,7 +134,7 @@ internal class ParserImpl : Parser {
     }
 
     /**
-     * Tries to parse the input as a [Trigger] or as a [AchievementGoalInvocation].
+     * Tries to parse the input as a [Trigger] with [AchievementGoalInvocation] as fallback.
      */
     private fun parseTriggerWithAchieveFallback(input: String): Trigger? =
         tangleTrigger(input) ?: tangleStruct(input)?.let { AchievementGoalInvocation(it) }

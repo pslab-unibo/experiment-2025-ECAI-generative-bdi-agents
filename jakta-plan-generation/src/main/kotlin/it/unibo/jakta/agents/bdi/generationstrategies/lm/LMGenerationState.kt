@@ -1,9 +1,9 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm
 
 import com.aallam.openai.api.chat.ChatMessage
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationState
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.PGPLogger
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationState
 
 data class LMGenerationState(
     override val goal: GeneratePlan,

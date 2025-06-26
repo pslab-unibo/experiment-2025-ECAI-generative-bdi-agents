@@ -1,15 +1,29 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result
 
-sealed interface ParserFailure : ParserResult {
-    data class GenericParserFailure(
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.impl.PlanData
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestFailure
+
+sealed interface ParserFailure : RequestFailure {
+    data class GenericParseFailure(
         override val rawContent: String,
     ) : ParserFailure
 
+    data class AdmissibleGoalParseFailure(
+        override val rawContent: String,
+    ) : ParserFailure
+
+    data class AdmissibleBeliefParseFailure(
+        override val rawContent: String,
+    ) : ParserFailure
+
+    data class PlanParseFailure(
+        val planData: PlanData,
+    ) : ParserFailure {
+        override val rawContent = ""
+    }
+
     data class EmptyResponse(
         override val rawContent: String,
-    ) : ParserSuccess
-
-    data class NetworkRequestFailure(
-        override val rawContent: String,
-    ) : ParserSuccess
+        val parsingErrors: List<ParserFailure> = emptyList(),
+    ) : ParserFailure
 }

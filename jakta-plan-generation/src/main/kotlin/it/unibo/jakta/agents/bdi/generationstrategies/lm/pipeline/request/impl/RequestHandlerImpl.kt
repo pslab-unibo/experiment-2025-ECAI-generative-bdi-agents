@@ -7,10 +7,10 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig.LMGe
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationState
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMGenerationRequested
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.NetworkRequestFailure
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestHandler
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestProcessor
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestFailure
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
 
 internal class RequestHandlerImpl(
     override val api: OpenAI?,
@@ -20,14 +20,14 @@ internal class RequestHandlerImpl(
     override suspend fun requestTextCompletion(
         generationState: LMGenerationState,
         parser: Parser,
-    ): ParserResult =
+    ): RequestResult =
         if (api != null) {
             val request = makeTextCompletionRequest(generationConfig, generationState)
             requestProcessor.requestGeneration(api, request, generationState.logger, parser).also {
                 generationState.logger?.log { LMGenerationRequested(generationConfig) }
             }
         } else {
-            NetworkRequestFailure("No API specified")
+            RequestFailure.NetworkRequestFailure("No API specified")
         }
 
     private fun makeTextCompletionRequest(

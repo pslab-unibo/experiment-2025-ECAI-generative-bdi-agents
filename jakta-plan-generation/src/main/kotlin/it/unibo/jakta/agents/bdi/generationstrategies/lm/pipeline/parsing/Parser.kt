@@ -1,12 +1,12 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing
 
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.impl.ParserImpl
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
 
-interface Parser {
-    fun parse(input: String): ParserResult
+fun interface Parser {
+    fun parse(input: String): RequestResult
 
     companion object {
-        fun of(): Parser = ParserImpl()
+        fun create(): Parser = ParserImpl()
     }
 }

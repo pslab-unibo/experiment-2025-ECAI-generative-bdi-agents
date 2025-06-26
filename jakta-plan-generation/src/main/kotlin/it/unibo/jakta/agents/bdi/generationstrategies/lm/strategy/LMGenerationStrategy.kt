@@ -6,8 +6,8 @@ import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import com.aallam.openai.client.OpenAIHost
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationState
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationState
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig.LMGenerationConfigContainer
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.generation.LMPlanGenerator
@@ -33,7 +33,7 @@ interface LMGenerationStrategy : GenerationStrategy {
             val api = createOpenAIApi(lmGenCfg)
             val requestProcessor = RequestProcessor.of()
             val requestHandler = RequestHandler.of(lmGenCfg, api, requestProcessor)
-            val responseParser = Parser.of()
+            val responseParser = Parser.create()
             val planGenerator = LMPlanGenerator.of(requestHandler, responseParser)
 
             return LMGenerationStrategyImpl(planGenerator, lmGenCfg)

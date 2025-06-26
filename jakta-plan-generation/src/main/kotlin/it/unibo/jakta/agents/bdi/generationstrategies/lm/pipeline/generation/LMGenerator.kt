@@ -2,26 +2,26 @@ package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.generation
 
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationResult
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationState
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.engine.plangeneration.Generator
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationResult
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationState
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.Generator
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationState
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMGenerationCompleted
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMMessageReceived
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.GenericParserFailure
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestHandler
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestFailure
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.LMGenerationStrategy
 
 interface LMGenerator : Generator {
     val requestHandler: RequestHandler
     val responseParser: Parser
 
-    fun handleParserResults(
+    fun handleRequestResult(
         generationStrategy: LMGenerationStrategy,
-        generationResult: ParserResult,
+        requestResult: RequestResult,
         generationState: LMGenerationState,
     ): GenerationResult
 
@@ -51,16 +51,16 @@ interface LMGenerator : Generator {
                         .copy(
                             chatHistory = generationState.chatHistory + chatMessage,
                         ).also {
-                            generationState.logger?.log { LMGenerationCompleted(chatMessage) }
+                            generationState.logger?.log { LMMessageReceived(chatMessage) }
                         }
 
-                handleParserResults(generationStrategy, generationResult, updatedState)
+                handleRequestResult(generationStrategy, generationResult, updatedState)
             }
         }
     }
 
-    fun handleParsingFailure(
-        generationResult: GenericParserFailure,
+    fun handleRequestFailure(
+        generationResult: RequestFailure,
         generationState: LMGenerationState,
     ): GenerationResult {
         val errorMsg = "Failed parsing"
@@ -72,7 +72,7 @@ interface LMGenerator : Generator {
                 ),
             errorMsg = errorMsg,
         ).also {
-            generationState.logger?.log { LMGenerationCompleted(newMessage) }
+            generationState.logger?.log { LMMessageReceived(newMessage) }
         }
     }
 }

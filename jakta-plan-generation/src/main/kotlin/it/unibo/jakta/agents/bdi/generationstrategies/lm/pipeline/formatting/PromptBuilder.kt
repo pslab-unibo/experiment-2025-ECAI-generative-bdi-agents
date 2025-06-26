@@ -8,6 +8,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.Remark
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.AgentContextProperties
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.PromptScope
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.ContextFilter
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.ContextFilter.Companion.applyAllTo
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.ExtendedAgentContext
 
 interface PromptBuilder {
@@ -15,18 +16,22 @@ interface PromptBuilder {
         initialGoal: GeneratePlan,
         context: AgentContext,
         externalActions: List<ExternalAction> = emptyList(),
-        contextFilter: ContextFilter? = null,
+        contextFilters: List<ContextFilter> = emptyList(),
         remarks: Iterable<Remark> = emptyList(),
     ): ChatMessage
 
     companion object {
         fun <T> formatAsBulletList(
             items: Iterable<T>,
-            formatter: (Iterable<T>) -> List<String>,
+            formatter: (T) -> String?,
         ): String? {
-            val res = formatter(items)
-            return if (res.isNotEmpty()) {
-                res.filter { it.isNotBlank() }.joinToString(separator = "\n") { "- $it" }
+            val formattedItems =
+                items
+                    .mapNotNull(formatter)
+                    .filter { it.isNotBlank() }
+
+            return if (formattedItems.isNotEmpty()) {
+                formattedItems.joinToString("\n") { "- $it" }
             } else {
                 null
             }
@@ -38,11 +43,11 @@ interface PromptBuilder {
                     initialGoal: GeneratePlan,
                     context: AgentContext,
                     externalActions: List<ExternalAction>,
-                    contextFilter: ContextFilter?,
+                    contextFilters: List<ContextFilter>,
                     remarks: Iterable<Remark>,
                 ): ChatMessage {
                     val extendedContext = ExtendedAgentContext(initialGoal, context, externalActions)
-                    val filteredContext = contextFilter?.filter(extendedContext) ?: extendedContext
+                    val filteredContext = contextFilters.applyAllTo(extendedContext)
 
                     val filteredInternalActions =
                         filteredContext.context.internalActions.values

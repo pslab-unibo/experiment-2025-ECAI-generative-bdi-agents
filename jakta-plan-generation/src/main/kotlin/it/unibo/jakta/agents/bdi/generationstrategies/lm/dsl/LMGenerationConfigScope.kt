@@ -16,7 +16,7 @@ class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
     var requestTimeout: Duration? = null
     var connectTimeout: Duration? = null
     var socketTimeout: Duration? = null
-    var contextFilter: ContextFilter? = null
+    var contextFilters: List<ContextFilter> = emptyList()
     var promptBuilder: PromptBuilder? = null
 
     private val remarks = mutableListOf<Remark>()
@@ -36,7 +36,7 @@ class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
             maxTokens,
             url,
             token,
-            contextFilter,
+            contextFilters,
             promptBuilder,
             remarks,
             requestTimeout,

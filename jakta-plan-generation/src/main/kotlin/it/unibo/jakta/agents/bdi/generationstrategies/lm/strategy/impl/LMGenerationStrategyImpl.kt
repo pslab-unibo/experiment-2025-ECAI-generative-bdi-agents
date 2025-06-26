@@ -4,17 +4,17 @@ import it.unibo.jakta.agents.bdi.engine.AgentID
 import it.unibo.jakta.agents.bdi.engine.MasID
 import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.engine.context.AgentContext
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationResult
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationState
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.PgpID
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationResult
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationState
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.engine.plangeneration.PgpID
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationState
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMGenerationCompleted
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMMessageSent
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.loggers.LMPGPLogger
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.generation.LMPlanGenerator
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.LMGenerationStrategy
@@ -50,13 +50,14 @@ internal class LMGenerationStrategyImpl(
                 initialGoal,
                 context,
                 externalActions,
-                generationConfig.contextFilter,
+                generationConfig.contextFilters,
                 generationConfig.remarks,
             )
         val logger =
             loggingConfig?.let { cfg ->
                 if (masID != null && agentID != null) {
-                    val pgpID = PgpID()
+                    val name = RandomNameGenerator().randomName()
+                    val pgpID = PgpID(name = name)
                     LMPGPLogger.create(masID, agentID, pgpID, cfg)
                 } else {
                     null
@@ -68,7 +69,7 @@ internal class LMGenerationStrategyImpl(
             logger = logger,
             chatHistory = listOf(promptMsg),
         ).also {
-            logger?.log { LMGenerationCompleted(promptMsg) }
+            logger?.log { LMMessageSent(promptMsg) }
         }
     }
 
@@ -89,7 +90,7 @@ internal class LMGenerationStrategyImpl(
                 maxTokens = configUpdate.maxTokens ?: this.generationConfig.maxTokens,
                 lmServerUrl = configUpdate.lmServerUrl ?: this.generationConfig.lmServerUrl,
                 lmServerToken = configUpdate.lmServerToken ?: this.generationConfig.lmServerToken,
-                contextFilter = configUpdate.contextFilter ?: this.generationConfig.contextFilter,
+                contextFilters = configUpdate.contextFilters.ifEmpty { this.generationConfig.contextFilters },
                 promptBuilder = configUpdate.promptBuilder ?: this.generationConfig.promptBuilder,
                 remarks = mergedRemarks,
                 requestTimeout = configUpdate.requestTimeout ?: this.generationConfig.requestTimeout,

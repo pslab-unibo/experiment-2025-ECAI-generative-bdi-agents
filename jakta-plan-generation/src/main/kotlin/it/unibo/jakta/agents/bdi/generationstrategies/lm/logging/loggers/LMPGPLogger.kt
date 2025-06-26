@@ -2,24 +2,23 @@ package it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.loggers
 
 import it.unibo.jakta.agents.bdi.engine.AgentID
 import it.unibo.jakta.agents.bdi.engine.MasID
-import it.unibo.jakta.agents.bdi.engine.logging.LoggerFactory.addLogger
+import it.unibo.jakta.agents.bdi.engine.generation.PgpID
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
-import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig.Companion.LOG_NAME_SINGLE_FILE
-import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
+import it.unibo.jakta.agents.bdi.engine.logging.events.LogEvent
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.implementation
-import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.logger
+import it.unibo.jakta.agents.bdi.engine.logging.loggers.LoggerFactory
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.PGPLogger
-import it.unibo.jakta.agents.bdi.engine.logging.loggers.appenders.Appenders.buildAppenders
-import it.unibo.jakta.agents.bdi.engine.plangeneration.PgpID
 import org.apache.logging.log4j.Logger
 
 class LMPGPLogger(
     override val masID: MasID,
     override val agentID: AgentID,
     override val pgpID: PgpID,
-    override val logger: Logger,
+    private val delegate: LoggerFactory,
 ) : PGPLogger {
-    override fun log(event: () -> JaktaLogEvent) = logger.implementation(masID, event, agentID, pgpID)
+    override val logger: Logger get() = delegate.logger
+
+    override fun log(event: () -> LogEvent) = logger.implementation(masID, event, agentID, pgpID)
 
     companion object {
         fun create(
@@ -28,18 +27,19 @@ class LMPGPLogger(
             pgpID: PgpID,
             loggingConfig: LoggingConfig,
         ): LMPGPLogger {
-            val name =
+            val id =
                 if (loggingConfig.logToSingleFile) {
-                    LOG_NAME_SINGLE_FILE
+                    masID.id
                 } else {
-                    "pgp-${pgpID.id}"
+                    "${masID.id}-${agentID.name}-${agentID.id}-${pgpID.name}-${pgpID.id}"
                 }
-            val level = loggingConfig.logLevel
-            val appenders = buildAppenders(name, loggingConfig)
-
-            addLogger(name, level, appenders)
-            val logger = logger(name)
-            return LMPGPLogger(masID, agentID, pgpID, logger)
+            val delegate =
+                LoggerFactory.create(
+                    "Mas",
+                    id,
+                    loggingConfig,
+                )
+            return LMPGPLogger(masID, agentID, pgpID, delegate)
         }
     }
 }

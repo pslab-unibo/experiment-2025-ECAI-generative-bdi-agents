@@ -2,8 +2,8 @@ package it.unibo.jakta.agents.bdi.generationstrategies.lm
 
 import it.unibo.jakta.agents.bdi.engine.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationState
-import it.unibo.jakta.agents.bdi.engine.plangeneration.PlanGenerationResult
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationState
+import it.unibo.jakta.agents.bdi.engine.generation.manager.plangeneration.PlanGenerationResult
 import it.unibo.jakta.agents.bdi.engine.plans.PartialPlan
 
 class LMGenerationResult(

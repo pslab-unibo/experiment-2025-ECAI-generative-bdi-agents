@@ -31,6 +31,6 @@ internal object TemplateSerializer : YamlContentPolymorphicSerializer<TemplateDa
         when {
             node.yamlMap.getKey("belief") != null -> BeliefTemplate.serializer()
             node.yamlMap.getKey("goal") != null -> GoalTemplate.serializer()
-            else -> error("Unknown animal")
+            else -> error("Unknown template")
         }
 }
