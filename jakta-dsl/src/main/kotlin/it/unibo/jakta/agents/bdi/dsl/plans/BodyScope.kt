@@ -3,6 +3,7 @@ package it.unibo.jakta.agents.bdi.dsl.plans
 import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.goals.Achieve
 import it.unibo.jakta.agents.bdi.engine.goals.Act
 import it.unibo.jakta.agents.bdi.engine.goals.ActExternally
@@ -14,7 +15,6 @@ import it.unibo.jakta.agents.bdi.engine.goals.RemoveBelief
 import it.unibo.jakta.agents.bdi.engine.goals.Spawn
 import it.unibo.jakta.agents.bdi.engine.goals.Test
 import it.unibo.jakta.agents.bdi.engine.goals.UpdateBelief
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.tuprolog.core.Scope
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.dsl.jakta.JaktaLogicProgrammingScope
@@ -31,7 +31,7 @@ class BodyScope(
 ) : ScopeBuilder<List<Goal>>,
     JaktaLogicProgrammingScope by JaktaLogicProgrammingScope.of(lpScope) {
     /**
-     * The list of goals that the agent is going to execute in the during the plan execution.
+     * The list of goals that the agent is going to execute during the plan execution.
      */
     private val goals = mutableListOf<Goal>()
 
@@ -45,7 +45,7 @@ class BodyScope(
 
     /**
      * Handler for the creation of a [Test] Goal.
-     * @param goal the [String] representing the [Atom] that describes the agent's [Goal] trigger.
+     * @param goal the [String] representing the [it.unibo.tuprolog.core.Atom] that describes the agent's [Goal] trigger.
      */
     fun test(goal: String) = test(atomOf(goal))
 
@@ -65,11 +65,39 @@ class BodyScope(
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
     fun generate(
+        goal: String,
+        parallel: Boolean = false,
+    ) {
+        val genGoal = GeneratePlan.of(Achieve.of(Struct.of(goal)), generationConfig)
+        goals += if (parallel) Spawn.of(genGoal) else genGoal
+    }
+
+    /**
+     * Handler for the creation of a [GeneratePlan] Goal, optionally deciding to force the allocation on a new intention.
+     * The allocation of a goal in a fresh intention enables internal lifecycle concurrency.
+     * @param goal the [Struct] that describes the Goal to [GeneratePlan].
+     * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
+     */
+    fun generate(
+        goal: Struct,
+        parallel: Boolean = false,
+    ) {
+        val genGoal = GeneratePlan.of(Achieve.of(goal), generationConfig)
+        goals += if (parallel) Spawn.of(genGoal) else genGoal
+    }
+
+    /**
+     * Handler for the creation of a [GeneratePlan] Goal, optionally deciding to force the allocation on a new intention.
+     * The allocation of a goal in a fresh intention enables internal lifecycle concurrency.
+     * @param goal the [Struct] that describes the Goal to [GeneratePlan].
+     * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
+     */
+    fun generate(
         goal: Goal,
         parallel: Boolean = false,
     ) {
         val genGoal = GeneratePlan.of(goal, generationConfig)
-        goals += if (parallel) Spawn.of(genGoal) else genGoal
+        if (parallel) spawn(genGoal) else goals += genGoal
     }
 
     /**
@@ -88,7 +116,7 @@ class BodyScope(
     /**
      * Handler for the creation of an [Achieve] Goal, optionally deciding to force the allocation on a new intention.
      * The allocation of a goal in a fresh intention enables internal lifecycle concurrency.
-     * @param goal the [String] representing the [Atom] that describes the Goal to [Achieve].
+     * @param goal the [String] representing the [it.unibo.tuprolog.core.Atom] that describes the Goal to [Achieve].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
     fun achieve(
@@ -97,14 +125,14 @@ class BodyScope(
     ) = achieve(atomOf(goal), parallel)
 
     /**
-     * Handler for the addition of a [Belief] in the [BeliefBase] annotated with self source.
+     * Handler for the addition of a [Belief] in the [it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase] annotated with self source.
      */
     operator fun Struct.unaryPlus() = add(this)
 
     operator fun String.unaryPlus() = add(atomOf(this))
 
     /**
-     * Handler for the creation of a [Belief] in the [BeliefBase] annotated with self source.
+     * Handler for the creation of a [Belief] in the [it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase] annotated with self source.
      * @param belief the [Struct] from which the [Belief] is created.
      */
     fun add(belief: Struct) {
@@ -112,19 +140,19 @@ class BodyScope(
     }
 
     /**
-     * Handler for the creation of a [Belief] in the [BeliefBase] annotated with self source.
+     * Handler for the creation of a [Belief] in the [it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase] annotated with self source.
      * @param belief the [String] from which the [Belief] is created.
      */
     fun add(belief: String) = add(atomOf(belief))
 
     /**
-     * Handler for the removal of a [Belief] from the [BeliefBase].
+     * Handler for the removal of a [Belief] from the [it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase].
      * The annotation of the [Belief] needs to be explicit.
      */
     operator fun Struct.unaryMinus() = remove(this)
 
     /**
-     * Handler for the removal of a [Belief] from the [BeliefBase].
+     * Handler for the removal of a [Belief] from the [it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase].
      * The annotation of the [Belief] needs to be explicit.
      */
     fun remove(belief: Struct) {
@@ -134,7 +162,7 @@ class BodyScope(
     fun remove(belief: String) = remove(atomOf(belief))
 
     /**
-     * Handler for the update of a [Belief] value in the [BeliefBase].
+     * Handler for the update of a [Belief] value in the [it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase].
      * The annotation of the [Belief] needs to be explicit.
      */
     fun update(belief: Struct) {
@@ -145,9 +173,9 @@ class BodyScope(
 
     /**
      * Handler for the creation of [Act] goal, which firstly look for action definition
-     * into the [InternalActions] and the in the [ExternalActions], declared in the environment.
+     * into the [it.unibo.jakta.agents.bdi.engine.actions.InternalActions] and the in the [ExternalAction]s, declared in the environment.
      * @param struct the [Struct] that invokes the action.
-     * @param externalOnly forces to search for action body only into [ExternalActions].
+     * @param externalOnly forces to search for action body only into [ExternalAction]s.
      */
     fun execute(
         struct: Struct,
@@ -158,10 +186,10 @@ class BodyScope(
 
     /**
      * Handler for the creation of [Act] goal, which firstly look for action definition
-     * into the [InternalActions] and the in the [ExternalActions], declared in the environment.
-     * It firstly watches into the [InternalActions] and the in the [ExternalActions] contained into the environment.
-     * @param input the [String] representing the [Atom] that invokes the action.
-     * @param externalOnly forces to search for action body only into [ExternalActions].
+     * into the [it.unibo.jakta.agents.bdi.engine.actions.InternalActions] and the in the [ExternalAction]s, declared in the environment.
+     * It firstly watches into the [it.unibo.jakta.agents.bdi.engine.actions.InternalActions] and the in the [ExternalAction]s contained into the environment.
+     * @param input the [String] representing the [it.unibo.tuprolog.core.Atom] that invokes the action.
+     * @param externalOnly forces to search for action body only into [ExternalAction]s.
      */
     fun execute(
         input: String,
@@ -214,7 +242,7 @@ class BodyScope(
 
     /**
      * Handler for the creation of a [ActInternally] Goal.
-     * @param struct the [String] representing the [Atom] that invokes the action.
+     * @param struct the [String] representing the [it.unibo.tuprolog.core.Atom] that invokes the action.
      */
     fun iact(struct: String) = iact(atomOf(struct))
 

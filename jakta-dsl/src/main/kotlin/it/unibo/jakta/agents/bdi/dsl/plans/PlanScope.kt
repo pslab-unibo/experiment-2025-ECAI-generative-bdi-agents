@@ -2,9 +2,9 @@ package it.unibo.jakta.agents.bdi.dsl.plans
 
 import it.unibo.jakta.agents.bdi.engine.Prolog2Jakta
 import it.unibo.jakta.agents.bdi.engine.events.Trigger
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.goals.EmptyGoal
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.tuprolog.core.Scope

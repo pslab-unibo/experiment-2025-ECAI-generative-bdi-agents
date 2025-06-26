@@ -10,7 +10,7 @@ import it.unibo.jakta.agents.bdi.engine.actions.InternalActions
 import it.unibo.jakta.agents.bdi.engine.events.Event
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.TimeDistribution
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.setTimeDistribution
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 

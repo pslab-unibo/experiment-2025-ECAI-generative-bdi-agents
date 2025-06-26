@@ -27,13 +27,25 @@ fun internalAction(
     name: String,
     arity: Int,
     f: InternalActionScope.() -> Unit,
-) = InternalActionsScope().newAction(name, arity, emptyList(), f = f)
+) = InternalActionsScope().newAction(name, arity, f = f)
+
+fun internalAction(
+    name: String,
+    vararg parameters: String,
+    f: InternalActionScope.() -> Unit,
+) = InternalActionsScope().newAction(name, parameters.toList(), f = f)
 
 fun externalAction(
     name: String,
     arity: Int,
     f: ExternalActionScope.() -> Unit,
-) = ExternalActionsScope().newAction(name, arity, emptyList(), f = f)
+) = ExternalActionsScope().newAction(name, arity, f = f)
+
+fun externalAction(
+    name: String,
+    vararg parameters: String,
+    f: ExternalActionScope.() -> Unit,
+) = ExternalActionsScope().newAction(name, parameters.toList(), f = f)
 
 @JaktaDSL
 fun environment(f: EnvironmentScope.() -> Unit): Environment = EnvironmentScope().also(f).build()

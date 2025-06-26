@@ -23,7 +23,7 @@ abstract class AbstractActionsScope<C, Res, Req, A, As> :
         f: As.() -> Unit,
     ): Action<*, *, *> {
         val parameterNames = parameterNames.toList()
-        return newAction(name, parameterNames.size, parameterNames, f = f).also {
+        return newAction(name, parameterNames, f = f).also {
             actions += it
         }
     }
@@ -32,12 +32,11 @@ abstract class AbstractActionsScope<C, Res, Req, A, As> :
         name: String,
         arity: Int = 0,
         f: As.() -> Unit,
-    ) = newAction(name, arity, emptyList(), f = f).also { actions += it }
+    ) = newAction(name, arity, f = f).also { actions += it }
 
     fun action(method: KFunction<*>) =
         newAction(
             method.name,
-            method.parameters.size,
             method.parameters.map { it.name!! },
         ) {
             method.call(*arguments.toTypedArray())
@@ -50,6 +49,12 @@ abstract class AbstractActionsScope<C, Res, Req, A, As> :
     protected abstract fun newAction(
         name: String,
         arity: Int,
+        purpose: String? = "$name/$arity",
+        f: As.() -> Unit,
+    ): A
+
+    protected abstract fun newAction(
+        name: String,
         parameterNames: List<String> = emptyList(),
         purpose: String? = "$name $parameterNames",
         f: As.() -> Unit,
