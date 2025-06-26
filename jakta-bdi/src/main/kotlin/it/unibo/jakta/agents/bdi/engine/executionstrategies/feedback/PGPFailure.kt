@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 @SerialName("PGPFailure")
 sealed interface PGPFailure : NegativeFeedback {
     @Serializable
-    @SerialName("GenericGenerationFailure")
-    data class GenericGenerationFailure(
+    @SerialName("GenerationFailure")
+    data class GenerationFailure(
         override val description: String?,
     ) : PGPFailure
 }

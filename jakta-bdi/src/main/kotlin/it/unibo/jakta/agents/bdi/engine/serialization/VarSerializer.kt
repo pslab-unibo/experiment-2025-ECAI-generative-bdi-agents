@@ -21,7 +21,7 @@ object VarSerializer : KSerializer<Var> {
         value: Var,
     ) {
         require(encoder is JsonEncoder) { "This serializer can only be used with JSON" }
-        val jsonPrimitive = JsonPrimitive(value.name) // completeName
+        val jsonPrimitive = JsonPrimitive(value.name) // not the completeName
         encoder.encodeJsonElement(jsonPrimitive)
     }
 

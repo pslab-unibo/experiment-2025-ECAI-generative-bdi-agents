@@ -17,6 +17,8 @@ import java.util.Locale
 object Jakta {
     // fun convert1(struct: Struct): Term = struct.accept(jasonTo2p)
 
+    const val META_PLAN_BELIEF_FUNCTOR = "missing_plan_for"
+
     val separator: String = File.separator
 
     val operators =

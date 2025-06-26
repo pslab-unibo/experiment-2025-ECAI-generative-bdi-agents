@@ -1,6 +1,9 @@
 package it.unibo.jakta.agents.bdi.engine.serialization.modules
 
+import it.unibo.jakta.agents.bdi.engine.Agent
 import it.unibo.jakta.agents.bdi.engine.actions.effects.AddData
+import it.unibo.jakta.agents.bdi.engine.actions.effects.AdmissibleBeliefChange
+import it.unibo.jakta.agents.bdi.engine.actions.effects.AdmissibleGoalChange
 import it.unibo.jakta.agents.bdi.engine.actions.effects.BeliefChange
 import it.unibo.jakta.agents.bdi.engine.actions.effects.BroadcastMessage
 import it.unibo.jakta.agents.bdi.engine.actions.effects.EventChange
@@ -15,17 +18,21 @@ import it.unibo.jakta.agents.bdi.engine.actions.effects.Sleep
 import it.unibo.jakta.agents.bdi.engine.actions.effects.SpawnAgent
 import it.unibo.jakta.agents.bdi.engine.actions.effects.Stop
 import it.unibo.jakta.agents.bdi.engine.actions.effects.UpdateData
+import it.unibo.jakta.agents.bdi.engine.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
 import it.unibo.jakta.agents.bdi.engine.beliefs.impl.AdmissibleBeliefImpl
 import it.unibo.jakta.agents.bdi.engine.beliefs.impl.BeliefImpl
 import it.unibo.jakta.agents.bdi.engine.events.Event
 import it.unibo.jakta.agents.bdi.engine.events.impl.EventImpl
+import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.ActionFailure
+import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.ActionSuccess
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.GoalFailure
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.GoalSuccess
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.NegativeFeedback
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.PGPFailure
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.PGPSuccess
 import it.unibo.jakta.agents.bdi.engine.goals.EmptyGoal
+import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
 import it.unibo.jakta.agents.bdi.engine.goals.impl.AchieveImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.ActExternallyImpl
@@ -38,13 +45,14 @@ import it.unibo.jakta.agents.bdi.engine.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.TestImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.TrackGoalExecutionImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.UpdateBeliefImpl
+import it.unibo.jakta.agents.bdi.engine.impl.AgentImpl
 import it.unibo.jakta.agents.bdi.engine.intentions.Intention
 import it.unibo.jakta.agents.bdi.engine.intentions.impl.IntentionImpl
 import it.unibo.jakta.agents.bdi.engine.logging.events.ActionEvent
 import it.unibo.jakta.agents.bdi.engine.logging.events.BdiEvent
 import it.unibo.jakta.agents.bdi.engine.logging.events.GoalEvent
 import it.unibo.jakta.agents.bdi.engine.logging.events.IntentionEvent
-import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
+import it.unibo.jakta.agents.bdi.engine.logging.events.LogEvent
 import it.unibo.jakta.agents.bdi.engine.logging.events.MessageEvent
 import it.unibo.jakta.agents.bdi.engine.logging.events.PlanEvent
 import it.unibo.jakta.agents.bdi.engine.plans.ActivationRecord
@@ -52,42 +60,46 @@ import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.agents.bdi.engine.plans.impl.ActivationRecordImpl
 import it.unibo.jakta.agents.bdi.engine.plans.impl.PartialPlanImpl
 import it.unibo.jakta.agents.bdi.engine.plans.impl.PlanImpl
+import it.unibo.jakta.agents.bdi.engine.serialization.AtomSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.FallbackSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.RuleSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.SignatureSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.StructSerializer
+import it.unibo.jakta.agents.bdi.engine.serialization.TermSerializer
 import it.unibo.jakta.agents.bdi.engine.serialization.VarSerializer
+import it.unibo.tuprolog.core.Atom
 import it.unibo.tuprolog.core.Rule
 import it.unibo.tuprolog.core.Struct
+import it.unibo.tuprolog.core.Term
 import it.unibo.tuprolog.core.Var
 import it.unibo.tuprolog.solve.Signature
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.koin.core.annotation.Single
 
-@Single
 class JaktaJsonModule : SerializersModuleProvider {
     override val modules =
         SerializersModule {
+            contextual(Term::class, TermSerializer)
+            contextual(Atom::class, AtomSerializer)
             contextual(Var::class, VarSerializer)
             contextual(Struct::class, StructSerializer)
             contextual(Rule::class, RuleSerializer)
             contextual(Signature::class, SignatureSerializer)
             contextual(Any::class, FallbackSerializer)
 
-            polymorphic(JaktaLogEvent::class) {
+            polymorphic(LogEvent::class) {
                 // Feedback event
-                subclass(GoalFailure.InvalidActionArityError::class)
-                subclass(GoalFailure.ActionSubstitutionFailure::class)
-                subclass(GoalFailure.ActionNotFound::class)
-                subclass(GoalFailure.ActionFailure::class)
+                subclass(ActionFailure.InvalidActionArityError::class)
+                subclass(ActionFailure.ActionSubstitutionFailure::class)
+                subclass(ActionFailure.ActionNotFound::class)
+                subclass(ActionFailure.GenericActionFailure::class)
                 subclass(GoalFailure.TestGoalFailureFeedback::class)
                 subclass(GoalSuccess.GoalExecutionSuccess::class)
-                subclass(GoalSuccess.ActionSuccess::class)
+                subclass(ActionSuccess.GenericActionSuccess::class)
                 subclass(NegativeFeedback.InapplicablePlan::class)
                 subclass(NegativeFeedback.PlanNotFound::class)
-                subclass(PGPFailure.GenericGenerationFailure::class)
+                subclass(PGPFailure.GenerationFailure::class)
                 subclass(PGPSuccess.GenerationRequested::class)
                 subclass(PGPSuccess.GenerationCompleted::class)
 
@@ -110,6 +122,9 @@ class JaktaJsonModule : SerializersModuleProvider {
                 subclass(Stop::class)
                 subclass(Pause::class)
 
+                subclass(AdmissibleBeliefChange::class)
+                subclass(AdmissibleGoalChange::class)
+
                 // Environment Change
                 subclass(SpawnAgent::class)
                 subclass(RemoveAgent::class)
@@ -119,6 +134,14 @@ class JaktaJsonModule : SerializersModuleProvider {
                 subclass(AddData::class)
                 subclass(RemoveData::class)
                 subclass(UpdateData::class)
+            }
+
+            polymorphic(Agent::class) {
+                subclass(AgentImpl::class)
+            }
+
+            polymorphic(AdmissibleBelief::class) {
+                subclass(AdmissibleBeliefImpl::class)
             }
 
             polymorphic(Intention::class) {
@@ -141,6 +164,10 @@ class JaktaJsonModule : SerializersModuleProvider {
             polymorphic(Belief::class) {
                 subclass(BeliefImpl::class)
                 subclass(AdmissibleBeliefImpl::class)
+            }
+
+            polymorphic(GeneratePlan::class) {
+                subclass(GeneratePlanImpl::class)
             }
 
             polymorphic(Goal::class) {

@@ -3,10 +3,10 @@ package it.unibo.jakta.agents.bdi.engine
 import it.unibo.jakta.agents.bdi.engine.actions.effects.EnvironmentChange
 import it.unibo.jakta.agents.bdi.engine.environment.Environment
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.impl.MasImpl
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.MasLogger
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
 import org.koin.core.module.Module
 
 interface Mas {

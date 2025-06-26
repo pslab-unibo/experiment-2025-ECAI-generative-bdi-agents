@@ -1,6 +1,7 @@
 package it.unibo.jakta.agents.bdi.engine.logging.events
 
 import it.unibo.jakta.agents.bdi.engine.actions.Action
+import it.unibo.jakta.agents.bdi.engine.actions.ActionSignature
 import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.engine.actions.InternalAction
 import kotlinx.serialization.SerialName
@@ -14,13 +15,13 @@ sealed interface ActionEvent : AgentEvent {
         @Transient
         val action: Action<*, *, *>? = null,
         val actionType: String,
-        val actionName: String,
+        val actionSignature: ActionSignature,
         override val description: String?,
     ) : ActionEvent {
         constructor(action: Action<*, *, *>) : this(
             action,
             actionType(action),
-            action.signature.name,
+            action.actionSignature,
             "Added ${actionType(action)} action: ${action.signature.name}",
         )
     }

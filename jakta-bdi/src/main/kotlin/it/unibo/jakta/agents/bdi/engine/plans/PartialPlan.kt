@@ -1,9 +1,9 @@
 package it.unibo.jakta.agents.bdi.engine.plans
 
 import it.unibo.jakta.agents.bdi.engine.events.Trigger
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.plans.impl.PartialPlanImpl
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth

@@ -26,6 +26,9 @@ abstract class AbstractExternalAction(
     constructor(name: String, vararg parameterNames: String) :
         this(name.toActionSignature(parameterNames.size, parameterNames.toList()))
 
+    constructor(name: String, parameterNames: List<String>) :
+        this(name.toActionSignature(parameterNames.size, parameterNames.toList()))
+
     override fun addAgent(agent: Agent) {
         effects.add(SpawnAgent(agent))
     }

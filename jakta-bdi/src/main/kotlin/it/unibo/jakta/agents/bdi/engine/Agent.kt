@@ -8,13 +8,13 @@ import it.unibo.jakta.agents.bdi.engine.context.AgentContext
 import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.engine.events.Event
 import it.unibo.jakta.agents.bdi.engine.events.EventQueue
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.engine.impl.AgentImpl
 import it.unibo.jakta.agents.bdi.engine.intentions.IntentionPool
 import it.unibo.jakta.agents.bdi.engine.intentions.SchedulingResult
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.AgentLogger
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.engine.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 import it.unibo.tuprolog.utils.Taggable

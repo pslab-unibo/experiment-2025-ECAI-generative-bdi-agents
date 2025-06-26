@@ -4,18 +4,20 @@ import it.unibo.jakta.agents.bdi.engine.Agent
 import it.unibo.jakta.agents.bdi.engine.Mas
 import it.unibo.jakta.agents.bdi.engine.MasID
 import it.unibo.jakta.agents.bdi.engine.MasInitialization
+import it.unibo.jakta.agents.bdi.engine.actions.effects.AdmissibleBeliefChange
+import it.unibo.jakta.agents.bdi.engine.actions.effects.AdmissibleGoalChange
 import it.unibo.jakta.agents.bdi.engine.actions.effects.BeliefChange
 import it.unibo.jakta.agents.bdi.engine.actions.effects.EventChange
 import it.unibo.jakta.agents.bdi.engine.actions.effects.PlanChange
+import it.unibo.jakta.agents.bdi.engine.actions.effects.SpawnAgent
 import it.unibo.jakta.agents.bdi.engine.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.engine.depinjection.JaktaKoin
+import it.unibo.jakta.agents.bdi.engine.depinjection.JaktaKoin.engineJsonModule
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.engine.logging.events.ActionEvent.ActionAddition
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.AgentLogger
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.MasLogger
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationStrategy
-import it.unibo.jakta.agents.bdi.engine.serialization.modules.JsonModule
-import org.koin.ksp.generated.module
 
 internal class MasInitializationImpl(
     override val mas: Mas,
@@ -60,7 +62,7 @@ internal class MasInitializationImpl(
     private fun initializeKoin(mas: Mas): Mas =
         mas.also {
             JaktaKoin.loadAdditionalModules(
-                JsonModule().module,
+                engineJsonModule,
                 *mas.modules.toTypedArray(),
             )
         }
@@ -70,11 +72,20 @@ internal class MasInitializationImpl(
             mas.logger?.log { ActionAddition(action) }
         }
 
-        mas.agents.forEach { logAgentState(it) }
+        mas.agents.forEach { agent ->
+            mas.logger?.log { SpawnAgent(agent) }
+            logAgentState(agent)
+        }
         return mas
     }
 
     private fun logAgentState(agent: Agent) {
+        agent.context.admissibleGoals.forEach { goal ->
+            agent.logger?.log { AdmissibleGoalChange(goal, ADDITION) }
+        }
+        agent.context.admissibleBeliefs.forEach { belief ->
+            agent.logger?.log { AdmissibleBeliefChange(belief, ADDITION) }
+        }
         agent.context.events.forEach { event ->
             agent.logger?.log { EventChange(event, ADDITION) }
         }
@@ -95,7 +106,7 @@ internal class MasInitializationImpl(
         private fun Agent.assignLogger(loggingConfig: LoggingConfig?): Agent {
             val logger =
                 loggingConfig?.let { cfg ->
-                    masID?.let { AgentLogger.create(masID!!, agentID, name, cfg) }
+                    masID?.let { AgentLogger.create(masID!!, agentID, cfg) }
                 }
             return this.copy(loggingConfig = loggingConfig, logger = logger)
         }

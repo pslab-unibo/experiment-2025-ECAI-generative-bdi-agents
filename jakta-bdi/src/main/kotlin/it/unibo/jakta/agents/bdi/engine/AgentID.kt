@@ -14,5 +14,5 @@ data class AgentID(
         private fun generateId(): String = UUID.randomUUID().toString()
     }
 
-    override fun toString(): String = "$id-$name"
+    override fun toString(): String = name
 }

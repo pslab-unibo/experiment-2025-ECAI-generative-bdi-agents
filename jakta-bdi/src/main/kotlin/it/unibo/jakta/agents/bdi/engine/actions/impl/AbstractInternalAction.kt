@@ -30,6 +30,9 @@ abstract class AbstractInternalAction(
     constructor(name: String, vararg parameterNames: String) :
         this(name.toActionSignature(parameterNames.size, parameterNames.toList()))
 
+    constructor(name: String, parameterNames: List<String>) :
+        this(name.toActionSignature(parameterNames.size, parameterNames.toList()))
+
     override fun addBelief(belief: Belief) {
         effects.add(BeliefChange(belief, ADDITION))
     }

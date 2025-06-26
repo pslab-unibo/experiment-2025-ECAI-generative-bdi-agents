@@ -3,10 +3,10 @@ package it.unibo.jakta.agents.bdi.engine.plans.impl
 import it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.engine.events.Event
 import it.unibo.jakta.agents.bdi.engine.events.Trigger
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
 import it.unibo.jakta.agents.bdi.engine.goals.TrackGoalExecution
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.engine.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.engine.plans.Plan.Companion.formatPlanToString
@@ -56,13 +56,6 @@ internal class PartialPlanImpl(
 
     override fun toActivationRecord(): ActivationRecord =
         ActivationRecord.of(
-            /*
-             * If the plan is partially unverified (with any [TrackGoal]), consider it as still generating.
-             * Plans that have a [GeneratePlan] goal are considered complete so that
-             * the other non-tracking goals are scheduled along with the [GeneratePlan].
-             * Only when the [GeneratePlan] is executed and [TrackGoal]s start to be added
-             * to the plan, then it becomes incomplete.
-             */
             if (goals.any { it is TrackGoalExecution }) {
                 goals.filter { it is TrackGoalExecution || it is GeneratePlan }
             } else {

@@ -8,15 +8,24 @@ class GuardFlattenerVisitor : DefaultTermVisitor<List<Struct>>() {
     override fun defaultValue(term: Term): List<Struct> = listOf(term.castToStruct())
 
     override fun visitStruct(term: Struct): List<Struct> {
-        if (term.functor == "&" || term.functor == "," && term.arity == 2) {
+        if (term.functor == "&" ||
+            term.functor == "," ||
+            term.functor == "|" ||
+            term.functor == ";" &&
+            term.arity == 2
+        ) {
             val leftTerms = term.args[0].accept(this)
             val rightTerms = term.args[1].accept(this)
             return leftTerms + rightTerms
+        }
+
+        if ((term.functor == "(" || term.functor == ")") && term.arity == 1) {
+            return term.args[0].accept(this)
         }
         return listOf(term)
     }
 
     companion object {
-        fun Struct.flattenAnd(): List<Struct> = this.accept(GuardFlattenerVisitor())
+        fun Struct.flatten(): List<Struct> = this.accept(GuardFlattenerVisitor())
     }
 }

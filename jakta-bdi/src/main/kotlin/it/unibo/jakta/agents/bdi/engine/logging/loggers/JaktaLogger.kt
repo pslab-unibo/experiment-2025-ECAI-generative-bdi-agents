@@ -3,9 +3,9 @@ package it.unibo.jakta.agents.bdi.engine.logging.loggers
 import it.unibo.jakta.agents.bdi.engine.AgentID
 import it.unibo.jakta.agents.bdi.engine.MasID
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.NegativeFeedback
-import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
-import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEventContainer
-import it.unibo.jakta.agents.bdi.engine.plangeneration.PgpID
+import it.unibo.jakta.agents.bdi.engine.generation.PgpID
+import it.unibo.jakta.agents.bdi.engine.logging.events.LogEvent
+import it.unibo.jakta.agents.bdi.engine.logging.events.LogEventContext
 import kotlinx.serialization.json.Json
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -16,7 +16,7 @@ import java.net.URI
 interface JaktaLogger {
     val logger: Logger
 
-    fun log(event: () -> JaktaLogEvent)
+    fun log(event: () -> LogEvent)
 
     fun trace(message: () -> Any?) = logger.trace(message)
 
@@ -31,11 +31,40 @@ interface JaktaLogger {
     companion object {
         fun logger(name: String): Logger = LogManager.getLogger(name)
 
+        const val EXTENSION = "jsonl"
+        const val UUID_PATTERN = "[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}"
+        private const val COMPONENT_PATTERN = "([^-]+)"
+
+        // Unified pattern that captures all components between UUIDs
+        const val LOG_FILE_PATTERN =
+            "^$COMPONENT_PATTERN(?:-$UUID_PATTERN(?:-$COMPONENT_PATTERN))*(?:-$UUID_PATTERN)?(?:\\.$EXTENSION)?$"
+
+        val logFileRegex = Regex(LOG_FILE_PATTERN)
+
+        fun extractLastId(fullName: String): String? {
+            val regex = Regex("($UUID_PATTERN)(?=(?:[^-]*(?:\\.$EXTENSION)?)?$)")
+            return regex
+                .find(fullName)
+                ?.groups
+                ?.get(1)
+                ?.value
+        }
+
+        @JvmStatic
+        fun extractLastComponent(fullName: String): String =
+            logFileRegex.find(fullName)?.let { matchResult ->
+                matchResult.groups
+                    .filterNotNull()
+                    .drop(1) // Skip the full match (group 0)
+                    .lastOrNull { it.value != fullName }
+                    ?.value
+            } ?: fullName
+
         @JvmStatic
         fun resolveObjectMessage(message: ObjectMessage): String {
             val param = message.parameter
             return when (param) {
-                is JaktaLogEventContainer -> param.event.description ?: ""
+                is LogEventContext -> param.event.description ?: ""
                 else -> param.toString()
             }
         }
@@ -54,11 +83,11 @@ interface JaktaLogger {
             }
 
             when (param) {
-                is JaktaLogEventContainer -> {
+                is LogEventContext -> {
                     try {
-                        val jsonString = json.encodeToString(JaktaLogEventContainer.serializer(), param)
+                        val jsonString = json.encodeToString(LogEventContext.serializer(), param)
                         jsonWriter.writeRawString(jsonString)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         jsonWriter.writeString(param.toString())
                     }
                 }
@@ -67,7 +96,7 @@ interface JaktaLogger {
             }
         }
 
-        internal fun extractHostnameAndPort(urlString: String): Pair<String, Int?> =
+        fun extractHostnameAndPort(urlString: String): Pair<String, Int?> =
             try {
                 val url = URI(urlString)
                 val hostname = url.host
@@ -80,14 +109,22 @@ interface JaktaLogger {
 
         fun Logger.implementation(
             masID: MasID,
-            event: () -> JaktaLogEvent,
+            event: () -> LogEvent,
             agentID: AgentID? = null,
             pgpID: PgpID? = null,
+            cycleCount: Long? = null,
         ) {
             val eventInstance by lazy(event)
             when (val e = eventInstance) {
-                is NegativeFeedback -> this.warn { ObjectMessage(JaktaLogEventContainer(e, masID, agentID, pgpID)) }
-                else -> this.info { ObjectMessage(JaktaLogEventContainer(e, masID, agentID, pgpID)) }
+                // TODO allow to configure messages to log or to ignore
+                is NegativeFeedback ->
+                    this.warn {
+                        ObjectMessage(LogEventContext(e, masID, agentID, pgpID, cycleCount))
+                    }
+                else ->
+                    this.info {
+                        ObjectMessage(LogEventContext(e, masID, agentID, pgpID, cycleCount))
+                    }
             }
         }
     }

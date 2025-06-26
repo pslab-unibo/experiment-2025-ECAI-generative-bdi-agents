@@ -6,7 +6,7 @@ import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.PlanApplica
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
 import it.unibo.jakta.agents.bdi.engine.plans.ActivationRecord
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
-import it.unibo.jakta.agents.bdi.engine.visitors.GuardFlattenerVisitor.Companion.flattenAnd
+import it.unibo.jakta.agents.bdi.engine.visitors.GuardFlattenerVisitor.Companion.flatten
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.unify.Unificator.Companion.mguWith
 import kotlinx.serialization.SerialName
@@ -24,7 +24,7 @@ internal abstract class AbstractPlan : Plan {
             val mgu = event.trigger.value mguWith this.trigger.value
             val actualGuard = guard.apply(mgu).castToStruct()
             // TODO what if the conditions are not in and?
-            val guards = actualGuard.flattenAnd().associateWith { beliefBase.solve(it, ignoreSource).isYes }
+            val guards = actualGuard.flatten().associateWith { beliefBase.solve(it, ignoreSource).isYes }
             PlanApplicabilityResult(event.trigger, guards)
         } else {
             PlanApplicabilityResult(

@@ -1,9 +1,6 @@
 package it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback
 
-import it.unibo.jakta.agents.bdi.engine.actions.ActionSignature
-import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.termFormatter
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
-import it.unibo.tuprolog.core.Term
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -19,21 +16,6 @@ sealed interface GoalSuccess : PositiveFeedback {
         constructor(goalExecuted: Goal) : this(
             goalExecuted,
             "The goal $goalExecuted was successfully executed",
-        )
-    }
-
-    @Serializable
-    @SerialName("ActionSuccess")
-    data class ActionSuccess(
-        val actionSignature: ActionSignature,
-        val providedArguments: String,
-        override val description: String?,
-    ) : GoalSuccess {
-        constructor(actionSignature: ActionSignature, providedArguments: List<Term>) : this(
-            actionSignature,
-            providedArguments.joinToString(", ") { termFormatter.format(it) },
-            "The action \"${actionSignature.name}\" was successfully executed with the given arguments: " +
-                providedArguments.joinToString(", ") { termFormatter.format(it) },
         )
     }
 }

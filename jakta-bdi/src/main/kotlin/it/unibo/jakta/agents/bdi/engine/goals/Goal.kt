@@ -1,6 +1,7 @@
 package it.unibo.jakta.agents.bdi.engine.goals
 
 import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.goals.impl.AchieveImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.ActExternallyImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.ActImpl
@@ -12,7 +13,6 @@ import it.unibo.jakta.agents.bdi.engine.goals.impl.SpawnImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.TestImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.TrackGoalExecutionImpl
 import it.unibo.jakta.agents.bdi.engine.goals.impl.UpdateBeliefImpl
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.plans.PartialPlan
 import it.unibo.jakta.agents.bdi.engine.plans.PlanID
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
@@ -128,6 +128,8 @@ sealed interface DeclarativeGoal : Goal {
 
 interface GeneratePlan : DeclarativeGoal {
     val generationConfig: GenerationConfig?
+
+    fun copy(generationConfig: GenerationConfig): GeneratePlan
 
     companion object {
         fun of(

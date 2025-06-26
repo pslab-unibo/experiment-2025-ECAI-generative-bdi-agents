@@ -1,5 +1,6 @@
 package it.unibo.jakta.agents.bdi.engine.formatters
 
+import it.unibo.jakta.agents.bdi.engine.Jakta.META_PLAN_BELIEF_FUNCTOR
 import it.unibo.jakta.agents.bdi.engine.Jakta.capitalize
 import it.unibo.jakta.agents.bdi.engine.Jakta.dropNumbers
 import it.unibo.jakta.agents.bdi.engine.Jakta.operators
@@ -33,7 +34,7 @@ import it.unibo.jakta.agents.bdi.engine.goals.Test
 import it.unibo.jakta.agents.bdi.engine.goals.TrackGoalExecution
 import it.unibo.jakta.agents.bdi.engine.goals.UpdateBelief
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
-import it.unibo.jakta.agents.bdi.engine.visitors.GuardFlattenerVisitor.Companion.flattenAnd
+import it.unibo.jakta.agents.bdi.engine.visitors.GuardFlattenerVisitor.Companion.flatten
 import it.unibo.tuprolog.core.TermFormatter
 import it.unibo.tuprolog.core.operators.OperatorSet
 
@@ -43,128 +44,117 @@ object DefaultFormatters {
             operatorSet = OperatorSet.DEFAULT + operators,
         )
 
+    private fun getPrefix(goal: Goal): String =
+        when (goal) {
+            is GeneratePlan -> getPrefix(goal.goal)
+            is TrackGoalExecution -> "track ${getPrefix(goal.goal)}"
+            is Achieve -> "achieve"
+            is Act -> "execute"
+            is ActExternally -> "execute"
+            is ActInternally -> "execute"
+            is UpdateBelief -> "update"
+            is AddBelief -> "add"
+            is RemoveBelief -> "remove"
+            is Spawn -> "spawn"
+            is Test -> "test"
+            is EmptyGoal -> "empty"
+        }
+
+    private fun Goal.getFormattableTerm() =
+        when (this) {
+            is Test -> value.removeSource()
+            is UpdateBelief -> belief.removeSource()
+            is AddBelief -> belief.removeSource()
+            is RemoveBelief -> belief.removeSource()
+            else -> value
+        }
+
     val goalFormatter =
-        object : Formatter<Goal> {
-            override fun format(goal: Goal): String =
-                when (goal) {
-                    is EmptyGoal -> "<none>"
-                    else -> {
-                        val prefix =
-                            when (goal) {
-                                is Achieve -> "achieve"
-                                is Act, is ActExternally, is ActInternally -> "execute"
-                                is UpdateBelief -> "update"
-                                is AddBelief -> "add"
-                                is RemoveBelief -> "remove"
-                                is Spawn -> "spawn"
-                                is Test -> "test"
-                                is GeneratePlan -> "generate"
-                                is TrackGoalExecution -> "track"
-                                else -> error("Unknown goal type: ${goal.javaClass.simpleName}")
-                            }
-
-                        val term =
-                            when (goal) {
-                                is UpdateBelief -> goal.belief.removeSource()
-                                is AddBelief -> goal.belief.removeSource()
-                                is RemoveBelief -> goal.belief.removeSource()
-                                else -> goal.value
-                            }
-
-                        "$prefix ${termFormatter.format(term)}"
-                    }
-                }.dropNumbers()
+        Formatter<Goal> { goal ->
+            "${getPrefix(goal)} ${termFormatter.format(goal.getFormattableTerm())}".dropNumbers()
         }
 
     val triggerFormatter =
-        object : Formatter<Trigger> {
-            override fun format(trigger: Trigger): String {
-                val goal = termFormatter.format(trigger.value)
-                return when (trigger) {
-                    is AchievementGoalInvocation -> "achieve $goal"
-                    is AchievementGoalFailure -> "achieve failure $goal"
-                    is TestGoalInvocation -> "test $goal"
-                    is TestGoalFailure -> "test failure $goal"
-                    is BeliefBaseAddition -> "belief addition $goal "
-                    is BeliefBaseRemoval -> "belief removal $goal"
-                    is BeliefBaseUpdate -> "belief update $goal"
-                    is AchievementGoalTrigger -> "achievement goal trigger from $goal"
-                    is BeliefBaseRevision -> "belief revision trigger from $goal"
-                    is TestGoalTrigger -> "test goal trigger from $goal"
-                }.dropNumbers()
-            }
+        Formatter<Trigger> { trigger ->
+            val goal = termFormatter.format(trigger.value)
+            when (trigger) {
+                is AchievementGoalInvocation -> "achieve $goal"
+                is AchievementGoalFailure -> "achieve failure $goal"
+                is TestGoalInvocation -> "test $goal"
+                is TestGoalFailure -> "test failure $goal"
+                is BeliefBaseAddition -> "belief addition $goal"
+                is BeliefBaseRemoval -> "belief removal $goal"
+                is BeliefBaseUpdate -> "belief update $goal"
+                is AchievementGoalTrigger -> "achievement goal trigger from $goal"
+                is BeliefBaseRevision -> "belief revision trigger from $goal"
+                is TestGoalTrigger -> "test goal trigger from $goal"
+            }.dropNumbers()
         }
 
     private fun <T> createFormatter(
-        itemToString: (T) -> String,
-        purposeProvider: (T) -> String?,
-    ) = object : Formatter<T> {
-        override fun format(item: T): String {
-            val res = itemToString(item)
-            val resWithPurpose = purposeProvider(item)?.let { "$res: $it" } ?: res
-            return resWithPurpose.dropNumbers()
-        }
+        itemToString: (T) -> String?,
+        purposeProvider: (T) -> String? = { null },
+    ) = Formatter<T> { item ->
+        itemToString(item)
+            .let { base ->
+                purposeProvider(item)?.let { "$base: $it" } ?: base
+            }?.dropNumbers()
     }
 
     val beliefsFormatter =
-        object : Formatter<Belief> {
-            private fun String.dropIfContainsSpecialBelief(): String =
-                if (this.contains("missing_plan_for")) "" else this
-
-            override fun format(item: Belief): String {
-                val res = termFormatter.format(item.rule.head.removeSource())
-                val resWithPurpose = item.purpose?.let { "$res: $it" } ?: res
-                return resWithPurpose
-                    .dropIfContainsSpecialBelief()
-                    .dropNumbers()
-            }
+        Formatter<Belief> { belief ->
+            termFormatter
+                .format(belief.rule.head.removeSource())
+                .let { base -> belief.purpose?.let { "$base: $it" } ?: base }
+                .takeUnless { it.contains(META_PLAN_BELIEF_FUNCTOR) }
+                ?.dropNumbers()
         }
 
     val admissibleBeliefsFormatter =
         createFormatter(
-            { termFormatter.format(it.rule.head.removeSource()) },
-            AdmissibleBelief::purpose,
+            itemToString = { termFormatter.format(it.rule.head.removeSource()) },
+            purposeProvider = AdmissibleBelief::purpose,
         )
 
     val admissibleGoalsFormatter =
         createFormatter<AdmissibleGoal>(
-            { triggerFormatter.format(it.trigger) },
-            { it.trigger.purpose },
+            itemToString = { triggerFormatter.format(it.trigger) },
+            purposeProvider = { it.trigger.purpose },
         )
 
     val actionsFormatter =
-        object : Formatter<Action<*, *, *>> {
-            override fun format(item: Action<*, *, *>): String =
-                StringBuilder()
-                    .apply {
-                        val signature = item.actionSignature
-                        append(signature.name)
-                        val params = signature.parameterNames
-                        append("(")
-                        if (params.isNotEmpty()) {
-                            append(params.joinToString { it.capitalize() })
-                        } else {
-                            (1..signature.arity).forEach { append("Parameter$it") }
-                        }
-                        append(")")
-                        if (item.purpose != null) append(": ${item.purpose}")
-                    }.toString()
-                    .dropNumbers()
+        Formatter<Action<*, *, *>> { action ->
+            buildString {
+                val signature = action.actionSignature
+                append(signature.name, "(")
+                append(
+                    signature.parameterNames
+                        .takeIf { it.isNotEmpty() }
+                        ?.joinToString { it.capitalize() }
+                        ?: (1..signature.arity).joinToString { "Parameter$it" },
+                )
+                append(")")
+                action.purpose?.let { append(": $it") }
+            }.dropNumbers()
         }
 
     val planFormatter =
-        object : Formatter<Plan> {
-            override fun format(item: Plan): String {
-                var trigger = triggerFormatter.format(item.trigger)
-                var guard =
-                    item.guard.flattenAnd().joinToString {
-                        "\n${termFormatter.format(
-                            it,
-                        ).prependIndent("    ")}"
-                    }
-                var body = item.goals.joinToString(";") { "\n${goalFormatter.format(it).prependIndent("    ")}" }
-                val doc = item.trigger.purpose?.let { "% ${it}\n" } ?: ""
-                return "$doc$trigger : $guard <- $body"
+        Formatter<Plan> { plan ->
+            buildString {
+                plan.trigger.purpose?.let { append("% $it\n") }
+                append(triggerFormatter.format(plan.trigger))
+                append(" : ")
+                append(
+                    plan.guard.flatten().joinToString {
+                        "\n${termFormatter.format(it).prependIndent("    ")}"
+                    },
+                )
+                append(" <- ")
+                append(
+                    plan.goals.joinToString(";") {
+                        "\n${goalFormatter.format(it)?.prependIndent("    ")}"
+                    },
+                )
             }
         }
 }

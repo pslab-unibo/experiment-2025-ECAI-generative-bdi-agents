@@ -1,8 +1,8 @@
 package it.unibo.jakta.agents.bdi.engine.goals.impl
 
+import it.unibo.jakta.agents.bdi.engine.generation.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.goals.Goal
-import it.unibo.jakta.agents.bdi.engine.plangeneration.GenerationConfig
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.SerializableStruct
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
@@ -32,4 +32,6 @@ internal class GeneratePlanImpl(
     }
 
     override fun hashCode(): Int = value.hashCode()
+
+    override fun copy(generationConfig: GenerationConfig) = GeneratePlanImpl(goal, generationConfig)
 }

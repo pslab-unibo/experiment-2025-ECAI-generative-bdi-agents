@@ -17,7 +17,10 @@ sealed interface NegativeFeedback : ExecutionFeedback {
         constructor(plans: List<PlanApplicabilityResult>) : this(
             plans,
             "The following plans are not applicable: " +
-                plans.mapNotNull { it.trigger }.joinToString(", ") { triggerFormatter.format(it) },
+                plans
+                    .mapNotNull { it.trigger }
+                    .mapNotNull { triggerFormatter.format(it) }
+                    .joinToString(", "),
         )
     }
 

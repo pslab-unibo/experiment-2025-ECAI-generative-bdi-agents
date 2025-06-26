@@ -6,8 +6,8 @@ import it.unibo.jakta.agents.bdi.engine.beliefs.BeliefBase
 import it.unibo.jakta.agents.bdi.engine.context.AgentContext
 import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.engine.events.EventQueue
+import it.unibo.jakta.agents.bdi.engine.generation.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.engine.intentions.IntentionPool
-import it.unibo.jakta.agents.bdi.engine.plangeneration.registry.GenerationProcessRegistry
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 
 /** Implementation of Agent's [AgentContext] */
