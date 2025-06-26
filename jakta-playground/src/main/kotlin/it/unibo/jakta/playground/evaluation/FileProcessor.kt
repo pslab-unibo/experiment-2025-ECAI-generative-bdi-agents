@@ -1,5 +1,6 @@
 package it.unibo.jakta.playground.evaluation
 
+import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
 import java.io.BufferedReader
 import java.io.File
@@ -7,7 +8,7 @@ import java.io.File
 object FileProcessor {
     private fun processLines(
         reader: BufferedReader,
-        logger: EvalLogger? = null,
+        logger: JaktaLogger? = null,
         processFunction: (LogEntry) -> Boolean,
     ): Boolean {
         var lineCount = 0
@@ -37,18 +38,8 @@ object FileProcessor {
     }
 
     fun processFile(
-        logFilePath: String,
-        logger: EvalLogger? = null,
-        processFunction: (LogEntry) -> Boolean,
-    ) {
-        val file = File(logFilePath)
-        val reader = file.bufferedReader()
-        processLines(reader, logger, processFunction)
-    }
-
-    fun processFile(
         file: File,
-        logger: EvalLogger? = null,
+        logger: JaktaLogger? = null,
         processFunction: (LogEntry) -> Boolean,
     ) {
         val reader = file.bufferedReader()

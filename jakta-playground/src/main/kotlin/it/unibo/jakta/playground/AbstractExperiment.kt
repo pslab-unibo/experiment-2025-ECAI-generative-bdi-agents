@@ -19,7 +19,6 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_MAX_TOKENS
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TEMPERATURE
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TOKEN
-import org.apache.logging.log4j.Logger
 import java.util.UUID
 import kotlin.system.exitProcess
 import kotlin.text.matches
@@ -28,7 +27,7 @@ import kotlin.time.DurationUnit
 
 abstract class AbstractExperiment : CliktCommand() {
     private val delegate = LoggerFactory.create("ExperimentRunner", "", LoggingConfig())
-    private val expRunnerLogger: Logger get() = delegate.logger
+    private val expRunnerLogger = delegate.logger
     private val urlRegex = "^https?://([\\w.-]+)(:\\d+)?(/.*)?$".toRegex()
 
     val logToFile: Boolean by option()
