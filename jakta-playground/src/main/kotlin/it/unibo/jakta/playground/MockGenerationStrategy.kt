@@ -47,7 +47,7 @@ object MockGenerationStrategy {
 
         val lmConfig = LMGenerationConfig.LMGenerationConfigContainer()
         val requestHandler = RequestHandler.of(generationConfig = lmConfig, api = api)
-        val responseParser = Parser.of()
+        val responseParser = Parser.create()
         val planGenerator = LMPlanGenerator.of(requestHandler, responseParser)
         return LMGenerationStrategy.of(planGenerator, lmConfig)
     }

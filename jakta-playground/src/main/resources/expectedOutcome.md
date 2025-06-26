@@ -18,6 +18,8 @@ Events can be drawn from the admissible goals.
 Conditions can be logic formulas over the beliefs, possibly involving negation and logical connectives.
 Operations can be drawn from the admissible actions or from the admissible goals.
 You can invent new admissible goals or beliefs, but you cannot invent admissible actions.
+You cannot reference admissible goals or beliefs that already exist.
+You must use all the admissible goals and beliefs that you invent.
 Only use FOL syntax, with no quantifiers.
 
 In the end, provide a list of admissible goals and beliefs that you invented, along with their natural language interpretation.

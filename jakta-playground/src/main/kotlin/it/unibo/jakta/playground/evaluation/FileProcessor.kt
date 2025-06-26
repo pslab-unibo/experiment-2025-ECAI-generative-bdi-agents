@@ -1,0 +1,59 @@
+package it.unibo.jakta.playground.evaluation
+
+import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
+import it.unibo.jakta.agents.bdi.narrativegenerator.logging.LogEntry
+import it.unibo.jakta.agents.bdi.narrativegenerator.logging.NarrativeGenerationLogger
+import java.io.BufferedReader
+import java.io.File
+
+object FileProcessor {
+    private fun processLines(
+        reader: BufferedReader,
+        logger: NarrativeGenerationLogger? = null,
+        processFunction: (LogEntry) -> Boolean,
+    ): Boolean {
+        var lineCount = 0
+        var errorCount = 0
+        var shouldContinue = true
+
+        reader.useLines { lines ->
+            for (line in lines) {
+                if (!shouldContinue) break
+
+                lineCount++
+                val logEntry =
+                    try {
+                        JaktaJsonComponent.json.decodeFromString<LogEntry>(line)
+                    } catch (e: Exception) {
+                        errorCount++
+                        logger?.warn { "Could not parse line $lineCount: ${e.message} as a LogEntry." }
+                        null
+                    }
+                logEntry?.let {
+                    shouldContinue = processFunction(it)
+                }
+            }
+        }
+        logger?.info { "Processing complete. Total entries: $lineCount, Events not parseable: $errorCount" }
+        return shouldContinue
+    }
+
+    fun processFile(
+        logFilePath: String,
+        logger: NarrativeGenerationLogger? = null,
+        processFunction: (LogEntry) -> Boolean,
+    ) {
+        val file = File(logFilePath)
+        val reader = file.bufferedReader()
+        processLines(reader, logger, processFunction)
+    }
+
+    fun processFile(
+        file: File,
+        logger: NarrativeGenerationLogger? = null,
+        processFunction: (LogEntry) -> Boolean,
+    ) {
+        val reader = file.bufferedReader()
+        processLines(reader, logger, processFunction)
+    }
+}
