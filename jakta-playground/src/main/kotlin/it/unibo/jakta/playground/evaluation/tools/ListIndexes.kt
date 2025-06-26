@@ -1,17 +1,38 @@
-package it.unibo.jakta.playground.evaluation.scripts
+package it.unibo.jakta.playground.evaluation.tools
 
 import it.unibo.jakta.playground.evaluation.IndexSearch.getAgentsFromMas
+import it.unibo.jakta.playground.evaluation.IndexSearch.getMasTraces
 import it.unibo.jakta.playground.evaluation.IndexSearch.getPlanGenProceduresFromAgent
 import it.unibo.jakta.playground.evaluation.KTSearch
 import it.unibo.jakta.playground.evaluation.KTSearch.retrieveIndexNames
 import it.unibo.jakta.playground.evaluation.KTSearch.version
 
+/**
+ * Lists and displays the hierarchical structure of search indexes containing MAS traces.
+ *
+ * This function connects to a KTSearch client and discovers the organizational structure
+ * of stored traces by traversing through:
+ * - MAS (Multi-Agent System) traces at the top level
+ * - Agent traces within each MAS
+ * - PGP (Plan Generation Procedure) traces within each agent
+ *
+ * The output provides a complete inventory of available traces, showing the nested
+ * relationship between MAS instances, their constituent agents, and the plan generation
+ * procedures executed by each agent.
+ *
+ * Index naming convention expected:
+ * - MAS indices: "*-mas-{masId}"
+ * - Agent indices: "*-agent-{agentId}"
+ * - PGP indices: "*-pgp-{pgpId}"
+ *
+ * @see AnalyzePGP for tools to analyze the discovered PGP traces
+ */
 fun main() {
     val client = KTSearch.createClient()
     println("Querying ${client.version()}")
 
     val indexNames = client.retrieveIndexNames()
-    val masOnlyIndices = indexNames // getMasTraces(indexNames)
+    val masOnlyIndices = getMasTraces(indexNames)
     masOnlyIndices
         .forEach { masId ->
             val masId = masId.substringAfter("-mas-")

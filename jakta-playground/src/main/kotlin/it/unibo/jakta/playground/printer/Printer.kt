@@ -6,12 +6,10 @@ import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
 import it.unibo.jakta.playground.ModuleLoader.jsonModule
 
-//        generationStrategy = createOneStepStrategyWithMockedAPI(listOf(""))
-
 fun main() =
     mas {
         oneStepGeneration {
-            model = "openai/gpt-4.1"
+            model = "mistralai/mistral-small-3.2-24b-instruct:free"
             temperature = 0.5
             maxTokens = 1024
         }

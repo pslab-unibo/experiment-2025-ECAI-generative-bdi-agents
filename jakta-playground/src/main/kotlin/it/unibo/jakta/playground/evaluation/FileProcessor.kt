@@ -1,15 +1,13 @@
 package it.unibo.jakta.playground.evaluation
 
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
-import it.unibo.jakta.agents.bdi.narrativegenerator.logging.LogEntry
-import it.unibo.jakta.agents.bdi.narrativegenerator.logging.NarrativeGenerationLogger
 import java.io.BufferedReader
 import java.io.File
 
 object FileProcessor {
     private fun processLines(
         reader: BufferedReader,
-        logger: NarrativeGenerationLogger? = null,
+        logger: EvalLogger? = null,
         processFunction: (LogEntry) -> Boolean,
     ): Boolean {
         var lineCount = 0
@@ -40,7 +38,7 @@ object FileProcessor {
 
     fun processFile(
         logFilePath: String,
-        logger: NarrativeGenerationLogger? = null,
+        logger: EvalLogger? = null,
         processFunction: (LogEntry) -> Boolean,
     ) {
         val file = File(logFilePath)
@@ -50,7 +48,7 @@ object FileProcessor {
 
     fun processFile(
         file: File,
-        logger: NarrativeGenerationLogger? = null,
+        logger: EvalLogger? = null,
         processFunction: (LogEntry) -> Boolean,
     ) {
         val reader = file.bufferedReader()

@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation.scripts
+package it.unibo.jakta.playground.evaluation.tools
 
 import com.aallam.openai.api.chat.ChatMessage
 import com.github.ajalt.clikt.core.CliktCommand
@@ -26,6 +26,23 @@ import it.unibo.jakta.playground.evaluation.MetricsComputer
 import it.unibo.jakta.playground.evaluation.PGPEvaluationResult
 import java.io.File
 
+/**
+ * Command-line tool for analyzing Plan Generation Procedure (PGP) traces and computing evaluation metrics.
+ *
+ * This tool processes PGP experiment data by:
+ * - Parsing MAS (Multi-Agent System) log files to extract agent and PGP-specific logs
+ * - Displaying conversation history and generated plans for each PGP invocation
+ * - Computing evaluation metrics when requested
+ * - Exporting results to CSV format for further analysis
+ *
+ * The analysis workflow involves processing experiment directories containing log files from
+ * plan generation procedures, extracting relevant data, and optionally computing metrics
+ * to evaluate the performance and quality of the generated plans.
+ *
+ * @property expDir Directory containing PGP experiment traces to analyze (default: "experiments/")
+ * @property computeMetrics Flag to enable metrics computation (default: false)
+ * @property metricsDir Directory to store computed metrics results (default: "metrics/")
+ */
 class AnalyzePGP : CliktCommand() {
     val expDir: String by option()
         .default("experiments/")

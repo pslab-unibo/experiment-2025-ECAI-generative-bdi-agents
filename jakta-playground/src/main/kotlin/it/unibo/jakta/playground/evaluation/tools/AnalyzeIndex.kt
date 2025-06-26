@@ -1,11 +1,10 @@
-package it.unibo.jakta.playground.evaluation.scripts
+package it.unibo.jakta.playground.evaluation.tools
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.mordant.rendering.AnsiLevel
 import com.github.ajalt.mordant.terminal.Terminal
@@ -14,15 +13,31 @@ import com.jillesvangurp.ktsearch.searchAfter
 import com.jillesvangurp.searchdsls.querydsl.matchAll
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractHostnameAndPort
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
-import it.unibo.jakta.agents.bdi.narrativegenerator.logging.LogEntry
-import it.unibo.jakta.agents.bdi.narrativegenerator.logging.PatternMatchLogEvent
 import it.unibo.jakta.playground.ModuleLoader
 import it.unibo.jakta.playground.evaluation.KTSearch
 import it.unibo.jakta.playground.evaluation.KTSearch.version
+import it.unibo.jakta.playground.evaluation.LogEntry
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.runBlocking
 
+/**
+ * Command-line tool for analyzing OpenSearch/Elasticsearch indices containing Jakta log entries.
+ *
+ * This command connects to an OpenSearch/Elasticsearch instance and retrieves all documents from a
+ * dynamically determined index based on the provided hierarchy of identifiers (MAS ID,
+ * Agent ID, PGP ID). The tool prints out the event type of each log entry found in the index.
+ *
+ * The target index name follows a hierarchical naming pattern:
+ * - Default: `jakta-default` (when no IDs specified)
+ * - MAS level: `jakta-mas-{masId}` (when only MAS ID specified)
+ * - Agent level: `jakta-mas-{masId}-agent-{agentId}` (when MAS and Agent IDs specified)
+ * - PGP level: `jakta-mas-{masId}-agent-{agentId}-pgp-{pgpId}` (when all IDs specified)
+ *
+ * @property masId Optional MAS (Multi-Agent System) identifier for index selection
+ * @property agentId Optional Agent identifier for index selection (requires masId)
+ * @property pgpId Optional PGP identifier for index selection (requires masId and agentId)
+ * @property url OpenSearch/Elasticsearch server URL (defaults to http://localhost:9200)
+ */
 class AnalyzeIndex : CliktCommand() {
     private val masId: String? by option()
 
@@ -32,12 +47,6 @@ class AnalyzeIndex : CliktCommand() {
 
     private val url: String by option()
         .default("http://localhost:9200")
-
-    private val implementationLevel: Boolean by option()
-        .flag()
-
-    private val domainLevel: Boolean by option()
-        .flag()
 
     init {
         ModuleLoader.loadModules()
@@ -67,33 +76,11 @@ class AnalyzeIndex : CliktCommand() {
 
             println("reported result set size ${resp.hits?.total?.value}")
 
-            val res = mutableListOf<LogEntry>()
             hitsFlow
                 .mapNotNull { hit ->
                     val doc = hit.parseHit<LogEntry>(JaktaJsonComponent.json)
-                    val logEvent = doc.message.event
-                    when {
-                        implementationLevel && logEvent !is PatternMatchLogEvent -> doc
-                        domainLevel && logEvent is PatternMatchLogEvent -> doc
-                        else -> null
-                    }
-                }.toCollection(res)
-
-            if (implementationLevel) {
-                res
-                    .sortedBy { it.timestamp }
-                    .forEach { logEvent ->
-                        println("${logEvent.timestamp} : ${logEvent.message.event.description}")
-                    }
-            } else {
-                res
-                    .map { it.message.event }
-                    .filterIsInstance<PatternMatchLogEvent>()
-                    .sortedBy { it.originalTimestamp }
-                    .forEach { logEvent ->
-                        println("${logEvent.originalTimestamp} : ${logEvent.description}")
-                    }
-            }
+                    println(doc.message.event)
+                }
         }
     }
 }
