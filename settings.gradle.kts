@@ -18,5 +18,4 @@ include(":jakta-dsl")
 include(":jakta-plan-generation")
 include("alchemist-jakta-incarnation")
 include("jakta-playground")
-
 include("jakta-konsist-test")

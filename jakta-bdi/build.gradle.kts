@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.kotlinx)
-    alias(libs.plugins.ksp)
 }
 
 dependencies {
@@ -18,13 +17,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.kotlin.testing)
     annotationProcessor(libs.log4j.core)
-    ksp(libs.koin.ksp.compiler)
-}
-
-kotlin {
-    sourceSets.main.configure {
-        kotlin.srcDir("build/generated/ksp/src/main/kotlin")
-    }
 }
 
 tasks.named("cpdKotlinCheck") {

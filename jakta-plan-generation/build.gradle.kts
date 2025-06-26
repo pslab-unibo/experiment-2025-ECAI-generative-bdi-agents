@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlinx)
-    alias(libs.plugins.ksp)
 }
 
 dependencies {
@@ -14,11 +13,4 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.bundles.koin)
     implementation(libs.kaml)
-    ksp(libs.koin.ksp.compiler)
-}
-
-kotlin {
-    sourceSets.main.configure {
-        kotlin.srcDir("build/generated/ksp/src/main/kotlin")
-    }
 }

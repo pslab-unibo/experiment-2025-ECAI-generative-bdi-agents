@@ -57,6 +57,7 @@ allprojects {
             allWarningsAsErrors = true
             freeCompilerArgs.add("-Xcontext-receivers")
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+            freeCompilerArgs.add("-Xwhen-guards")
         }
     }
 

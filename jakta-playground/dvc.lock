@@ -1,8 +1,8 @@
 schema: '2.0'
 stages:
   testGeneration@phi4-blocksworld:
-    cmd: ../gradlew runExperiment --quiet --args=" --model-id=phi4 --log-dir=experiments
-      --log-to-console --log-to-file"
+    cmd: ../gradlew runExperiment --quiet --args=" --model-id=phi4 
+      --log-dir=experiments --log-to-console --log-to-file"
     outs:
     - path: experiments
       hash: md5
@@ -10,8 +10,8 @@ stages:
       size: 0
       nfiles: 0
   testGeneration@meta-llama/llama-3.3-70b-instruct:free:
-    cmd: ./runner.sh "meta-llama/llama-3.3-70b-instruct:free" "5" "60" "https://openrouter.ai/api/v1/"
-      "0.5" "4096"
+    cmd: ./runner.sh "meta-llama/llama-3.3-70b-instruct:free" "5" "60" 
+      "https://openrouter.ai/api/v1/" "0.5" "4096"
     outs:
     - path: experiments/meta-llama/llama-3.3-70b-instruct:free
       hash: md5
@@ -19,9 +19,11 @@ stages:
       size: 29220893
       nfiles: 30
   testGeneration@deepseek/deepseek-chat-v3-0324:free:
-    cmd: ../gradlew runExperiment --args=" --lm-server-url=https://openrouter.ai/api/v1/
-      --model-id=deepseek/deepseek-chat-v3-0324:free --temperature=0.1 --max-tokens=1000
-      --timeout=40 --log-dir=experiments --log-to-console --log-to-file"
+    cmd: ../gradlew runExperiment --args=" 
+      --lm-server-url=https://openrouter.ai/api/v1/ 
+      --model-id=deepseek/deepseek-chat-v3-0324:free --temperature=0.1 
+      --max-tokens=1000 --timeout=40 --log-dir=experiments --log-to-console 
+      --log-to-file"
     outs:
     - path: experiments/deepseek/deepseek-chat-v3-0324:free
       hash: md5
@@ -29,9 +31,11 @@ stages:
       size: 325823
       nfiles: 4
   testGeneration@google/gemini-2.0-flash-exp:free:
-    cmd: ../gradlew runExperiment --args=" --lm-server-url=https://openrouter.ai/api/v1/
-      --model-id=google/gemini-2.0-flash-exp:free --temperature=0.1 --max-tokens=1000
-      --timeout=40 --log-dir=experiments --log-to-console --log-to-file"
+    cmd: ../gradlew runExperiment --args=" 
+      --lm-server-url=https://openrouter.ai/api/v1/ 
+      --model-id=google/gemini-2.0-flash-exp:free --temperature=0.1 
+      --max-tokens=1000 --timeout=40 --log-dir=experiments --log-to-console 
+      --log-to-file"
     outs:
     - path: experiments/google/gemini-2.0-flash-exp:free
       hash: md5
@@ -39,10 +43,11 @@ stages:
       size: 34437
       nfiles: 4
   testGeneration@qwen/qwen-2.5-coder-32b-instruct:
-    cmd: timeout 40s ../gradlew runExperiment --args=" --lm-server-url=https://openrouter.ai/api/v1/
-      --model-id=qwen/qwen-2.5-coder-32b-instruct --temperature=0.5 --max-tokens=4096
-      --log-dir=experiments --log-to-console --log-to-file" || if [ $? -eq 124 ];
-      then echo "Timeout reached"; exit 0; else exit $?; fi
+    cmd: timeout 40s ../gradlew runExperiment --args=" 
+      --lm-server-url=https://openrouter.ai/api/v1/ 
+      --model-id=qwen/qwen-2.5-coder-32b-instruct --temperature=0.5 
+      --max-tokens=4096 --log-dir=experiments --log-to-console --log-to-file" ||
+      if [ $? -eq 124 ]; then echo "Timeout reached"; exit 0; else exit $?; fi
     outs:
     - path: experiments/qwen/qwen-2.5-coder-32b-instruct
       hash: md5
@@ -50,8 +55,8 @@ stages:
       size: 104973
       nfiles: 6
   testGeneration@google/gemma-3-27b-it:free:
-    cmd: ./runner.sh "google/gemma-3-27b-it:free" "5" "60" "https://openrouter.ai/api/v1/"
-      "0.5" "4096"
+    cmd: ./runner.sh "google/gemma-3-27b-it:free" "5" "60" 
+      "https://openrouter.ai/api/v1/" "0.5" "4096"
     outs:
     - path: experiments/google/gemma-3-27b-it:free
       hash: md5
@@ -59,8 +64,8 @@ stages:
       size: 319994
       nfiles: 34
   testGeneration@google/gemma-3-12b-it:free:
-    cmd: ./runner.sh "google/gemma-3-12b-it:free" "5" "60" "https://openrouter.ai/api/v1/"
-      "0.5" "4096"
+    cmd: ./runner.sh "google/gemma-3-12b-it:free" "5" "60" 
+      "https://openrouter.ai/api/v1/" "0.5" "4096"
     outs:
     - path: experiments/google/gemma-3-12b-it:free
       hash: md5
@@ -68,11 +73,52 @@ stages:
       size: 267801
       nfiles: 30
   testGeneration@openai/gpt-4.1:
-    cmd: ../gradlew runExperiments -Pmodel="openai/gpt-4.1" -Prepetitions="1" -Ptimeout="60"
-      -Pprovider="https://testsadsasa.ai/api/v1/" -Ptemperature="0.5" -PmaxTokens="4096"
+    cmd: ../gradlew runExperiments -Pmodel="openai/gpt-4.1" -Prepetitions="1" 
+      -Ptimeout="60" -Pprovider="https://testsadsasa.ai/api/v1/" 
+      -Ptemperature="0.5" -PmaxTokens="4096"
     outs:
     - path: experiments/openai/gpt-4.1
       hash: md5
       md5: 6d4f43320991e5ca7349fcb4a992f9f6.dir
       size: 535515
       nfiles: 60
+  generatePlans@mistralai/mistral-small-3.2-24b-instruct:free:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      mistralai/mistral-small-3.2-24b-instruct:free --repetitions 1 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir 
+      experiments/mistralai/mistral-small-3.2-24b-instruct:free --log-to-file"
+    outs:
+    - path: experiments/mistralai/mistral-small-3.2-24b-instruct:free
+      hash: md5
+      md5: 854eec1cbc7ed906e19aa3140d9408c2.dir
+      size: 116290
+      nfiles: 6
+  generatePlans@mistralai/mistral-small-3.2-24b-instruct:free-1:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      mistralai/mistral-small-3.2-24b-instruct:free --run-id 
+      mistralai/mistral-small-3.2-24b-instruct:free-1 --timeout-millis 60000 
+      --lm-server-url https://openrouter.ai/api/v1/ --temperature 0.5 
+      --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: experiments/mistralai/mistral-small-3.2-24b-instruct:free-1
+      hash: md5
+      md5: 35073c7346d839b7ed59035f5b615a3d.dir
+      size: 85508
+      nfiles: 6
+  computeMetrics@mistralai/mistral-small-3.2-24b-instruct:free-1:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/mistralai/mistral-small-3.2-24b-instruct:free-1 --metrics-dir 
+      metrics/mistralai/mistral-small-3.2-24b-instruct:free-1 --compute-metrics"
+    deps:
+    - path: experiments/mistralai/mistral-small-3.2-24b-instruct:free-1
+      hash: md5
+      md5: 35073c7346d839b7ed59035f5b615a3d.dir
+      size: 85508
+      nfiles: 6
+    outs:
+    - path: metrics/mistralai/mistral-small-3.2-24b-instruct:free-1
+      hash: md5
+      md5: 70164657ea3b57124730064b74dd00ca.dir
+      size: 441
+      nfiles: 1
