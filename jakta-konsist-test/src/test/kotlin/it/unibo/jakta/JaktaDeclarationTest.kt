@@ -9,7 +9,7 @@ import com.lemonappdev.konsist.api.verify.assertTrue
 import io.kotest.core.spec.style.FreeSpec
 import it.unibo.jakta.Konsist.projectScope
 import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
-import it.unibo.jakta.agents.bdi.engine.logging.events.JaktaLogEvent
+import it.unibo.jakta.agents.bdi.engine.logging.events.LogEvent
 import it.unibo.tuprolog.core.visitors.DefaultTermVisitor
 import kotlinx.serialization.Serializable
 
@@ -45,10 +45,10 @@ class JaktaDeclarationTest :
                 .assertTrue { it.hasNameEndingWith("Visitor") }
         }
 
-        "classes extending JaktaLogEvent must be serializable" {
+        "classes extending LogEvent must be serializable" {
             projectScope
                 .classes()
-                .withParentInterfaceOf(JaktaLogEvent::class, indirectParents = true)
+                .withParentInterfaceOf(LogEvent::class, indirectParents = true)
                 .assertTrue { it.hasAnnotationOf(Serializable::class) }
         }
 
