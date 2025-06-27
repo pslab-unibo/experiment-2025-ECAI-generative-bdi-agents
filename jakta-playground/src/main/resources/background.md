@@ -19,4 +19,3 @@ Operations must be prefixed with a keyword according to their type:
 
 Primitive actions are FOL terms, which are interpreted as functions (with actual arguments) that the agent may invoke to act on the environment (or on itself).
 Below is a representation of your internal state.
-For each item of the state, both the FOL syntax and the natural language interpretation are provided.

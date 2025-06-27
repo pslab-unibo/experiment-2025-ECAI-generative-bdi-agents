@@ -33,6 +33,5 @@ For example:
 ```
 
 Be as general and minimal as possible: use variables instead of constants where appropriate, reuse patterns across plans, and avoid over-specification.
-
 Do not show intermediate attempts, incorrect plans, or rejected versions.
 The output must be a block containing the admissible goals and beliefs and a block containing the final, clean, and minimal plan set only.
