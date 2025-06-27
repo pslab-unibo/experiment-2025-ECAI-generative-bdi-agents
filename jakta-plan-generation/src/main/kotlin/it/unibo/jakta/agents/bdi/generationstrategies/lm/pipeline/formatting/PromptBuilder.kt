@@ -12,6 +12,8 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.Cont
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.ExtendedAgentContext
 
 interface PromptBuilder {
+    val promptName: String
+
     fun build(
         initialGoal: GeneratePlan,
         context: AgentContext,
@@ -37,43 +39,47 @@ interface PromptBuilder {
             }
         }
 
-        fun prompt(block: PromptScope.(AgentContextProperties) -> Unit) =
-            object : PromptBuilder {
-                override fun build(
-                    initialGoal: GeneratePlan,
-                    context: AgentContext,
-                    externalActions: List<ExternalAction>,
-                    contextFilters: List<ContextFilter>,
-                    remarks: Iterable<Remark>,
-                ): ChatMessage {
-                    val extendedContext = ExtendedAgentContext(initialGoal, context, externalActions)
-                    val filteredContext = contextFilters.applyAllTo(extendedContext)
+        fun prompt(
+            promptName: String,
+            block: PromptScope.(AgentContextProperties) -> Unit,
+        ) = object : PromptBuilder {
+            override val promptName = promptName
 
-                    val filteredInternalActions =
-                        filteredContext.context.internalActions.values
-                            .toList()
-                    val filteredExternalActions = filteredContext.externalActions
-                    val actualBeliefs = filteredContext.context.beliefBase
-                    val admissibleBeliefs = filteredContext.context.admissibleBeliefs
-                    val admissibleGoals = filteredContext.context.admissibleGoals
-                    val actualGoals = filteredContext.context.planLibrary.plans
+            override fun build(
+                initialGoal: GeneratePlan,
+                context: AgentContext,
+                externalActions: List<ExternalAction>,
+                contextFilters: List<ContextFilter>,
+                remarks: Iterable<Remark>,
+            ): ChatMessage {
+                val extendedContext = ExtendedAgentContext(initialGoal, context, externalActions)
+                val filteredContext = contextFilters.applyAllTo(extendedContext)
 
-                    val properties =
-                        AgentContextProperties(
-                            filteredInternalActions,
-                            filteredExternalActions,
-                            actualBeliefs,
-                            admissibleBeliefs,
-                            admissibleGoals,
-                            actualGoals,
-                            initialGoal,
-                            remarks,
-                        )
+                val filteredInternalActions =
+                    filteredContext.context.internalActions.values
+                        .toList()
+                val filteredExternalActions = filteredContext.externalActions
+                val actualBeliefs = filteredContext.context.beliefBase
+                val admissibleBeliefs = filteredContext.context.admissibleBeliefs
+                val admissibleGoals = filteredContext.context.admissibleGoals
+                val actualGoals = filteredContext.context.planLibrary.plans
 
-                    val scope = PromptScope()
-                    block.invoke(scope, properties)
-                    return scope.buildAsMessage()
-                }
+                val properties =
+                    AgentContextProperties(
+                        filteredInternalActions,
+                        filteredExternalActions,
+                        actualBeliefs,
+                        admissibleBeliefs,
+                        admissibleGoals,
+                        actualGoals,
+                        initialGoal,
+                        remarks,
+                    )
+
+                val scope = PromptScope()
+                block.invoke(scope, properties)
+                return scope.buildAsMessage()
             }
+        }
     }
 }

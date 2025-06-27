@@ -19,6 +19,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_MAX_TOKENS
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TEMPERATURE
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TOKEN
+import it.unibo.jakta.playground.PromptType
 import java.util.UUID
 import kotlin.system.exitProcess
 import kotlin.text.matches
@@ -101,6 +102,11 @@ abstract class AbstractExperiment : CliktCommand() {
     val runId: String? by option()
         .help("The UUID that identifies the experimental run.")
 
+    val promptType: PromptType by option()
+        .enum<PromptType>()
+        .default(DEFAULT_PROMPT_TYPE)
+        .help("The type of prompt to use")
+
     override fun run() {
         expRunnerLogger.info("Experiment started")
 //        expRunnerLogger.info("Using API_KEY: $lmServerToken")
@@ -137,6 +143,7 @@ abstract class AbstractExperiment : CliktCommand() {
     companion object {
         val DEFAULT_TIMEOUT = 60.seconds.toLong(DurationUnit.MILLISECONDS)
         const val DEFAULT_LOG_DIR = "logs"
+        val DEFAULT_PROMPT_TYPE = PromptType.PROMPT_WITH_HINTS
         val DEFAULT_LOG_LEVEL = Log4jLevel.INFO
         const val MIN_TEMPERATURE = 0.0
         const val MAX_TEMPERATURE = 1.0

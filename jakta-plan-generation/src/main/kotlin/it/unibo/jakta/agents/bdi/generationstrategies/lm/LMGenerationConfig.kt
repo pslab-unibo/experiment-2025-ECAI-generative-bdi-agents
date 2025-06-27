@@ -18,6 +18,7 @@ interface LMGenerationConfig : GenerationConfig {
     val lmServerToken: String?
     val contextFilters: Iterable<ContextFilter>
     val promptBuilder: PromptBuilder?
+    val promptType: String?
     val remarks: Iterable<Remark>?
     val requestTimeout: Duration?
     val connectTimeout: Duration?
@@ -35,6 +36,7 @@ interface LMGenerationConfig : GenerationConfig {
         override val contextFilters: List<ContextFilter> = listOf(DefaultFilters.metaPlanFilter),
         @Transient
         override val promptBuilder: PromptBuilder = DefaultPromptBuilder.promptWithHints,
+        override val promptType: String = promptBuilder.promptName,
         override val remarks: Iterable<Remark> = emptyList(),
         override val requestTimeout: Duration = DefaultGenerationConfig.DEFAULT_REQUEST_TIMEOUT,
         override val connectTimeout: Duration = DefaultGenerationConfig.DEFAULT_CONNECT_TIMEOUT,
@@ -53,6 +55,7 @@ interface LMGenerationConfig : GenerationConfig {
         override val contextFilters: List<ContextFilter> = emptyList(),
         @Transient
         override val promptBuilder: PromptBuilder? = null,
+        override val promptType: String? = null,
         override val remarks: Iterable<Remark>? = null,
         override val requestTimeout: Duration? = null,
         override val connectTimeout: Duration? = null,

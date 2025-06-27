@@ -1,17 +1,78 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting
 
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.actionsFormatter
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.actionsFormatterWithoutHints
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.admissibleBeliefsFormatter
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.admissibleBeliefsFormatterWithoutHints
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.admissibleGoalsFormatter
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.admissibleGoalsFormatterWithoutHints
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.beliefsFormatter
+import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.beliefsFormatterWithoutHints
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.goalFormatter
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.triggerFormatter
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.PromptBuilder.Companion.formatAsBulletList
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.PromptBuilder.Companion.prompt
 
 object DefaultPromptBuilder {
+    val promptWithoutHints =
+        prompt("promptWithoutHints") { ctx ->
+            section("Background") { fromFile("background.md") }
+
+            section("Agent's internal state") {
+                section("Beliefs") {
+                    section("Admissible beliefs") {
+                        fromFormatter(ctx.admissibleBeliefs) {
+                            formatAsBulletList(it, admissibleBeliefsFormatterWithoutHints::format)
+                        }
+                    }
+
+                    section("Actual beliefs") {
+                        fromFormatter(ctx.actualBeliefs.asIterable().toList()) {
+                            formatAsBulletList(it, beliefsFormatterWithoutHints::format)
+                        }
+                    }
+                }
+
+                section("Goals") {
+                    section("Admissible goals") {
+                        fromFormatter(ctx.admissibleGoals) {
+                            formatAsBulletList(it, admissibleGoalsFormatterWithoutHints::format)
+                        }
+                    }
+
+                    section("Actual goals") {
+                        fromFormatter(ctx.actualGoals) { plans ->
+                            val triggers = plans.map { it.trigger }
+                            formatAsBulletList(triggers, triggerFormatter::format)
+                        }
+                    }
+                }
+
+                section("Admissible actions") {
+                    fromFormatter(ctx.internalActions + ctx.externalActions) {
+                        formatAsBulletList(it, actionsFormatterWithoutHints::format)
+                    }
+                }
+
+                section("Remarks") {
+                    fromFormatter(ctx.remarks) { r ->
+                        formatAsBulletList(r) { it.value }
+                    }
+                }
+            }
+
+            section("Expected outcome") {
+                val formattedGoal = goalFormatter.format(ctx.initialGoal.goal)
+                fromString(
+                    "You must output only the final set of plans to pursue the goal $formattedGoal, " +
+                        "with no alternatives.",
+                )
+                fromFile("expectedOutcome.md")
+            }
+        }
+
     val promptWithHints =
-        prompt { ctx ->
+        prompt("promptWithHints") { ctx ->
             section("Background") { fromFile("background.md") }
 
             section("Agent's internal state") {

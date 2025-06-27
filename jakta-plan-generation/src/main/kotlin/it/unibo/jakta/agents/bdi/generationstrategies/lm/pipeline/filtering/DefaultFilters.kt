@@ -6,7 +6,6 @@ import it.unibo.jakta.agents.bdi.engine.events.TestGoalFailure
 import it.unibo.jakta.agents.bdi.engine.generation.manager.impl.GenerationPlanBuilder
 import it.unibo.jakta.agents.bdi.engine.generation.manager.impl.GenerationPlanBuilder.createNewTriggerFromGoal
 import it.unibo.jakta.agents.bdi.engine.generation.manager.impl.GenerationPlanBuilder.getFailureTrigger
-import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 
 object DefaultFilters {
@@ -16,14 +15,28 @@ object DefaultFilters {
      */
     val metaPlanFilter =
         ContextFilter { extendedContext ->
-            extendedContext.createNewTriggerFromGoal()?.let { trigger ->
-                val generationPlanId = GenerationPlanBuilder.getGenerationPlanID(trigger)
-                extendedContext.copyWithFilteredPlans { plan ->
-                    plan.id != generationPlanId &&
-                        plan.trigger !is TestGoalFailure &&
-                        plan.trigger !is AchievementGoalFailure
-                }
-            } ?: extendedContext
+            val initialGoal = extendedContext.initialGoal
+            val context = extendedContext.context
+            val externalActions = extendedContext.externalActions
+            val trigger = createNewTriggerFromGoal(initialGoal.goal)?.let { getFailureTrigger(it) }
+            if (trigger != null) {
+                val id = GenerationPlanBuilder.getGenerationPlanID(trigger)
+                val filteredContext =
+                    context.copy(
+                        planLibrary =
+                            PlanLibrary.of(
+                                context.planLibrary.plans
+                                    .filterNot { it.id == id }
+                                    .filterNot {
+                                        it.trigger is TestGoalFailure ||
+                                            it.trigger is AchievementGoalFailure
+                                    }.distinctBy { it.trigger },
+                            ),
+                    )
+                ExtendedAgentContext(initialGoal, filteredContext, externalActions)
+            } else {
+                ExtendedAgentContext(initialGoal, context, externalActions)
+            }
         }
 
     val printActionFilter =
@@ -37,19 +50,4 @@ object DefaultFilters {
                     ),
             )
         }
-
-    private fun ExtendedAgentContext.createNewTriggerFromGoal() =
-        createNewTriggerFromGoal(initialGoal.goal)?.let { getFailureTrigger(it) }
-
-    private fun ExtendedAgentContext.copyWithFilteredPlans(filter: (Plan) -> Boolean) =
-        ExtendedAgentContext(
-            initialGoal,
-            context.copy(
-                planLibrary =
-                    PlanLibrary.of(
-                        context.planLibrary.plans.filterNot(filter),
-                    ),
-            ),
-            externalActions,
-        )
 }

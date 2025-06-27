@@ -69,12 +69,12 @@ object DefaultFormatters {
             else -> value
         }
 
-    val goalFormatter =
+    fun createGoalFormatter() =
         Formatter<Goal> { goal ->
             "${getPrefix(goal)} ${termFormatter.format(goal.getFormattableTerm())}".dropNumbers()
         }
 
-    val triggerFormatter =
+    fun createTriggerFormatter() =
         Formatter<Trigger> { trigger ->
             val goal = termFormatter.format(trigger.value)
             when (trigger) {
@@ -94,35 +94,47 @@ object DefaultFormatters {
     private fun <T> createFormatter(
         itemToString: (T) -> String?,
         purposeProvider: (T) -> String? = { null },
+        includePurpose: Boolean = true,
     ) = Formatter<T> { item ->
         itemToString(item)
             .let { base ->
-                purposeProvider(item)?.let { "$base: $it" } ?: base
+                if (includePurpose) {
+                    purposeProvider(item)?.let { "$base: $it" } ?: base
+                } else {
+                    base
+                }
             }?.dropNumbers()
     }
 
-    val beliefsFormatter =
+    fun createBeliefsFormatter(includePurpose: Boolean = true) =
         Formatter<Belief> { belief ->
             termFormatter
                 .format(belief.rule.head.removeSource())
-                .let { base -> belief.purpose?.let { "$base: $it" } ?: base }
-                .takeUnless { it.contains(META_PLAN_BELIEF_FUNCTOR) }
+                .let { base ->
+                    if (includePurpose) {
+                        belief.purpose?.let { "$base: $it" } ?: base
+                    } else {
+                        base
+                    }
+                }.takeUnless { it.contains(META_PLAN_BELIEF_FUNCTOR) }
                 ?.dropNumbers()
         }
 
-    val admissibleBeliefsFormatter =
+    fun createAdmissibleBeliefsFormatter(includePurpose: Boolean = true) =
         createFormatter(
             itemToString = { termFormatter.format(it.rule.head.removeSource()) },
             purposeProvider = AdmissibleBelief::purpose,
+            includePurpose = includePurpose,
         )
 
-    val admissibleGoalsFormatter =
+    fun createAdmissibleGoalsFormatter(includePurpose: Boolean = true) =
         createFormatter<AdmissibleGoal>(
             itemToString = { triggerFormatter.format(it.trigger) },
             purposeProvider = { it.trigger.purpose },
+            includePurpose = includePurpose,
         )
 
-    val actionsFormatter =
+    fun createActionsFormatter(includePurpose: Boolean = true) =
         Formatter<Action<*, *, *>> { action ->
             buildString {
                 val signature = action.actionSignature
@@ -134,7 +146,9 @@ object DefaultFormatters {
                         ?: (1..signature.arity).joinToString { "Parameter$it" },
                 )
                 append(")")
-                action.purpose?.let { append(": $it") }
+                if (includePurpose) {
+                    action.purpose?.let { append(": $it") }
+                }
             }.dropNumbers()
         }
 
@@ -157,4 +171,16 @@ object DefaultFormatters {
                 )
             }
         }
+
+    val goalFormatter = createGoalFormatter()
+    val triggerFormatter = createTriggerFormatter()
+    val beliefsFormatter = createBeliefsFormatter()
+    val admissibleBeliefsFormatter = createAdmissibleBeliefsFormatter()
+    val admissibleGoalsFormatter = createAdmissibleGoalsFormatter()
+    val actionsFormatter = createActionsFormatter()
+
+    val beliefsFormatterWithoutHints = createBeliefsFormatter(includePurpose = false)
+    val admissibleBeliefsFormatterWithoutHints = createAdmissibleBeliefsFormatter(includePurpose = false)
+    val admissibleGoalsFormatterWithoutHints = createAdmissibleGoalsFormatter(includePurpose = false)
+    val actionsFormatterWithoutHints = createActionsFormatter(includePurpose = false)
 }

@@ -2,10 +2,22 @@ package it.unibo.jakta.playground.evaluation
 
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
+import kotlinx.io.IOException
 import java.io.BufferedReader
 import java.io.File
 
 object FileProcessor {
+    fun writeToFile(
+        content: String,
+        file: File,
+        description: String,
+    ) = try {
+        file.writeText(content)
+        println("$description dumped to ${file.name}")
+    } catch (e: IOException) {
+        println("Error writing to file: ${e.message}")
+    }
+
     private fun processLines(
         reader: BufferedReader,
         logger: JaktaLogger? = null,

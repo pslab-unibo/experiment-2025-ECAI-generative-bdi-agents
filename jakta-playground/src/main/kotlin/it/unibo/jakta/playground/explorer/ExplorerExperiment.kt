@@ -7,6 +7,7 @@ import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionStrategy
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.DefaultFilters
 import it.unibo.jakta.playground.AbstractExperiment
 import it.unibo.jakta.playground.ModuleLoader.jsonModule
 import it.unibo.jakta.playground.explorer.agents.ExplorerRobot.explorerRobot
@@ -58,5 +59,7 @@ class ExplorerExperiment : AbstractExperiment() {
             maxTokens = this@ExplorerExperiment.maxTokens
             temperature = this@ExplorerExperiment.temperature
             requestTimeout = 240.seconds
+            promptBuilder = this@ExplorerExperiment.promptType.builder
+            contextFilters = listOf(DefaultFilters.metaPlanFilter, DefaultFilters.printActionFilter)
         }
 }

@@ -38,6 +38,7 @@ class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
             token,
             contextFilters,
             promptBuilder,
+            promptBuilder?.promptName,
             remarks,
             requestTimeout,
             connectTimeout,

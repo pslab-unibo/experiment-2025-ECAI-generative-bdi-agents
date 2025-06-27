@@ -17,6 +17,7 @@ import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.planFormatt
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastId
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.playground.ModuleLoader
+import it.unibo.jakta.playground.evaluation.FileProcessor.writeToFile
 import it.unibo.jakta.playground.evaluation.InvocationContext
 import it.unibo.jakta.playground.evaluation.LMPGPInvocation
 import it.unibo.jakta.playground.evaluation.LogFileUtils.extractAgentLogFiles
@@ -31,17 +32,9 @@ import java.io.File
  *
  * This tool processes PGP experiment data by:
  * - Parsing MAS (Multi-Agent System) log files to extract agent and PGP-specific logs
- * - Displaying conversation history and generated plans for each PGP invocation
+ * - Writing to disk the conversation history and generated plans for each PGP invocation
  * - Computing evaluation metrics when requested
  * - Exporting results to CSV format for further analysis
- *
- * The analysis workflow involves processing experiment directories containing log files from
- * plan generation procedures, extracting relevant data, and optionally computing metrics
- * to evaluate the performance and quality of the generated plans.
- *
- * @property expDir Directory containing PGP experiment traces to analyze (default: "experiments/")
- * @property computeMetrics Flag to enable metrics computation (default: false)
- * @property metricsDir Directory to store computed metrics results (default: "metrics/")
  */
 class AnalyzePGP : CliktCommand() {
     val expDir: String by option()
@@ -68,8 +61,9 @@ class AnalyzePGP : CliktCommand() {
                 val pgpId = extractLastId(pgpLogFile.name)
                 pgpId?.let {
                     val pgpInvocation = LMPGPInvocation.from(pgpId, agentLogFile, pgpLogFile)
-                    printHistory(pgpInvocation.history)
-                    printGeneratedPlans(pgpInvocation.generatedPlans)
+
+                    writeChatHistory(pgpInvocation.history)
+                    writeGeneratedPlans(pgpInvocation.generatedPlans)
 
                     if (computeMetrics) {
                         computeMetrics(context, pgpInvocation)
@@ -79,30 +73,49 @@ class AnalyzePGP : CliktCommand() {
         }
     }
 
-    private fun printGeneratedPlans(generatedPlans: List<Plan>) {
-        "-".repeat(80).let(::println)
-        println("Generated Plans")
-        "-".repeat(80).let(::println)
+    private fun getGeneratedPlans(generatedPlans: List<Plan>) =
+        buildString {
+            appendLine("-".repeat(80))
+            appendLine("Generated Plans")
+            appendLine("-".repeat(80))
 
-        if (generatedPlans.isEmpty()) {
-            println("No generated plans")
-        } else {
-            generatedPlans
-                .mapNotNull { planFormatter.format(it) }
-                .joinToString("\n\n") { it.dropNumbers() }
-                .let(::println)
+            if (generatedPlans.isEmpty()) {
+                appendLine("No generated plans")
+            } else {
+                val formattedPlans =
+                    generatedPlans
+                        .mapNotNull { planFormatter.format(it) }
+                        .joinToString("\n\n") { it.dropNumbers() }
+                append(formattedPlans)
+            }
         }
+
+    fun writeGeneratedPlans(
+        generatedPlans: List<Plan>,
+        filename: String = "generated_plans.txt",
+    ) {
+        val metricsDirectory = File(metricsDir).apply { mkdirs() }
+        val file = File(metricsDirectory, filename)
+        writeToFile(getGeneratedPlans(generatedPlans), file, "Generated plans")
     }
 
-    private fun printHistory(history: List<ChatMessage>) {
+    fun writeChatHistory(
+        history: List<ChatMessage>,
+        filename: String = "chat_history.txt",
+    ) {
+        val metricsDirectory = File(metricsDir).apply { mkdirs() }
+        val file = File(metricsDirectory, filename)
+        writeToFile(getHistory(history), file, "History")
+    }
+
+    private fun getHistory(history: List<ChatMessage>) =
         history
             .joinToString("\n") {
                 "-".repeat(80) + "\n" +
                     it.role.role.capitalize() + "\n" +
                     "-".repeat(80) + "\n" +
                     it.content + "\n"
-            }.let(::println)
-    }
+            }
 
     private fun printEvalResult(evaluationResults: List<PGPEvaluationResult>) {
         "-".repeat(80).let(::println)
@@ -114,19 +127,17 @@ class AnalyzePGP : CliktCommand() {
     private fun computeMetrics(
         context: InvocationContext,
         pgpInvocation: LMPGPInvocation,
+        filename: String = "pgp_evaluation_result.csv",
     ) {
         val evaluationResults = MetricsComputer().eval(context, pgpInvocation)
         printEvalResult(evaluationResults)
 
-        metricsDir.let {
-            val metricsDirectory = File(it).apply { mkdirs() }
-
-            val csvFile = File(metricsDirectory, "pgp_evaluation_result.csv")
-            csvFile.outputStream().use { outputStream ->
-                PGPEvaluationResult.writeCsv(evaluationResults, outputStream)
-            }
-            println("\nResults written to: ${csvFile.absolutePath}")
+        val metricsDirectory = File(metricsDir).apply { mkdirs() }
+        val csvFile = File(metricsDirectory, filename)
+        csvFile.outputStream().use { outputStream ->
+            PGPEvaluationResult.writeCsv(evaluationResults, outputStream)
         }
+        println("\nResults written to: ${csvFile.absolutePath}")
     }
 }
 
