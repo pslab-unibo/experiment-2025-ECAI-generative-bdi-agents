@@ -3,18 +3,20 @@ stages:
     matrix:
       model: ${models}
       repetition: ${repetitions}
-    cmd: ../gradlew runExperiment --args="--model-id ${item.model} --run-id ${item.model}-${item.repetition} --timeout-millis ${timeout} --lm-server-url ${provider} --temperature ${temperature} --max-tokens ${maxTokens} --log-dir experiments --log-to-file"
+      prompt: ${promptTypes}
+    cmd: ../gradlew runExperiment --args="--model-id ${item.model} --prompt-type ${item.prompt} --run-id ${item.model}-${item.repetition}-${item.prompt} --timeout-millis ${timeout} --lm-server-url ${provider} --temperature ${temperature} --max-tokens ${maxTokens} --log-dir experiments --log-to-file"
     outs:
-      - experiments/${item.model}-${item.repetition}:
+      - experiments/${item.model}-${item.repetition}-${item.prompt}:
           persist: true
 
   computeMetrics:
     matrix:
       model: ${models}
       repetition: ${repetitions}
-    cmd: ../gradlew analyzePGP --args="--exp-dir experiments/${item.model}-${item.repetition} --metrics-dir metrics/${item.model}-${item.repetition} --compute-metrics"
+      prompt: ${promptTypes}
+    cmd: ../gradlew analyzePGP --args="--exp-dir experiments/${item.model}-${item.repetition}-${item.prompt} --metrics-dir metrics/${item.model}-${item.repetition}-${item.prompt} --compute-metrics"
     deps:
-      - experiments/${item.model}-${item.repetition}
+      - experiments/${item.model}-${item.repetition}-${item.prompt}
     outs:
-      - metrics/${item.model}-${item.repetition}:
+      - metrics/${item.model}-${item.repetition}-${item.prompt}:
           persist: true
