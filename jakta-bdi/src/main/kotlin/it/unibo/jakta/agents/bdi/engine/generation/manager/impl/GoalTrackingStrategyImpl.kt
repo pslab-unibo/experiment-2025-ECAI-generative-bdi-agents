@@ -30,9 +30,7 @@ internal class GoalTrackingStrategyImpl(
     ): ExecutionResult {
         val goalToExecute = genGoal.goal
         val newIntention = intention.replace(genGoal, goalToExecute)
-
         val result = runIntention(newIntention, context, environment)
-
         val updatedRes =
             if (result.feedback is NegativeFeedback) {
                 result

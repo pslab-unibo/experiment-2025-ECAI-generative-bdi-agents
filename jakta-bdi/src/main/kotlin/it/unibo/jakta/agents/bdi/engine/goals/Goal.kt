@@ -158,16 +158,19 @@ interface TrackGoalExecution : Goal {
                 .firstOrNull { it.id == planID } as? PartialPlan
                 ?: return planLibrary
 
-        val r = genPlan.goals.filterIsInstance<TrackGoalExecution>().first()
-        val firstIndex = genPlan.goals.indexOf(r)
-        val filteredGoals =
-            genPlan.goals.mapIndexed { idx, goal ->
-                if (idx == firstIndex) r.goal else goal
-            }
-
-        val planWithUntrackedGoal = genPlan.copy(goals = filteredGoals)
-        return planLibrary
-            .removePlan(genPlan)
-            .addPlan(planWithUntrackedGoal)
+        val trackGoals = genPlan.goals.filterIsInstance<TrackGoalExecution>().firstOrNull()
+        return if (trackGoals != null) {
+            val firstIndex = genPlan.goals.indexOf(trackGoals)
+            val filteredGoals =
+                genPlan.goals.mapIndexed { idx, goal ->
+                    if (idx == firstIndex) trackGoals.goal else goal
+                }
+            val planWithUntrackedGoal = genPlan.copy(goals = filteredGoals)
+            planLibrary
+                .removePlan(genPlan)
+                .addPlan(planWithUntrackedGoal)
+        } else {
+            planLibrary
+        }
     }
 }
