@@ -63,7 +63,7 @@ tasks.register<JavaExec>("analyzePGP") {
     group = "application"
 
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "${project.group}.playground.evaluation.scripts.AnalyzePGPKt"
+    mainClass = "${project.group}.playground.evaluation.apps.AnalyzePGPKt"
 }
 
 tasks.register<JavaExec>("runDomesticRobot") {

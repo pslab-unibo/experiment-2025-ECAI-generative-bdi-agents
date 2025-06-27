@@ -45,22 +45,25 @@ class ExperimentReplayer : CliktCommand() {
     override fun run() {
         val expName = UUID.randomUUID().toString()
         val lmResponses = getChatMessages(expDir).mapNotNull { it.content }
+        if (lmResponses.isEmpty()) {
+            println("No LLM responses found. Cannot replay experiment.")
+        } else {
+            mas {
+                modules = listOf(jsonModule)
+                loggingConfig =
+                    LoggingConfig(
+                        logDir = extractDirectoryPath(expDir) + separator + expName,
+                        logToFile = logToFile,
+                    )
+                gridWorld()
+                explorerRobot(strategy = createOneStepStrategyWithMockedAPI(lmResponses))
 
-        mas {
-            modules = listOf(jsonModule)
-            loggingConfig =
-                LoggingConfig(
-                    logDir = extractDirectoryPath(expDir) + separator + expName,
-                    logToFile = logToFile,
-                )
-            gridWorld()
-            explorerRobot(strategy = createOneStepStrategyWithMockedAPI(lmResponses))
-
-            oneStepGeneration {
-                contextFilters = listOf(DefaultFilters.metaPlanFilter, DefaultFilters.printActionFilter)
-                promptBuilder = DefaultPromptBuilder.promptWithHints
-            }
-        }.start()
+                oneStepGeneration {
+                    contextFilters = listOf(DefaultFilters.metaPlanFilter, DefaultFilters.printActionFilter)
+                    promptBuilder = DefaultPromptBuilder.promptWithHints
+                }
+            }.start()
+        }
     }
 
     companion object {

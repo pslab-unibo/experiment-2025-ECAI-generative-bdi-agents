@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation.tools
+package it.unibo.jakta.playground.evaluation.apps
 
 import it.unibo.jakta.playground.evaluation.IndexSearch.getAgentsFromMas
 import it.unibo.jakta.playground.evaluation.IndexSearch.getMasTraces

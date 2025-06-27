@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation.tools
+package it.unibo.jakta.playground.evaluation.apps
 
 import com.aallam.openai.api.chat.ChatMessage
 import com.github.ajalt.clikt.core.CliktCommand

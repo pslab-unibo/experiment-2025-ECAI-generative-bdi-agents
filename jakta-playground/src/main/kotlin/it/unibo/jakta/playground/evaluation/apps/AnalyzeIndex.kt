@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation.tools
+package it.unibo.jakta.playground.evaluation.apps
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
