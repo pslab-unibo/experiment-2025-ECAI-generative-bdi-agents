@@ -1,124 +1,312 @@
 schema: '2.0'
 stages:
-  testGeneration@phi4-blocksworld:
-    cmd: ../gradlew runExperiment --quiet --args=" --model-id=phi4 
-      --log-dir=experiments --log-to-console --log-to-file"
-    outs:
-    - path: experiments
-      hash: md5
-      md5: d751713988987e9331980363e24189ce.dir
-      size: 0
-      nfiles: 0
-  testGeneration@meta-llama/llama-3.3-70b-instruct:free:
-    cmd: ./runner.sh "meta-llama/llama-3.3-70b-instruct:free" "5" "60" 
-      "https://openrouter.ai/api/v1/" "0.5" "4096"
-    outs:
-    - path: experiments/meta-llama/llama-3.3-70b-instruct:free
-      hash: md5
-      md5: 4a856008b57d4cfd320a66b9ba7cbb4c.dir
-      size: 29220893
-      nfiles: 30
-  testGeneration@deepseek/deepseek-chat-v3-0324:free:
-    cmd: ../gradlew runExperiment --args=" 
-      --lm-server-url=https://openrouter.ai/api/v1/ 
-      --model-id=deepseek/deepseek-chat-v3-0324:free --temperature=0.1 
-      --max-tokens=1000 --timeout=40 --log-dir=experiments --log-to-console 
-      --log-to-file"
-    outs:
-    - path: experiments/deepseek/deepseek-chat-v3-0324:free
-      hash: md5
-      md5: f2d164f0def14ccc3b1553bedc3bd81e.dir
-      size: 325823
-      nfiles: 4
-  testGeneration@google/gemini-2.0-flash-exp:free:
-    cmd: ../gradlew runExperiment --args=" 
-      --lm-server-url=https://openrouter.ai/api/v1/ 
-      --model-id=google/gemini-2.0-flash-exp:free --temperature=0.1 
-      --max-tokens=1000 --timeout=40 --log-dir=experiments --log-to-console 
-      --log-to-file"
-    outs:
-    - path: experiments/google/gemini-2.0-flash-exp:free
-      hash: md5
-      md5: 4798c869f5ee3dd6a1801edd609a465e.dir
-      size: 34437
-      nfiles: 4
-  testGeneration@qwen/qwen-2.5-coder-32b-instruct:
-    cmd: timeout 40s ../gradlew runExperiment --args=" 
-      --lm-server-url=https://openrouter.ai/api/v1/ 
-      --model-id=qwen/qwen-2.5-coder-32b-instruct --temperature=0.5 
-      --max-tokens=4096 --log-dir=experiments --log-to-console --log-to-file" ||
-      if [ $? -eq 124 ]; then echo "Timeout reached"; exit 0; else exit $?; fi
-    outs:
-    - path: experiments/qwen/qwen-2.5-coder-32b-instruct
-      hash: md5
-      md5: b848f7ae9574721c668a597518ced31c.dir
-      size: 104973
-      nfiles: 6
-  testGeneration@google/gemma-3-27b-it:free:
-    cmd: ./runner.sh "google/gemma-3-27b-it:free" "5" "60" 
-      "https://openrouter.ai/api/v1/" "0.5" "4096"
-    outs:
-    - path: experiments/google/gemma-3-27b-it:free
-      hash: md5
-      md5: 231988aec19f4ed5ddca5314db0ce767.dir
-      size: 319994
-      nfiles: 34
-  testGeneration@google/gemma-3-12b-it:free:
-    cmd: ./runner.sh "google/gemma-3-12b-it:free" "5" "60" 
-      "https://openrouter.ai/api/v1/" "0.5" "4096"
-    outs:
-    - path: experiments/google/gemma-3-12b-it:free
-      hash: md5
-      md5: 458f4282eb39743e29223ed8d675feab.dir
-      size: 267801
-      nfiles: 30
-  testGeneration@openai/gpt-4.1:
-    cmd: ../gradlew runExperiments -Pmodel="openai/gpt-4.1" -Prepetitions="1" 
-      -Ptimeout="60" -Pprovider="https://testsadsasa.ai/api/v1/" 
-      -Ptemperature="0.5" -PmaxTokens="4096"
-    outs:
-    - path: experiments/openai/gpt-4.1
-      hash: md5
-      md5: 6d4f43320991e5ca7349fcb4a992f9f6.dir
-      size: 535515
-      nfiles: 60
-  generatePlans@mistralai/mistral-small-3.2-24b-instruct:free:
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints:
     cmd: ../gradlew runExperiment --args="--model-id 
-      mistralai/mistral-small-3.2-24b-instruct:free --repetitions 1 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_without_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints 
       --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
-      --temperature 0.5 --max-tokens 2048 --log-dir 
-      experiments/mistralai/mistral-small-3.2-24b-instruct:free --log-to-file"
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
     outs:
-    - path: experiments/mistralai/mistral-small-3.2-24b-instruct:free
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints
       hash: md5
-      md5: 854eec1cbc7ed906e19aa3140d9408c2.dir
-      size: 116290
+      md5: e32d2e4a28d3820e85a2d413732cee91.dir
+      size: 222326
       nfiles: 6
-  generatePlans@mistralai/mistral-small-3.2-24b-instruct:free-1:
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints:
     cmd: ../gradlew runExperiment --args="--model-id 
-      mistralai/mistral-small-3.2-24b-instruct:free --run-id 
-      mistralai/mistral-small-3.2-24b-instruct:free-1 --timeout-millis 60000 
-      --lm-server-url https://openrouter.ai/api/v1/ --temperature 0.5 
-      --max-tokens 2048 --log-dir experiments --log-to-file"
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_with_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
     outs:
-    - path: experiments/mistralai/mistral-small-3.2-24b-instruct:free-1
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints
       hash: md5
-      md5: 35073c7346d839b7ed59035f5b615a3d.dir
-      size: 85508
+      md5: 52a6d588858842c76182d8b570e97a73.dir
+      size: 102082
       nfiles: 6
-  computeMetrics@mistralai/mistral-small-3.2-24b-instruct:free-1:
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_without_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints
+      hash: md5
+      md5: c1e1e1f0ace78f8c060170a067585846.dir
+      size: 100672
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_with_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints
+      hash: md5
+      md5: 4ab638749d1a5d58ce16504bc63e1d14.dir
+      size: 102084
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_without_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints
+      hash: md5
+      md5: 23ca092fad025f3fcab3676eccc49b31.dir
+      size: 153191
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_with_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints
+      hash: md5
+      md5: 4ad3397c3e21bfa58ba3e1df4a4388df.dir
+      size: 123176937
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_without_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints
+      hash: md5
+      md5: e2106cb161992a3ea1cdb3b3104a0c8c.dir
+      size: 101726
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_with_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints
+      hash: md5
+      md5: 8783a2a112fc953ccddb7f32c18ab3b7.dir
+      size: 102547
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_without_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints
+      hash: md5
+      md5: 534c2561725fbc146ef9d3b90b08ddab.dir
+      size: 101393
+      nfiles: 6
+  generatePlans@deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints:
+    cmd: ../gradlew runExperiment --args="--model-id 
+      deepseek/deepseek-chat-v3-0324:free --prompt-type prompt_with_hints 
+      --run-id deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints 
+      --timeout-millis 60000 --lm-server-url https://openrouter.ai/api/v1/ 
+      --temperature 0.5 --max-tokens 2048 --log-dir experiments --log-to-file"
+    outs:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints
+      hash: md5
+      md5: 43c7ec9a87187b5aa1c196c258ca98a5.dir
+      size: 46293505
+      nfiles: 6
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints:
     cmd: ../gradlew analyzePGP --args="--exp-dir 
-      experiments/mistralai/mistral-small-3.2-24b-instruct:free-1 --metrics-dir 
-      metrics/mistralai/mistral-small-3.2-24b-instruct:free-1 --compute-metrics"
+      experiments/deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints 
+      --compute-metrics"
     deps:
-    - path: experiments/mistralai/mistral-small-3.2-24b-instruct:free-1
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints
       hash: md5
-      md5: 35073c7346d839b7ed59035f5b615a3d.dir
-      size: 85508
+      md5: e32d2e4a28d3820e85a2d413732cee91.dir
+      size: 222326
       nfiles: 6
     outs:
-    - path: metrics/mistralai/mistral-small-3.2-24b-instruct:free-1
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-1-prompt_without_hints
       hash: md5
-      md5: 70164657ea3b57124730064b74dd00ca.dir
-      size: 441
-      nfiles: 1
+      md5: 67475ece09f69f5823738daf116cb555.dir
+      size: 8235
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints 
+      --compute-metrics"
+    deps:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints
+      hash: md5
+      md5: 52a6d588858842c76182d8b570e97a73.dir
+      size: 102082
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-1-prompt_with_hints
+      hash: md5
+      md5: a596a82ad18481b639dc6b3b135e6c87.dir
+      size: 9117
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints 
+      --compute-metrics"
+    deps:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints
+      hash: md5
+      md5: c1e1e1f0ace78f8c060170a067585846.dir
+      size: 100672
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-2-prompt_without_hints
+      hash: md5
+      md5: c9c946543a98f3811142e61a0807e0aa.dir
+      size: 8099
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints 
+      --compute-metrics"
+    deps:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints
+      hash: md5
+      md5: 4ab638749d1a5d58ce16504bc63e1d14.dir
+      size: 102084
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-2-prompt_with_hints
+      hash: md5
+      md5: 65084f7a9732e83799c5d3da46707485.dir
+      size: 9111
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints 
+      --compute-metrics"
+    deps:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints
+      hash: md5
+      md5: 23ca092fad025f3fcab3676eccc49b31.dir
+      size: 153191
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-3-prompt_without_hints
+      hash: md5
+      md5: 540cc15e1673f795dcd9457b1786526a.dir
+      size: 8013
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints 
+      --compute-metrics"
+    deps:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints
+      hash: md5
+      md5: 4ad3397c3e21bfa58ba3e1df4a4388df.dir
+      size: 123176937
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-3-prompt_with_hints
+      hash: md5
+      md5: b263936b77d9deeb5f40017bc7356980.dir
+      size: 8853
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints 
+      --compute-metrics"
+    deps:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints
+      hash: md5
+      md5: e2106cb161992a3ea1cdb3b3104a0c8c.dir
+      size: 101726
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-4-prompt_without_hints
+      hash: md5
+      md5: b172c38904ecb4988191f7e28a0d3d5a.dir
+      size: 9052
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints 
+      --compute-metrics"
+    deps:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints
+      hash: md5
+      md5: 8783a2a112fc953ccddb7f32c18ab3b7.dir
+      size: 102547
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-4-prompt_with_hints
+      hash: md5
+      md5: 8aed1af1720fec6c5e87a5271a40bff4.dir
+      size: 9534
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints 
+      --compute-metrics"
+    deps:
+    - path: 
+        experiments/deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints
+      hash: md5
+      md5: 534c2561725fbc146ef9d3b90b08ddab.dir
+      size: 101393
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-5-prompt_without_hints
+      hash: md5
+      md5: 01870d6eb4e400a2ee9901b4b66a9afa.dir
+      size: 8086
+      nfiles: 3
+  computeMetrics@deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints:
+    cmd: ../gradlew analyzePGP --args="--exp-dir 
+      experiments/deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints 
+      --metrics-dir 
+      metrics/deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints 
+      --compute-metrics"
+    deps:
+    - path: experiments/deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints
+      hash: md5
+      md5: 43c7ec9a87187b5aa1c196c258ca98a5.dir
+      size: 46293505
+      nfiles: 6
+    outs:
+    - path: metrics/deepseek/deepseek-chat-v3-0324:free-5-prompt_with_hints
+      hash: md5
+      md5: 476431c4d84a546b3fe72a4827d3789c.dir
+      size: 8823
+      nfiles: 3
