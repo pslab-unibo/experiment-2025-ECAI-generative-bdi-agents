@@ -3,5 +3,6 @@ experiments
 metrics
 .devenv
 notebooks/.ipynb_checkpoints
-devenv.*
 .devenv.flake.nix
+devenv.nix
+devenv.lock
