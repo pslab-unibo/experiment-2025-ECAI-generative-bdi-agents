@@ -14,8 +14,6 @@ class JaktaArchitectureTest :
                     val dslLayer = Layer("DSL", "it.unibo.jakta.agents.bdi.dsl..")
                     val planGenLayer = Layer("Plan Generation", "it.unibo.jakta.agents.bdi.generationstrategies..")
                     val fsmLayer = Layer("Finite State Machine", "it.unibo.jakta.agents.fsm..")
-                    val narrativeGenLayer =
-                        Layer("Narrative Generation", "it.unibo.jakta.agents.bdi.narrativegenerator..")
 
                     dslLayer.dependsOn(bdiEngineLayer)
                     planGenLayer.dependsOn(bdiEngineLayer)
@@ -27,8 +25,6 @@ class JaktaArchitectureTest :
                     dslLayer.doesNotDependOn(planGenLayer)
 
                     fsmLayer.dependsOnNothing()
-
-                    narrativeGenLayer.dependsOnNothing()
                 }
         }
     })
