@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation
+package it.unibo.jakta.playground.evaluation.indexsearch
 
 import com.jillesvangurp.ktsearch.KtorRestClient
 import com.jillesvangurp.ktsearch.SearchClient

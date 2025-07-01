@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation
+package it.unibo.jakta.playground.evaluation.plandata
 
 data class SemanticAlignmentResult(
     val notParsed: Int,

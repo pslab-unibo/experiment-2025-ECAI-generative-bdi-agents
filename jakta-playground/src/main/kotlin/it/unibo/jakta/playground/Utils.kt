@@ -1,5 +1,8 @@
 package it.unibo.jakta.playground
 
+import java.io.File
+import java.util.Properties
+
 object Utils {
     /**
      * Determines the appropriate indefinite article ("a" or "an") for a given word
@@ -60,5 +63,18 @@ object Utils {
             // Default to "a" for consonant sounds
             else -> "a"
         }
+    }
+
+    fun readTokenFromEnv(): String {
+        val envFile = File(".env")
+        if (!envFile.exists()) {
+            throw IllegalStateException(".env file not found")
+        }
+
+        val props = Properties()
+        envFile.inputStream().use { props.load(it) }
+
+        return props.getProperty("API_KEY")
+            ?: throw IllegalStateException("API_KEY not found in .env file")
     }
 }

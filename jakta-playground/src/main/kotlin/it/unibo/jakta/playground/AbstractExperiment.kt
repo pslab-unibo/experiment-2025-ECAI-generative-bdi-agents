@@ -19,13 +19,13 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_MAX_TOKENS
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TEMPERATURE
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TOKEN
-import it.unibo.jakta.playground.PromptType
 import java.util.UUID
 import kotlin.system.exitProcess
 import kotlin.text.matches
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
+// CPD-OFF
 abstract class AbstractExperiment : CliktCommand() {
     private val delegate = LoggerFactory.create("ExperimentRunner", "", LoggingConfig())
     private val expRunnerLogger = delegate.logger
@@ -149,3 +149,4 @@ abstract class AbstractExperiment : CliktCommand() {
         const val MAX_TEMPERATURE = 1.0
     }
 }
+// CPD-ON

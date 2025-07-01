@@ -13,6 +13,7 @@ import it.unibo.jakta.agents.bdi.engine.perception.Perception
 import it.unibo.tuprolog.core.Atom
 import java.lang.Thread.sleep
 
+// CPD-OFF
 class HouseEnvironment(
     agentIDs: Map<String, AgentID> = emptyMap(),
     externalActions: Map<String, ExternalAction> = emptyMap(),
@@ -134,3 +135,4 @@ class HouseEnvironment(
         internal val defaultData = mapOf("state" to HouseState())
     }
 }
+// CPD-ON

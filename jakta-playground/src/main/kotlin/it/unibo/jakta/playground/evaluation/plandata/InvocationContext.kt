@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation
+package it.unibo.jakta.playground.evaluation.plandata
 
 import it.unibo.jakta.agents.bdi.engine.actions.ActionSignature
 import it.unibo.jakta.agents.bdi.engine.actions.effects.AdmissibleBeliefChange
@@ -8,11 +8,14 @@ import it.unibo.jakta.agents.bdi.engine.beliefs.AdmissibleBelief
 import it.unibo.jakta.agents.bdi.engine.context.ContextUpdate.ADDITION
 import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.engine.logging.events.ActionEvent.ActionAddition
+import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastId
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.playground.evaluation.FileProcessor.processFile
 import java.io.File
 
 data class InvocationContext(
+    val masId: String?,
+    val agentId: String?,
     val plans: List<Plan> = emptyList(),
     val admissibleGoals: List<AdmissibleGoal> = emptyList(),
     val admissibleBeliefs: List<AdmissibleBelief> = emptyList(),
@@ -57,7 +60,12 @@ data class InvocationContext(
                 true
             }
 
+            val masId = extractLastId(masLogFile.name)
+            val agentId = extractLastId(agentLogFile.name)
+
             return InvocationContext(
+                masId = masId,
+                agentId = agentId,
                 plans = plans,
                 admissibleGoals = admissibleGoals,
                 admissibleBeliefs = admissibleBeliefs,

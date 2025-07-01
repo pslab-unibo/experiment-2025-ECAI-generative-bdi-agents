@@ -16,8 +16,10 @@ import it.unibo.jakta.agents.bdi.engine.Jakta.separator
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMMessageReceived
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.DefaultFilters
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.DefaultPromptBuilder
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.DefaultFilters.metaPlanFilter
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.DefaultFilters.printActionFilter
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.DefaultPromptBuilder.systemPrompt
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.DefaultPromptBuilder.userPromptWithHintsAndRemarks
 import it.unibo.jakta.playground.MockGenerationStrategy.createOneStepStrategyWithMockedAPI
 import it.unibo.jakta.playground.ModuleLoader
 import it.unibo.jakta.playground.ModuleLoader.jsonModule
@@ -59,8 +61,9 @@ class ExperimentReplayer : CliktCommand() {
                 explorerRobot(strategy = createOneStepStrategyWithMockedAPI(lmResponses))
 
                 oneStepGeneration {
-                    contextFilters = listOf(DefaultFilters.metaPlanFilter, DefaultFilters.printActionFilter)
-                    promptBuilder = DefaultPromptBuilder.promptWithHints
+                    contextFilters = listOf(metaPlanFilter, printActionFilter)
+                    systemPromptBuilder = systemPrompt
+                    userPromptBuilder = userPromptWithHintsAndRemarks
                 }
             }.start()
         }

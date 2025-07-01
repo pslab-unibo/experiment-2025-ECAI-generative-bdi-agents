@@ -1,11 +1,11 @@
-package it.unibo.jakta.playground.evaluation.apps
+package it.unibo.jakta.playground.evaluation.indexsearch.apps
 
-import it.unibo.jakta.playground.evaluation.IndexSearch.getAgentsFromMas
-import it.unibo.jakta.playground.evaluation.IndexSearch.getMasTraces
-import it.unibo.jakta.playground.evaluation.IndexSearch.getPlanGenProceduresFromAgent
-import it.unibo.jakta.playground.evaluation.KTSearch
-import it.unibo.jakta.playground.evaluation.KTSearch.retrieveIndexNames
-import it.unibo.jakta.playground.evaluation.KTSearch.version
+import it.unibo.jakta.playground.evaluation.indexsearch.IndexSearch.getAgentsFromMas
+import it.unibo.jakta.playground.evaluation.indexsearch.IndexSearch.getMasTraces
+import it.unibo.jakta.playground.evaluation.indexsearch.IndexSearch.getPlanGenProceduresFromAgent
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch.retrieveIndexNames
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch.version
 
 /**
  * Lists and displays the hierarchical structure of search indexes containing MAS traces.
@@ -25,7 +25,7 @@ import it.unibo.jakta.playground.evaluation.KTSearch.version
  * - Agent indices: "*-agent-{agentId}"
  * - PGP indices: "*-pgp-{pgpId}"
  *
- * @see AnalyzePGP for tools to analyze the discovered PGP traces
+ * @see it.unibo.jakta.playground.evaluation.apps.AnalyzePGP for tools to analyze the discovered PGP traces
  */
 fun main() {
     val client = KTSearch.createClient()

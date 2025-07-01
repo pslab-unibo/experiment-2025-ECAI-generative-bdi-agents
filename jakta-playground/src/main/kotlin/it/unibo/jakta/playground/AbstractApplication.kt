@@ -11,6 +11,7 @@ import it.unibo.jakta.agents.bdi.engine.Mas
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import java.util.UUID
 
+// CPD-OFF
 abstract class AbstractApplication : CliktCommand() {
     private val urlRegex = "^(https?|tcp)://([\\w.-]+)(:\\d+)?(/.*)?$".toRegex()
 
@@ -65,3 +66,4 @@ abstract class AbstractApplication : CliktCommand() {
         val DEFAULT_LOG_LEVEL = Log4jLevel.INFO
     }
 }
+// CPD-ON

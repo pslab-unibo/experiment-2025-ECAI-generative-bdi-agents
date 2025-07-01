@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation.apps
+package it.unibo.jakta.playground.evaluation.indexsearch.apps
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
@@ -14,9 +14,9 @@ import com.jillesvangurp.searchdsls.querydsl.matchAll
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractHostnameAndPort
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
 import it.unibo.jakta.playground.ModuleLoader
-import it.unibo.jakta.playground.evaluation.KTSearch
-import it.unibo.jakta.playground.evaluation.KTSearch.version
 import it.unibo.jakta.playground.evaluation.LogEntry
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch.version
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.runBlocking
 

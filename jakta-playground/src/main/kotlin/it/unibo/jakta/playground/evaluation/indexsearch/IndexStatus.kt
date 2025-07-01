@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation
+package it.unibo.jakta.playground.evaluation.indexsearch
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

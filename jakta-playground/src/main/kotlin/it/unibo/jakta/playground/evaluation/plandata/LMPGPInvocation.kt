@@ -1,4 +1,4 @@
-package it.unibo.jakta.playground.evaluation
+package it.unibo.jakta.playground.evaluation.plandata
 
 import com.aallam.openai.api.chat.ChatMessage
 import it.unibo.jakta.agents.bdi.engine.beliefs.AdmissibleBelief
@@ -12,7 +12,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMMessag
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.AdmissibleBeliefParseFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.AdmissibleGoalParseFailure
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestSuccess
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserSuccess
 import it.unibo.jakta.playground.evaluation.FileProcessor.processFile
 import it.unibo.jakta.playground.gridworld.logging.ObjectReachedEvent
 import java.io.File
@@ -31,6 +31,7 @@ data class LMPGPInvocation(
     val executable: Boolean = true,
     val reachesDestination: Boolean = true,
     val generationConfig: LMGenerationConfig? = null,
+    val chatCompletionId: String? = null,
 ) {
     companion object {
         fun from(
@@ -41,11 +42,12 @@ data class LMPGPInvocation(
             val history = mutableListOf<ChatMessage>()
             val rawPlans = mutableListOf<String>()
             var genCfg: LMGenerationConfig? = null
-
+            var chatCompletionId: String? = null
             processFile(pgpLogFile) { logEntry ->
                 val event = logEntry.message.event
                 when (event) {
                     is LMMessageReceived -> {
+                        chatCompletionId = event.chatCompletionId
                         event.chatMessage.content?.let { rawPlans.add(it) }
                         event.chatMessage.let { history.add(it) }
                     }
@@ -66,7 +68,7 @@ data class LMPGPInvocation(
             rawPlans.forEach {
                 val result = parser.parse(it)
                 when (result) {
-                    is RequestSuccess.NewResult -> {
+                    is ParserSuccess.NewResult -> {
                         if (result.parsingErrors.isNotEmpty()) {
                             plansNotParsed++
                             result.parsingErrors.forEach { error ->
@@ -91,9 +93,11 @@ data class LMPGPInvocation(
                 val event = logEntry.message.event
                 when (val ev = event) {
                     is PGPSuccess.GenerationCompleted -> {
-                        generatedPlans.addAll(ev.plans)
-                        generatedAdmissibleGoals.addAll(ev.admissibleGoals)
-                        generatedAdmissibleBeliefs.addAll(ev.admissibleBeliefs)
+                        if (ev.pgpId.id == pgpId) {
+                            generatedPlans.addAll(ev.plans)
+                            generatedAdmissibleGoals.addAll(ev.admissibleGoals)
+                            generatedAdmissibleBeliefs.addAll(ev.admissibleBeliefs)
+                        }
                     }
                     is ObjectReachedEvent -> {
                         if (ev.objectName == "home") {
@@ -119,6 +123,7 @@ data class LMPGPInvocation(
                 executable = isExecutable(generatedPlans),
                 reachesDestination = reachesDestination,
                 generationConfig = genCfg,
+                chatCompletionId = chatCompletionId,
             )
         }
 

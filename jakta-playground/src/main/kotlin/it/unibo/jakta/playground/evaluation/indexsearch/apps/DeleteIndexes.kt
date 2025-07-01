@@ -1,12 +1,12 @@
-package it.unibo.jakta.playground.evaluation.apps
+package it.unibo.jakta.playground.evaluation.indexsearch.apps
 
 import com.jillesvangurp.ktsearch.deleteIndex
-import it.unibo.jakta.playground.evaluation.IndexSearch.getAgentsFromMas
-import it.unibo.jakta.playground.evaluation.IndexSearch.getMasTraces
-import it.unibo.jakta.playground.evaluation.IndexSearch.getPlanGenProceduresFromAgent
-import it.unibo.jakta.playground.evaluation.KTSearch
-import it.unibo.jakta.playground.evaluation.KTSearch.retrieveIndexNames
-import it.unibo.jakta.playground.evaluation.KTSearch.version
+import it.unibo.jakta.playground.evaluation.indexsearch.IndexSearch.getAgentsFromMas
+import it.unibo.jakta.playground.evaluation.indexsearch.IndexSearch.getMasTraces
+import it.unibo.jakta.playground.evaluation.indexsearch.IndexSearch.getPlanGenProceduresFromAgent
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch.retrieveIndexNames
+import it.unibo.jakta.playground.evaluation.indexsearch.KTSearch.version
 
 /**
  * Deletes all search indexes created by running a Multi-Agent System (MAS).

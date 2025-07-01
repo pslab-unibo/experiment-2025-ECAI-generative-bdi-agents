@@ -3,10 +3,21 @@ package it.unibo.jakta.playground.evaluation
 import it.unibo.jakta.agents.bdi.engine.goals.Achieve
 import it.unibo.jakta.agents.bdi.engine.goals.Act
 import it.unibo.jakta.agents.bdi.engine.visitors.GuardFlattenerVisitor.Companion.flatten
+import it.unibo.jakta.playground.evaluation.gendata.GenerationDataRetriever
+import it.unibo.jakta.playground.evaluation.plandata.InvocationContext
+import it.unibo.jakta.playground.evaluation.plandata.LMPGPInvocation
+import it.unibo.jakta.playground.evaluation.plandata.SemanticAlignmentResult
+import it.unibo.jakta.playground.evaluation.plandata.UselessPlanDetector
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Truth
 
-class MetricsComputer {
+class MetricsComputer(
+    authToken: String,
+    val retrieveGenerationData: Boolean = false,
+) {
+    private val generationDataRetriever = GenerationDataRetriever(authToken)
+    private val detector = UselessPlanDetector()
+
     fun eval(
         context: InvocationContext,
         vararg invocations: LMPGPInvocation,
@@ -27,7 +38,6 @@ class MetricsComputer {
                         .count() >= 1
                 }
 
-        val detector = UselessPlanDetector()
         val plansToCheck = plans + context.plans
         val uselessPlansResult = detector.detectUselessPlans(plansToCheck)
 
@@ -78,18 +88,28 @@ class MetricsComputer {
             }
 
         // actions
-        val actionUsages: List<String> =
+        val actionUsages =
             plans
                 .flatMap { it.goals.filterIsInstance<Act>().map { a -> a.action.functor } }
 
         // used but not existing
-        val actionNames: List<String> = context.actions.map { it.name }
+        val actionNames = context.actions.map { it.name }
         val amountInadequateActions =
             actionUsages
                 .filterNot { actionNames.contains(it) }
                 .size
 
+        val chatCompletionId = inv.chatCompletionId
+        val generationData =
+            if (retrieveGenerationData && chatCompletionId != null) {
+                generationDataRetriever.retrieve(chatCompletionId)
+            } else {
+                null
+            }
+
         PGPEvaluationResult(
+            masId = context.masId,
+            agentId = context.agentId,
             pgpId = inv.pgpId,
             parsedPlans = plans,
             amountGeneratedPlans = plans.size,
@@ -106,7 +126,8 @@ class MetricsComputer {
             timeUntilCompletion = inv.timeUntilCompletion,
             executable = inv.executable,
             achievesGoal = inv.reachesDestination,
-            genConfig = inv.generationConfig,
+            generationConfig = inv.generationConfig,
+            generationData = generationData,
         )
     }
 

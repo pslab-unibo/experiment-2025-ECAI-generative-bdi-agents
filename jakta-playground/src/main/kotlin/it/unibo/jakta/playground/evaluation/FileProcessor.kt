@@ -13,7 +13,7 @@ object FileProcessor {
         description: String,
     ) = try {
         file.writeText(content)
-        println("$description dumped to ${file.name}")
+        println("$description written to ${file.name}")
     } catch (e: IOException) {
         println("Error writing to file: ${e.message}")
     }

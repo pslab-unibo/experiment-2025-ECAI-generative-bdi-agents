@@ -14,6 +14,7 @@ import it.unibo.jakta.playground.gridworld.model.Direction
 import it.unibo.tuprolog.core.Atom
 import kotlin.collections.forEach
 
+// CPD-OFF
 class GridWorldEnvironment(
     agentIDs: Map<String, AgentID> = emptyMap(),
     externalActions: Map<String, ExternalAction> = emptyMap(),
@@ -51,14 +52,18 @@ class GridWorldEnvironment(
         val action = tangleStruct(actionName)
         return when {
             action?.functor == "move" -> {
-                val direction = action.args[0] as? Atom
-                direction?.value?.let { dir ->
-                    val parsedDirection = Direction.fromId(dir)
-                    parsedDirection?.let {
-                        state.moveRobot(it).also {
-                            logger?.info { "The robot moved" }
+                if (action.args.isNotEmpty()) {
+                    val direction = action.args[0] as? Atom
+                    direction?.value?.let { dir ->
+                        val parsedDirection = Direction.fromId(dir)
+                        parsedDirection?.let {
+                            state.moveRobot(it).also {
+                                logger?.info { "The robot moved" }
+                            }
                         }
                     }
+                } else {
+                    null
                 }
             }
 
@@ -94,3 +99,4 @@ class GridWorldEnvironment(
         internal val defaultData = mapOf("state" to GridWorldState())
     }
 }
+// CPD-ON

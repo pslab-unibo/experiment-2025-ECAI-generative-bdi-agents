@@ -5,12 +5,15 @@ import it.unibo.jakta.agents.bdi.dsl.mas
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
 import it.unibo.jakta.playground.ModuleLoader.jsonModule
+import it.unibo.jakta.playground.Utils.readTokenFromEnv
 
 fun main() =
     mas {
         oneStepGeneration {
-            model = "mistralai/mistral-small-3.2-24b-instruct:free"
+            model = "deepseek/deepseek-chat-v3-0324:free"
             temperature = 0.5
+            url = "https://openrouter.ai/api/v1/"
+            token = readTokenFromEnv()
             maxTokens = 1024
         }
         loggingConfig = LoggingConfig(logToFile = true)
@@ -28,7 +31,7 @@ fun main() =
             }
             plans {
                 +achieve("print"(X, Y)) then {
-                    generate("print_numbers"(X, Y))
+                    generatePlan("print_numbers"(X, Y))
                 }
             }
         }
