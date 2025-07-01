@@ -1,8 +1,12 @@
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.decodeFromStream
+import kotlinx.serialization.Serializable
 import org.gradle.api.Project
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Exec
 import org.gradle.kotlin.dsl.register
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.OutputStream
 
 /**
@@ -72,19 +76,23 @@ class PythonEnvironment(private val project: Project) {
         "$localPythonEnvRoot/bin/dvc"
     }
 
-    /**
-     * Parse project arguments.
-     */
     fun projectArgs(): List<String> =
         (project.findProperty("args") as? String)
             ?.split("\\s+".toRegex())
             ?: listOf("--version")
 
-    /**
-     * Register tasks for Python environment management.
-     */
+    @Serializable
+    private data class Parameters(
+        val models: List<String>,
+        val temperatures: List<Double>,
+        val maxTokens: Int,
+        val promptTypes: List<String>,
+        val repetitions: List<Int>,
+        val timeout: Int,
+        val provider: String
+    )
+
     fun registerTasks() {
-        // Task to create a virtual environment
         project.tasks.register<Exec>("createVenv") {
             description = "Create a Python virtual environment."
             group = "build"
@@ -128,6 +136,97 @@ class PythonEnvironment(private val project: Project) {
 
             workingDir(project.projectDir)
             commandLine(listOf(dvcExecutable) + projectArgs())
+        }
+
+        project.tasks.register("queueExperiments") {
+            description = "Parses params.yaml and queues individual DVC experiments for each parameter combination."
+            group = "DVC"
+
+            doLast {
+                // Parse the params.yaml file
+                val paramsFile = project.projectDir.resolve("params.yaml")
+                if (!paramsFile.exists()) {
+                    throw FileNotFoundException("Error: params.yaml not found in ${project.projectDir}")
+                }
+                val yaml = Yaml.default
+                val config: Parameters = yaml.decodeFromStream(paramsFile.inputStream())
+
+                // Generate all parameter combinations
+                val combinations = generateParameterCombinations(config)
+
+                println("Queueing ${combinations.size} experiments...")
+
+                // Queue each experiment separately
+                queueExperimentsBatch(combinations)
+
+                println("Successfully queued ${combinations.size} experiments")
+            }
+        }
+    }
+
+    private data class ParameterCombination(
+        val model: String,
+        val temperature: Double,
+        val repetition: Int,
+        val promptType: String,
+        val maxTokens: Int,
+        val timeout: Int,
+        val provider: String
+    )
+
+    private fun generateParameterCombinations(config: Parameters): List<ParameterCombination> {
+        val combinations = mutableListOf<ParameterCombination>()
+        for (model in config.models) {
+            for (temperature in config.temperatures) {
+                for (repetition in config.repetitions) {
+                    for (promptType in config.promptTypes) {
+                        combinations.add(
+                            ParameterCombination(
+                                model = model,
+                                temperature = temperature,
+                                repetition = repetition,
+                                promptType = promptType,
+                                maxTokens = config.maxTokens,
+                                timeout = config.timeout,
+                                provider = config.provider
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        return combinations
+    }
+
+    private fun queueExperimentsBatch(combinations: List<ParameterCombination>) {
+        val scriptContent = buildString {
+            appendLine("#!/bin/bash")
+            appendLine("set -e")
+            combinations.forEach { params ->
+                append("$dvcExecutable exp run --queue")
+                append(" -S models=['${params.model}']")
+                append(" -S temperatures=[${params.temperature}]")
+                append(" -S repetitions=[${params.repetition}]")
+                append(" -S promptTypes=['${params.promptType}']")
+                append(" -S maxTokens=${params.maxTokens}")
+                append(" -S timeout=${params.timeout}")
+                append(" -S provider='${params.provider}'")
+                appendLine()
+            }
+        }
+
+        val projectDir = project.projectDir
+        val scriptFile = projectDir.resolve("queue_experiments.sh")
+        scriptFile.writeText(scriptContent)
+        scriptFile.setExecutable(true)
+
+        try {
+            project.exec {
+                workingDir(projectDir)
+                commandLine("bash", "queue_experiments.sh")
+            }
+        } finally {
+            scriptFile.delete()
         }
     }
 }

@@ -15,12 +15,12 @@ repositories {
 }
 
 dependencies {
-    api(project(":jakta-dsl"))
-    api(project(":jakta-plan-generation"))
+    implementation(project(":jakta-dsl"))
+    implementation(project(":jakta-plan-generation"))
 
-    api(libs.kotlin.coroutines)
-    api(libs.ktor.network)
-
+    implementation(libs.kotlin.coroutines)
+    implementation(libs.ktor.network)
+    implementation(libs.bundles.ktor.client)
     implementation(libs.bundles.kotlin.testing)
     implementation(libs.bundles.kotlin.logging)
     implementation(libs.openai)
@@ -59,6 +59,11 @@ tasks.register<JavaExec>("runBaseline") {
 }
 
 tasks.register<JavaExec>("analyzePGP") {
+    val keystoreFile = project.rootProject.file(".env")
+    val properties = Properties()
+    properties.load(keystoreFile.inputStream())
+
+    environment = mapOf("API_KEY" to properties.getProperty("API_KEY"))
     description = "Evaluate each PGP attempt."
     group = "application"
 

@@ -18,7 +18,3 @@ dependencies {
     implementation(libs.bundles.kotlin.testing)
     annotationProcessor(libs.log4j.core)
 }
-
-tasks.named("cpdKotlinCheck") {
-    dependsOn("kspKotlin")
-}

@@ -1,5 +1,6 @@
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.kotlinx)
 }
 
 repositories {
@@ -8,4 +9,5 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
+    implementation(libs.kaml)
 }
