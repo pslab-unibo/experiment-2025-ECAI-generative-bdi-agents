@@ -1,7 +1,7 @@
 package it.unibo.jakta.agents.bdi.serializers
 
 import io.kotest.matchers.shouldBe
-import it.unibo.jakta.agents.bdi.engine.Jakta.dropNumbers
+import it.unibo.jakta.agents.bdi.engine.Jakta.dropWordsWithTrailingNumbers
 import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
 import it.unibo.jakta.agents.bdi.engine.depinjection.JaktaKoin.engineJsonModule
 import it.unibo.jakta.agents.bdi.engine.depinjection.JaktaKoin.jsonModule
@@ -23,22 +23,22 @@ internal object SerializationTestUtils {
         actual: Belief,
         expected: Belief,
     ): Boolean =
-        termFormatter.format(actual.rule).dropNumbers() ==
-            termFormatter.format(expected.rule).dropNumbers() &&
+        termFormatter.format(actual.rule).dropWordsWithTrailingNumbers() ==
+            termFormatter.format(expected.rule).dropWordsWithTrailingNumbers() &&
             actual.purpose == expected.purpose
 
     internal fun compareTriggers(
         actual: Trigger,
         expected: Trigger,
     ): Boolean =
-        termFormatter.format(actual.value).dropNumbers() ==
-            termFormatter.format(expected.value).dropNumbers() &&
+        termFormatter.format(actual.value).dropWordsWithTrailingNumbers() ==
+            termFormatter.format(expected.value).dropWordsWithTrailingNumbers() &&
             actual.purpose == expected.purpose
 
     internal fun compareGoals(
         actual: Goal,
         expected: Goal,
     ): Boolean =
-        termFormatter.format(actual.value).dropNumbers() ==
-            termFormatter.format(expected.value).dropNumbers()
+        termFormatter.format(actual.value).dropWordsWithTrailingNumbers() ==
+            termFormatter.format(expected.value).dropWordsWithTrailingNumbers()
 }

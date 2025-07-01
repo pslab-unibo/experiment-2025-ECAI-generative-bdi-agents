@@ -64,7 +64,7 @@ class BodyScope(
      * @param goal the [Struct] that describes the Goal to [GeneratePlan].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun generate(
+    fun generatePlan(
         goal: String,
         parallel: Boolean = false,
     ) {
@@ -78,7 +78,7 @@ class BodyScope(
      * @param goal the [Struct] that describes the Goal to [GeneratePlan].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun generate(
+    fun generatePlan(
         goal: Struct,
         parallel: Boolean = false,
     ) {
@@ -92,7 +92,7 @@ class BodyScope(
      * @param goal the [Struct] that describes the Goal to [GeneratePlan].
      * @param parallel a [Boolean] that indicates whether force the allocation on a fresh intention or not.
      */
-    fun generate(
+    fun generatePlan(
         goal: Goal,
         parallel: Boolean = false,
     ) {

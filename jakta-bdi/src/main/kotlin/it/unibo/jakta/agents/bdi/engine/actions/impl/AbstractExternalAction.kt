@@ -19,6 +19,7 @@ abstract class AbstractExternalAction(
     override val actionSignature: ActionSignature,
 ) : AbstractAction<EnvironmentChange, ExternalResponse, ExternalRequest>(actionSignature),
     ExternalAction {
+    // CPD-OFF
     constructor(name: String) : this(name.toActionSignature())
 
     constructor(name: String, arity: Int) : this(name.toActionSignature(arity))
@@ -28,6 +29,7 @@ abstract class AbstractExternalAction(
 
     constructor(name: String, parameterNames: List<String>) :
         this(name.toActionSignature(parameterNames.size, parameterNames.toList()))
+    // CPD-ON
 
     override fun addAgent(agent: Agent) {
         effects.add(SpawnAgent(agent))

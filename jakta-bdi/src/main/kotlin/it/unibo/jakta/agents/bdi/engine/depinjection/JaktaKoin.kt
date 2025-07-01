@@ -24,6 +24,8 @@ object JaktaKoin {
                     allowStructuredMapKeys = true
                     ignoreUnknownKeys = true
                     serializersModule = combinedModule
+                    encodeDefaults = true
+                    allowSpecialFloatingPointValues = true
                 }
             }
         }

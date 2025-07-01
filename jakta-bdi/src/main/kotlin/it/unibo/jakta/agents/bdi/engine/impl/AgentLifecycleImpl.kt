@@ -5,6 +5,7 @@ import it.unibo.jakta.agents.bdi.engine.AgentLifecycle
 import it.unibo.jakta.agents.bdi.engine.actions.ExternalAction
 import it.unibo.jakta.agents.bdi.engine.actions.ExternalRequest
 import it.unibo.jakta.agents.bdi.engine.actions.InternalAction
+import it.unibo.jakta.agents.bdi.engine.actions.InternalActions
 import it.unibo.jakta.agents.bdi.engine.actions.InternalRequest
 import it.unibo.jakta.agents.bdi.engine.actions.effects.AgentChange
 import it.unibo.jakta.agents.bdi.engine.actions.effects.BeliefChange
@@ -177,7 +178,12 @@ internal data class AgentLifecycleImpl(
                     feedback,
                 )
             } else {
-                val feedback = ActionFailure.ActionSubstitutionFailure(action.actionSignature, goal.action.args)
+                val feedback =
+                    if (action is InternalActions.Fail) {
+                        ActionSuccess.GenericActionSuccess(action.actionSignature, goal.action.args)
+                    } else {
+                        ActionFailure.ActionSubstitutionFailure(action.actionSignature, goal.action.args)
+                    }
                 ExecutionResult(failAchievementGoal(intention, context), feedback)
             }
         }

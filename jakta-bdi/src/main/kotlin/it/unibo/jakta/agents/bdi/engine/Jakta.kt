@@ -79,7 +79,7 @@ object Jakta {
 
     fun String.dropSquareBrackets() = this.replace(Regex("[\\[\\]]"), "")
 
-    fun String.dropNumbers() = this.replace(Regex("(?<=\\w)\\d+"), "")
+    fun String.dropWordsWithTrailingNumbers() = this.replace(Regex("(?<=[a-zA-Z])\\d+"), "")
 
     fun Belief.removeSource(): Struct = this.rule.head.removeSource()
 

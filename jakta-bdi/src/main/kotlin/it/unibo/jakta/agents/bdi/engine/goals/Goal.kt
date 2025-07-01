@@ -20,6 +20,7 @@ import it.unibo.jakta.agents.bdi.engine.serialization.modules.SerializableStruct
 import it.unibo.tuprolog.core.Struct
 import it.unibo.tuprolog.core.Substitution
 import it.unibo.tuprolog.core.Truth
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,6 +33,7 @@ sealed interface Goal {
 }
 
 @Serializable
+@SerialName("EmptyGoal")
 class EmptyGoal(
     override val value: SerializableStruct = Truth.TRUE,
 ) : Goal {

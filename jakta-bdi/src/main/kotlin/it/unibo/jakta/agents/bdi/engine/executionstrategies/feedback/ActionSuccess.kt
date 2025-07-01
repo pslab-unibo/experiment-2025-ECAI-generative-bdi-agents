@@ -21,8 +21,13 @@ interface ActionSuccess : GoalSuccess {
         constructor(actionSignature: ActionSignature, providedArguments: List<Term>) : this(
             actionSignature,
             providedArguments,
-            "The action \"${actionSignature.name}\" was successfully executed with the given arguments: " +
-                providedArguments.joinToString(", ") { termFormatter.format(it) },
+            buildString {
+                append("The action \"${actionSignature.name}\" was successfully executed")
+                if (providedArguments.isNotEmpty()) {
+                    append(" with the given arguments: ")
+                    append(providedArguments.joinToString(", ") { termFormatter.format(it) })
+                }
+            },
         )
     }
 }

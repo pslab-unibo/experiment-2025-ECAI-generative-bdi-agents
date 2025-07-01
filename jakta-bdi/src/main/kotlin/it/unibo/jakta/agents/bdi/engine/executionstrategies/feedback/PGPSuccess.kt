@@ -5,6 +5,7 @@ import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.goalFormatter
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.triggerFormatter
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.PgpID
 import it.unibo.jakta.agents.bdi.engine.goals.GeneratePlan
 import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import kotlinx.serialization.SerialName
@@ -32,6 +33,7 @@ sealed interface PGPSuccess : PositiveFeedback {
     @Serializable
     @SerialName("GenerationCompleted")
     data class GenerationCompleted(
+        val pgpId: PgpID,
         val goal: GeneratePlan,
         val plans: List<Plan>,
         val admissibleGoals: Set<AdmissibleGoal>,
@@ -39,11 +41,13 @@ sealed interface PGPSuccess : PositiveFeedback {
         override val description: String?,
     ) : PGPSuccess {
         constructor(
+            pgpId: PgpID,
             goal: GeneratePlan,
             plans: List<Plan>,
             admissibleGoals: Set<AdmissibleGoal>,
             admissibleBeliefs: Set<AdmissibleBelief>,
         ) : this(
+            pgpId,
             goal,
             plans,
             admissibleGoals,

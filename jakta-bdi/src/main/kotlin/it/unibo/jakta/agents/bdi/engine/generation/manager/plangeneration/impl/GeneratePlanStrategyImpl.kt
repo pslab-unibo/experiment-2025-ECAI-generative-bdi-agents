@@ -6,6 +6,7 @@ import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionResult
 import it.unibo.jakta.agents.bdi.engine.executionstrategies.feedback.PGPSuccess
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationFailureResult
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
+import it.unibo.jakta.agents.bdi.engine.generation.PgpID
 import it.unibo.jakta.agents.bdi.engine.generation.manager.plangeneration.GeneratePlanStrategy
 import it.unibo.jakta.agents.bdi.engine.generation.manager.plangeneration.GenerationResultBuilder
 import it.unibo.jakta.agents.bdi.engine.generation.manager.plangeneration.PlanGenerationResult
@@ -49,12 +50,20 @@ internal class GeneratePlanStrategyImpl(
 
         return when (planGenResult) {
             is GenerationFailureResult -> errorHandler.handleFailure(intention, context, planGenResult)
-            is PlanGenerationResult -> processPlanGenerationResult(genGoal, intention, context, planGenResult)
+            is PlanGenerationResult ->
+                processPlanGenerationResult(
+                    generationState.pgpID,
+                    genGoal,
+                    intention,
+                    context,
+                    planGenResult,
+                )
             else -> errorHandler.handleUnknownResult(intention, context)
         }
     }
 
     private fun processPlanGenerationResult(
+        pgpID: PgpID,
         genGoal: GeneratePlan,
         intention: Intention,
         context: AgentContext,
@@ -69,6 +78,7 @@ internal class GeneratePlanStrategyImpl(
             ).copy(
                 feedback =
                     PGPSuccess.GenerationCompleted(
+                        pgpID,
                         genGoal,
                         planGenResult.generatedPlanLibrary,
                         planGenResult.generatedAdmissibleGoals,

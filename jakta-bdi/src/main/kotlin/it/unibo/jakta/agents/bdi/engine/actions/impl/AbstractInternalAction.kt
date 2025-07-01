@@ -23,6 +23,7 @@ abstract class AbstractInternalAction(
     override val actionSignature: ActionSignature,
 ) : AbstractAction<AgentChange, InternalResponse, InternalRequest>(actionSignature),
     InternalAction {
+    // CPD-OFF
     constructor(name: String) : this(name.toActionSignature())
 
     constructor(name: String, arity: Int) : this(name.toActionSignature(arity))
@@ -32,6 +33,7 @@ abstract class AbstractInternalAction(
 
     constructor(name: String, parameterNames: List<String>) :
         this(name.toActionSignature(parameterNames.size, parameterNames.toList()))
+    // CPD-ON
 
     override fun addBelief(belief: Belief) {
         effects.add(BeliefChange(belief, ADDITION))

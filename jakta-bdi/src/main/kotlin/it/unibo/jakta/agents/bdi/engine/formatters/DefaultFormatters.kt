@@ -2,7 +2,7 @@ package it.unibo.jakta.agents.bdi.engine.formatters
 
 import it.unibo.jakta.agents.bdi.engine.Jakta.META_PLAN_BELIEF_FUNCTOR
 import it.unibo.jakta.agents.bdi.engine.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.engine.Jakta.dropNumbers
+import it.unibo.jakta.agents.bdi.engine.Jakta.dropWordsWithTrailingNumbers
 import it.unibo.jakta.agents.bdi.engine.Jakta.operators
 import it.unibo.jakta.agents.bdi.engine.Jakta.removeSource
 import it.unibo.jakta.agents.bdi.engine.actions.Action
@@ -71,7 +71,7 @@ object DefaultFormatters {
 
     fun createGoalFormatter() =
         Formatter<Goal> { goal ->
-            "${getPrefix(goal)} ${termFormatter.format(goal.getFormattableTerm())}".dropNumbers()
+            "${getPrefix(goal)} ${termFormatter.format(goal.getFormattableTerm())}".dropWordsWithTrailingNumbers()
         }
 
     fun createTriggerFormatter() =
@@ -88,7 +88,7 @@ object DefaultFormatters {
                 is AchievementGoalTrigger -> "achievement goal trigger from $goal"
                 is BeliefBaseRevision -> "belief revision trigger from $goal"
                 is TestGoalTrigger -> "test goal trigger from $goal"
-            }.dropNumbers()
+            }.dropWordsWithTrailingNumbers()
         }
 
     private fun <T> createFormatter(
@@ -103,7 +103,7 @@ object DefaultFormatters {
                 } else {
                     base
                 }
-            }?.dropNumbers()
+            }?.dropWordsWithTrailingNumbers()
     }
 
     fun createBeliefsFormatter(includePurpose: Boolean = true) =
@@ -117,7 +117,7 @@ object DefaultFormatters {
                         base
                     }
                 }.takeUnless { it.contains(META_PLAN_BELIEF_FUNCTOR) }
-                ?.dropNumbers()
+                ?.dropWordsWithTrailingNumbers()
         }
 
     fun createAdmissibleBeliefsFormatter(includePurpose: Boolean = true) =
@@ -149,7 +149,7 @@ object DefaultFormatters {
                 if (includePurpose) {
                     action.purpose?.let { append(": $it") }
                 }
-            }.dropNumbers()
+            }.dropWordsWithTrailingNumbers()
         }
 
     val planFormatter =

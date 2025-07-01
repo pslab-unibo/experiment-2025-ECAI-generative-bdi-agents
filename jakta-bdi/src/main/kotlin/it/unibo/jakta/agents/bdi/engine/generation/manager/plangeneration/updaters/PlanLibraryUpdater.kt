@@ -2,6 +2,7 @@ package it.unibo.jakta.agents.bdi.engine.generation.manager.plangeneration.updat
 
 import it.unibo.jakta.agents.bdi.engine.context.AgentContext
 import it.unibo.jakta.agents.bdi.engine.generation.manager.plangeneration.PlanGenerationResult
+import it.unibo.jakta.agents.bdi.engine.goals.TrackGoalExecution
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.AgentLogger
 import it.unibo.jakta.agents.bdi.engine.plans.PlanLibrary
 
@@ -12,7 +13,13 @@ class PlanLibraryUpdater(
         context: AgentContext,
         planGenResult: PlanGenerationResult,
     ): PlanLibrary {
-        val generatedPlans = planGenResult.generatedPlanLibrary
+        val generatedPlans =
+            planGenResult.generatedPlanLibrary
+                .map {
+                    it.copy(
+                        goals = it.goals.map { g -> TrackGoalExecution.of(g) },
+                    )
+                }
         // The plus operator handles overwriting existing plans.
         return context.planLibrary + PlanLibrary.of(generatedPlans)
     }
