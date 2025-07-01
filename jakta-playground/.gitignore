@@ -2,6 +2,6 @@ doc
 experiments
 metrics
 .devenv
-notebooks/.ipynb_checkpoint
+notebooks/.ipynb_checkpoints
 devenv.*
 .devenv.flake.nix
