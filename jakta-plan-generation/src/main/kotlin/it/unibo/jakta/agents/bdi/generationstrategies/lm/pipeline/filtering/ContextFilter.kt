@@ -1,6 +1,8 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering
 
-fun interface ContextFilter {
+interface ContextFilter {
+    val name: String
+
     fun filter(extendedContext: ExtendedAgentContext): ExtendedAgentContext
 
     companion object {

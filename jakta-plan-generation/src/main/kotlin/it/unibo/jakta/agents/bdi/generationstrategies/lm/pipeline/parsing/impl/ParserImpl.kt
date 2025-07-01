@@ -22,17 +22,16 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.EmptyResponse
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.GenericParseFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserFailure.PlanParseFailure
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestSuccess.NewPlan
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestSuccess.NewResult
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserResult
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result.ParserSuccess
 import kotlinx.serialization.builtins.ListSerializer
 
 internal class ParserImpl : Parser {
     private val yaml = Yaml.default
 
-    override fun parse(input: String): RequestResult {
+    override fun parse(input: String): ParserResult {
         val blocks = extractCodeBlocks(input)
-        val newPlans = mutableListOf<NewPlan>()
+        val newPlans = mutableListOf<ParserSuccess.NewPlan>()
         val newAdmissibleBeliefs = mutableSetOf<AdmissibleBelief>()
         val newAdmissibleGoals = mutableSetOf<AdmissibleGoal>()
         val errors = mutableListOf<ParserFailure>()
@@ -105,11 +104,11 @@ internal class ParserImpl : Parser {
         ) {
             EmptyResponse(input, errors)
         } else {
-            NewResult(newPlans, newAdmissibleGoals, newAdmissibleBeliefs, input, errors)
+            ParserSuccess.NewResult(newPlans, newAdmissibleGoals, newAdmissibleBeliefs, input, errors)
         }
     }
 
-    private fun convertToPlan(plan: PlanData): NewPlan? {
+    private fun convertToPlan(plan: PlanData): ParserSuccess.NewPlan? {
         val trigger = parseTriggerWithAchieveFallback(plan.event)
         val guard = processGuard(plan)
         val goals =
@@ -122,7 +121,7 @@ internal class ParserImpl : Parser {
             }
 
         return if (trigger != null && guard != null) {
-            NewPlan(
+            ParserSuccess.NewPlan(
                 id = PlanID(trigger, guard),
                 trigger = trigger,
                 guard = guard,

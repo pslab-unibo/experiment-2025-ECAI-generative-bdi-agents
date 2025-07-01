@@ -1,9 +1,8 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.result
 
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.impl.PlanData
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestFailure
 
-sealed interface ParserFailure : RequestFailure {
+sealed interface ParserFailure : ParserResult {
     data class GenericParseFailure(
         override val rawContent: String,
     ) : ParserFailure

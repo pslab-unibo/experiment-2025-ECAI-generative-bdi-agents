@@ -1,7 +1,7 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl
 
 import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.core.Role
 import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 
 class PromptScope(
@@ -38,7 +38,7 @@ class PromptScope(
         sections.add(PromptSection(text = text))
     }
 
-    fun buildAsMessage(): ChatMessage = ChatMessage(ChatRole.User, build())
+    fun buildAsMessage(role: Role): ChatMessage = ChatMessage(role, build())
 
     override fun build(): String = sections.joinToString(separator = "\n") { it.toString(headingLevel) }.trim()
 

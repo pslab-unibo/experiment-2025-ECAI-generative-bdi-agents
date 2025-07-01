@@ -4,7 +4,8 @@ import it.unibo.jakta.agents.bdi.dsl.ScopeBuilder
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationConfig.LMGenerationConfigUpdate
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.Remark
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.ContextFilter
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.PromptBuilder
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.SystemPromptBuilder
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.UserPromptBuilder
 import kotlin.time.Duration
 
 class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
@@ -17,7 +18,8 @@ class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
     var connectTimeout: Duration? = null
     var socketTimeout: Duration? = null
     var contextFilters: List<ContextFilter> = emptyList()
-    var promptBuilder: PromptBuilder? = null
+    var systemPromptBuilder: SystemPromptBuilder? = null
+    var userPromptBuilder: UserPromptBuilder? = null
 
     private val remarks = mutableListOf<Remark>()
 
@@ -29,6 +31,10 @@ class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
         remarks.addAll(remark.map { Remark(it) })
     }
 
+    fun remarks(remarks: Iterable<Remark>) {
+        this.remarks.addAll(remarks)
+    }
+
     override fun build() =
         LMGenerationConfigUpdate(
             model,
@@ -37,8 +43,11 @@ class LMGenerationConfigScope : ScopeBuilder<LMGenerationConfigUpdate> {
             url,
             token,
             contextFilters,
-            promptBuilder,
-            promptBuilder?.promptName,
+            systemPromptBuilder,
+            userPromptBuilder,
+            contextFilters.map { it.name },
+            systemPromptBuilder?.name,
+            userPromptBuilder?.name,
             remarks,
             requestTimeout,
             connectTimeout,

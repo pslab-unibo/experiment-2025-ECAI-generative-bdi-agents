@@ -38,6 +38,6 @@ internal class RequestHandlerImpl(
             model = ModelId(cfg.modelId),
             temperature = cfg.temperature,
             messages = state.chatHistory,
-            maxTokens = cfg.maxTokens,
+            maxCompletionTokens = cfg.maxTokens,
         )
 }

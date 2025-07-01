@@ -1,5 +1,10 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting
 
+import it.unibo.jakta.agents.bdi.engine.actions.Action
+import it.unibo.jakta.agents.bdi.engine.beliefs.AdmissibleBelief
+import it.unibo.jakta.agents.bdi.engine.beliefs.Belief
+import it.unibo.jakta.agents.bdi.engine.events.AdmissibleGoal
+import it.unibo.jakta.agents.bdi.engine.events.Trigger
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.actionsFormatter
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.actionsFormatterWithoutHints
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.admissibleBeliefsFormatter
@@ -10,70 +15,32 @@ import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.beliefsForm
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.beliefsFormatterWithoutHints
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.goalFormatter
 import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.triggerFormatter
+import it.unibo.jakta.agents.bdi.engine.formatters.Formatter
+import it.unibo.jakta.agents.bdi.engine.goals.Goal
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.PromptBuilder.Companion.formatAsBulletList
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.PromptBuilder.Companion.prompt
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.impl.SystemPromptBuilderImpl.Companion.system
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.impl.UserPromptBuilderImpl.Companion.user
 
 object DefaultPromptBuilder {
-    val promptWithoutHints =
-        prompt("promptWithoutHints") { ctx ->
-            section("Background") { fromFile("background.md") }
-
-            section("Agent's internal state") {
-                section("Beliefs") {
-                    section("Admissible beliefs") {
-                        fromFormatter(ctx.admissibleBeliefs) {
-                            formatAsBulletList(it, admissibleBeliefsFormatterWithoutHints::format)
-                        }
-                    }
-
-                    section("Actual beliefs") {
-                        fromFormatter(ctx.actualBeliefs.asIterable().toList()) {
-                            formatAsBulletList(it, beliefsFormatterWithoutHints::format)
-                        }
-                    }
-                }
-
-                section("Goals") {
-                    section("Admissible goals") {
-                        fromFormatter(ctx.admissibleGoals) {
-                            formatAsBulletList(it, admissibleGoalsFormatterWithoutHints::format)
-                        }
-                    }
-
-                    section("Actual goals") {
-                        fromFormatter(ctx.actualGoals) { plans ->
-                            val triggers = plans.map { it.trigger }
-                            formatAsBulletList(triggers, triggerFormatter::format)
-                        }
-                    }
-                }
-
-                section("Admissible actions") {
-                    fromFormatter(ctx.internalActions + ctx.externalActions) {
-                        formatAsBulletList(it, actionsFormatterWithoutHints::format)
-                    }
-                }
-
-                section("Remarks") {
-                    fromFormatter(ctx.remarks) { r ->
-                        formatAsBulletList(r) { it.value }
-                    }
-                }
-            }
-
-            section("Expected outcome") {
-                val formattedGoal = goalFormatter.format(ctx.initialGoal.goal)
-                fromString(
-                    "You must output only the final set of plans to pursue the goal $formattedGoal, " +
-                        "with no alternatives.",
-                )
-                fromFile("expectedOutcome.md")
+    val systemPrompt =
+        system("SystemPrompt") {
+            section("System Message") {
+                fromFile("system.md")
             }
         }
 
-    val promptWithHints =
-        prompt("promptWithHints") { ctx ->
-            section("Background") { fromFile("background.md") }
+    private fun createUserPrompt(
+        name: String,
+        withRemarks: Boolean,
+        admissibleBeliefsFormatter: Formatter<AdmissibleBelief>,
+        beliefsFormatter: Formatter<Belief>,
+        admissibleGoalsFormatter: Formatter<AdmissibleGoal>,
+        actionsFormatter: Formatter<Action<*, *, *>>,
+        triggerFormatter: Formatter<Trigger>,
+        goalFormatter: Formatter<Goal>,
+    ) = user(name) { ctx ->
+        section("User Message") {
+            fromString("Below is your internal state and the specific goal I need you to plan for.")
 
             section("Agent's internal state") {
                 section("Beliefs") {
@@ -84,7 +51,7 @@ object DefaultPromptBuilder {
                     }
 
                     section("Actual beliefs") {
-                        fromFormatter(ctx.actualBeliefs.asIterable().toList()) {
+                        fromFormatter(ctx.beliefs.asIterable().toList()) {
                             formatAsBulletList(it, beliefsFormatter::format)
                         }
                     }
@@ -98,7 +65,7 @@ object DefaultPromptBuilder {
                     }
 
                     section("Actual goals") {
-                        fromFormatter(ctx.actualGoals) { plans ->
+                        fromFormatter(ctx.goals) { plans ->
                             val triggers = plans.map { it.trigger }
                             formatAsBulletList(triggers, triggerFormatter::format)
                         }
@@ -111,20 +78,61 @@ object DefaultPromptBuilder {
                     }
                 }
 
-                section("Remarks") {
-                    fromFormatter(ctx.remarks) { r ->
-                        formatAsBulletList(r) { it.value }
+                if (withRemarks) {
+                    section("Remarks") {
+                        fromFormatter(ctx.remarks) { r ->
+                            formatAsBulletList(r) { it.value }
+                        }
                     }
                 }
             }
 
             section("Expected outcome") {
                 val formattedGoal = goalFormatter.format(ctx.initialGoal.goal)
+                fromString("Create plans to pursue the goal: $formattedGoal.")
                 fromString(
-                    "You must output only the final set of plans to pursue the goal $formattedGoal, " +
-                        "with no alternatives.",
+                    """
+                    Output only the final set of plans with no alternatives or intermediate attempts. 
+                    End with an additional YAML block that contains a list of any new admissible goals and beliefs you invented, including their natural language interpretation.
+                    """.trimIndent(),
                 )
-                fromFile("expectedOutcome.md")
             }
         }
+    }
+
+    val userPromptWithHintsAndRemarks =
+        createUserPrompt(
+            name = "UserMessageWithHintsAndRemarks",
+            withRemarks = true,
+            admissibleBeliefsFormatter = admissibleBeliefsFormatter,
+            beliefsFormatter = beliefsFormatter,
+            admissibleGoalsFormatter = admissibleGoalsFormatter,
+            actionsFormatter = actionsFormatter,
+            triggerFormatter = triggerFormatter,
+            goalFormatter = goalFormatter,
+        )
+
+    val userPromptWithHints =
+        createUserPrompt(
+            name = "UserMessageWithHints",
+            withRemarks = false,
+            admissibleBeliefsFormatter = admissibleBeliefsFormatter,
+            beliefsFormatter = beliefsFormatter,
+            admissibleGoalsFormatter = admissibleGoalsFormatter,
+            actionsFormatter = actionsFormatter,
+            triggerFormatter = triggerFormatter,
+            goalFormatter = goalFormatter,
+        )
+
+    val userPromptWithoutHints =
+        createUserPrompt(
+            name = "UserMessageNoHints",
+            withRemarks = false,
+            admissibleBeliefsFormatter = admissibleBeliefsFormatterWithoutHints,
+            beliefsFormatter = beliefsFormatterWithoutHints,
+            admissibleGoalsFormatter = admissibleGoalsFormatterWithoutHints,
+            actionsFormatter = actionsFormatterWithoutHints,
+            triggerFormatter = triggerFormatter,
+            goalFormatter = goalFormatter,
+        )
 }

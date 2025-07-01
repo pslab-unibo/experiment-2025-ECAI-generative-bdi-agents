@@ -14,40 +14,48 @@ object DefaultFilters {
      * preventing them from being shown to the language model.
      */
     val metaPlanFilter =
-        ContextFilter { extendedContext ->
-            val initialGoal = extendedContext.initialGoal
-            val context = extendedContext.context
-            val externalActions = extendedContext.externalActions
-            val trigger = createNewTriggerFromGoal(initialGoal.goal)?.let { getFailureTrigger(it) }
-            if (trigger != null) {
-                val id = GenerationPlanBuilder.getGenerationPlanID(trigger)
-                val filteredContext =
-                    context.copy(
-                        planLibrary =
-                            PlanLibrary.of(
-                                context.planLibrary.plans
-                                    .filterNot { it.id == id }
-                                    .filterNot {
-                                        it.trigger is TestGoalFailure ||
-                                            it.trigger is AchievementGoalFailure
-                                    }.distinctBy { it.trigger },
-                            ),
-                    )
-                ExtendedAgentContext(initialGoal, filteredContext, externalActions)
-            } else {
-                ExtendedAgentContext(initialGoal, context, externalActions)
+        object : ContextFilter {
+            override val name = "MetaPlanFilter"
+
+            override fun filter(extendedContext: ExtendedAgentContext): ExtendedAgentContext {
+                val initialGoal = extendedContext.initialGoal
+                val context = extendedContext.context
+                val externalActions = extendedContext.externalActions
+                val trigger = createNewTriggerFromGoal(initialGoal.goal)?.let { getFailureTrigger(it) }
+
+                return if (trigger != null) {
+                    val id = GenerationPlanBuilder.getGenerationPlanID(trigger)
+                    val filteredContext =
+                        context.copy(
+                            planLibrary =
+                                PlanLibrary.of(
+                                    context.planLibrary.plans
+                                        .filterNot { it.id == id }
+                                        .filterNot {
+                                            it.trigger is TestGoalFailure ||
+                                                it.trigger is AchievementGoalFailure
+                                        }.distinctBy { it.trigger },
+                                ),
+                        )
+                    ExtendedAgentContext(initialGoal, filteredContext, externalActions)
+                } else {
+                    ExtendedAgentContext(initialGoal, context, externalActions)
+                }
             }
         }
 
     val printActionFilter =
-        ContextFilter { extendedContext ->
-            extendedContext.copy(
-                context =
-                    extendedContext.context.copy(
-                        internalActions =
-                            extendedContext.context.internalActions
-                                .minus(InternalActions.Print.signature.name),
-                    ),
-            )
+        object : ContextFilter {
+            override val name = "PrintActionFilter"
+
+            override fun filter(extendedContext: ExtendedAgentContext): ExtendedAgentContext =
+                extendedContext.copy(
+                    context =
+                        extendedContext.context.copy(
+                            internalActions =
+                                extendedContext.context.internalActions
+                                    .minus(InternalActions.Print.signature.name),
+                        ),
+                )
         }
 }

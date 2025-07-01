@@ -7,6 +7,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestProcessor
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestFailure.NetworkRequestFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestSuccess
 import kotlinx.coroutines.TimeoutCancellationException
 
 internal class RequestProcessorImpl : RequestProcessor {
@@ -18,16 +19,17 @@ internal class RequestProcessorImpl : RequestProcessor {
     ): RequestResult {
         return try {
             val completionResponse = api.chatCompletion(request)
-            val res =
+            val messageContent =
                 completionResponse.choices
                     .firstOrNull()
                     ?.message
                     ?.content
-            if (res == null || res.isBlank()) {
+            if (messageContent == null || messageContent.isBlank()) {
                 logger?.warn { "API response is empty or invalid" }
                 return NetworkRequestFailure("Invalid or empty response from the API")
             }
-            parser.parse(res)
+            val parserResult = parser.parse(messageContent)
+            RequestSuccess.NewRequestResult(completionResponse.id, parserResult)
         } catch (e: TimeoutCancellationException) {
             logger?.error { "Request timed out: ${e.message}" }
             NetworkRequestFailure("Request timed out")

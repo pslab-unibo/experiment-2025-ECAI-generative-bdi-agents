@@ -17,6 +17,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.Reques
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.impl.LMGenerationStrategyImpl
 
 interface LMGenerationStrategy : GenerationStrategy {
+    override val generator: LMPlanGenerator
     override val generationConfig: LMGenerationConfig
 
     companion object {

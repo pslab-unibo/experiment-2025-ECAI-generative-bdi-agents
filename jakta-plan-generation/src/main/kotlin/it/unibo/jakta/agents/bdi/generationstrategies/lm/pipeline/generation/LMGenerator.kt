@@ -1,17 +1,13 @@
 package it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.generation
 
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationResult
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationState
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.generation.Generator
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.LMGenerationState
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.logging.events.LMMessageReceived
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.parsing.Parser
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.RequestHandler
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestFailure
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.result.RequestResult
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.LMGenerationStrategy
 
@@ -45,34 +41,8 @@ interface LMGenerator : Generator {
                 )
             else -> {
                 val generationResult = requestHandler.requestTextCompletion(generationState, responseParser)
-                val chatMessage = ChatMessage(ChatRole.Assistant, generationResult.rawContent)
-                val updatedState =
-                    generationState
-                        .copy(
-                            chatHistory = generationState.chatHistory + chatMessage,
-                        ).also {
-                            generationState.logger?.log { LMMessageReceived(chatMessage) }
-                        }
-
-                handleRequestResult(generationStrategy, generationResult, updatedState)
+                handleRequestResult(generationStrategy, generationResult, generationState)
             }
-        }
-    }
-
-    fun handleRequestFailure(
-        generationResult: RequestFailure,
-        generationState: LMGenerationState,
-    ): GenerationResult {
-        val errorMsg = "Failed parsing"
-        val newMessage = ChatMessage(ChatRole.User, errorMsg)
-        return LMGenerationFailure(
-            generationState =
-                generationState.copy(
-                    chatHistory = generationState.chatHistory + newMessage,
-                ),
-            errorMsg = errorMsg,
-        ).also {
-            generationState.logger?.log { LMMessageReceived(newMessage) }
         }
     }
 }

@@ -20,10 +20,12 @@ data class LMMessageSent(
 @Serializable
 @SerialName("LMMessageReceived")
 data class LMMessageReceived(
+    val chatCompletionId: String,
     val chatMessage: ChatMessage,
     override val description: String?,
 ) : PlanGenProcedureEvent {
-    constructor(chatMessage: ChatMessage) : this(
+    constructor(chatCompletionId: String, chatMessage: ChatMessage) : this(
+        chatCompletionId,
         chatMessage,
         "New message received",
     )

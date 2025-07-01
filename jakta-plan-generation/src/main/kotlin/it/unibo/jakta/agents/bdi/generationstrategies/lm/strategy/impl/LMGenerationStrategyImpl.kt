@@ -44,20 +44,28 @@ internal class LMGenerationStrategyImpl(
         agentID: AgentID?,
         loggingConfig: LoggingConfig?,
     ): GenerationState {
-        val promptBuilder = generationConfig.promptBuilder
-        val promptMsg =
-            promptBuilder.build(
+        val systemMsg =
+            generationConfig.systemPromptBuilder?.build(
                 initialGoal,
                 context,
                 externalActions,
                 generationConfig.contextFilters,
                 generationConfig.remarks,
             )
+        val userMsg =
+            generationConfig.userPromptBuilder.build(
+                initialGoal,
+                context,
+                externalActions,
+                generationConfig.contextFilters,
+                generationConfig.remarks,
+            )
+
+        val name = RandomNameGenerator().randomName()
+        val pgpID = PgpID(name = name)
         val logger =
             loggingConfig?.let { cfg ->
                 if (masID != null && agentID != null) {
-                    val name = RandomNameGenerator().randomName()
-                    val pgpID = PgpID(name = name)
                     LMPGPLogger.create(masID, agentID, pgpID, cfg)
                 } else {
                     null
@@ -65,11 +73,13 @@ internal class LMGenerationStrategyImpl(
             }
 
         return LMGenerationState(
+            pgpID = pgpID,
             goal = initialGoal,
             logger = logger,
-            chatHistory = listOf(promptMsg),
+            chatHistory = listOfNotNull(systemMsg, userMsg),
         ).also {
-            logger?.log { LMMessageSent(promptMsg) }
+            systemMsg?.let { logger?.log { LMMessageSent(systemMsg) } }
+            logger?.log { LMMessageSent(userMsg) }
         }
     }
 
@@ -91,7 +101,7 @@ internal class LMGenerationStrategyImpl(
                 lmServerUrl = configUpdate.lmServerUrl ?: this.generationConfig.lmServerUrl,
                 lmServerToken = configUpdate.lmServerToken ?: this.generationConfig.lmServerToken,
                 contextFilters = configUpdate.contextFilters.ifEmpty { this.generationConfig.contextFilters },
-                promptBuilder = configUpdate.promptBuilder ?: this.generationConfig.promptBuilder,
+                systemPromptBuilder = configUpdate.systemPromptBuilder ?: this.generationConfig.systemPromptBuilder,
                 remarks = mergedRemarks,
                 requestTimeout = configUpdate.requestTimeout ?: this.generationConfig.requestTimeout,
                 connectTimeout = configUpdate.connectTimeout ?: this.generationConfig.connectTimeout,
