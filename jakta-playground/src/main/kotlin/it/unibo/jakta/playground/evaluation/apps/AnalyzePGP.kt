@@ -12,11 +12,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.mordant.rendering.AnsiLevel
 import com.github.ajalt.mordant.terminal.Terminal
 import it.unibo.jakta.agents.bdi.engine.Jakta.capitalize
-import it.unibo.jakta.agents.bdi.engine.Jakta.dropWordsWithTrailingNumbers
-import it.unibo.jakta.agents.bdi.engine.formatters.DefaultFormatters.planFormatter
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastComponent
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastId
-import it.unibo.jakta.agents.bdi.engine.plans.Plan
 import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TOKEN
 import it.unibo.jakta.playground.ModuleLoader
@@ -75,7 +72,7 @@ class AnalyzePGP : CliktCommand() {
                     val pgpInvocation = LMPGPInvocation.from(pgpId, agentLogFile, pgpLogFile)
 
                     writeChatHistory(pgpInvocation.history, "chat_history_$pgpName")
-                    writeGeneratedPlans(pgpInvocation.generatedPlans, "generated_plans_$pgpName")
+                    writeGenerationResult(pgpInvocation, "generation_result_$pgpName")
 
                     if (computeMetrics) {
                         computeMetrics(context, pgpInvocation, "pgp_eval_$pgpName")
@@ -85,32 +82,17 @@ class AnalyzePGP : CliktCommand() {
         }
     }
 
-    private fun formatGeneratedPlans(generatedPlans: List<Plan>) =
-        buildString {
-            appendLine("-".repeat(80))
-            appendLine("Generated Plans")
-            appendLine("-".repeat(80))
-
-            if (generatedPlans.isEmpty()) {
-                appendLine("No generated plans")
-            } else {
-                val formattedPlans =
-                    generatedPlans
-                        .mapNotNull { planFormatter.format(it) }
-                        .joinToString("\n\n") { it.dropWordsWithTrailingNumbers() }
-                append(formattedPlans)
-            }
-        }
-
-    fun writeGeneratedPlans(
-        generatedPlans: List<Plan>,
+    fun writeGenerationResult(
+        generationResult: LMPGPInvocation,
         fileName: String,
         fileExtension: String = ".txt",
     ) {
+        // Since they are single-turn chats, it takes only the first response
+        val rawContent = generationResult.rawMessageContents.firstOrNull()
         val metricsDirectory = File(metricsDir).apply { mkdirs() }
         val file = File(metricsDirectory, fileName + fileExtension)
-        if (!file.exists()) {
-            writeToFile(formatGeneratedPlans(generatedPlans), file, "Generated plans")
+        if (!file.exists() && rawContent != null) {
+            writeToFile(rawContent, file, "Generated plans, admissible beliefs and goals")
         }
     }
 
@@ -121,7 +103,9 @@ class AnalyzePGP : CliktCommand() {
     ) {
         val metricsDirectory = File(metricsDir).apply { mkdirs() }
         val file = File(metricsDirectory, fileName + fileExtension)
-        writeToFile(formatHistory(history), file, "History")
+        if (!file.exists() && history.isNotEmpty()) {
+            writeToFile(formatHistory(history), file, "History")
+        }
     }
 
     private fun formatHistory(history: List<ChatMessage>) =

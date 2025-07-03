@@ -16,7 +16,7 @@ import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.request.Reques
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.LMGenerationStrategy
 
 object MockGenerationStrategy {
-    fun createOneStepStrategyWithMockedAPI(trace: List<String>): LMGenerationStrategy {
+    fun createLMGenStrategyWithMockedAPI(trace: List<String>): LMGenerationStrategy {
         val api = mockk<OpenAI>()
         var callCount = 0
 

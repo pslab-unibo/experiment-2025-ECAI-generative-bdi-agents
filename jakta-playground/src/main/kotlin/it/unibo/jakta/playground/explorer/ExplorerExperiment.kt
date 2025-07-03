@@ -7,7 +7,7 @@ import it.unibo.jakta.agents.bdi.engine.executionstrategies.ExecutionStrategy
 import it.unibo.jakta.agents.bdi.engine.generation.GenerationStrategy
 import it.unibo.jakta.agents.bdi.engine.logging.LoggingConfig
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.Remark
-import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.oneStepGeneration
+import it.unibo.jakta.agents.bdi.generationstrategies.lm.dsl.DSLExtensions.lmGeneration
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.DefaultFilters.metaPlanFilter
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.filtering.DefaultFilters.printActionFilter
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.pipeline.formatting.DefaultPromptBuilder.systemPrompt
@@ -69,7 +69,7 @@ class ExplorerExperiment : AbstractExperiment() {
         }
 
     override fun createGenerationStrategy() =
-        oneStepGeneration {
+        lmGeneration {
             url = lmServerUrl
             token = lmServerToken
             model = modelId

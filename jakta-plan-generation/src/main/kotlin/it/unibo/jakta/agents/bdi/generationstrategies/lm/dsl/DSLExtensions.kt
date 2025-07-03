@@ -6,17 +6,17 @@ import it.unibo.jakta.agents.bdi.dsl.plans.PlanScope
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.strategy.impl.GenerationStrategies
 
 object DSLExtensions {
-    fun MasScope.oneStepGeneration(config: LMGenerationConfigScope.() -> Unit): MasScope {
-        generationStrategy = GenerationStrategies.oneStep(config)
+    fun MasScope.lmGeneration(config: LMGenerationConfigScope.() -> Unit): MasScope {
+        generationStrategy = GenerationStrategies.lmGeneration(config)
         return this
     }
 
-    fun AgentScope.oneStepGeneration(config: LMGenerationConfigScope.() -> Unit): AgentScope {
-        generationStrategy = GenerationStrategies.oneStep(config)
+    fun AgentScope.lmGeneration(config: LMGenerationConfigScope.() -> Unit): AgentScope {
+        generationStrategy = GenerationStrategies.lmGeneration(config)
         return this
     }
 
-    fun oneStepGeneration(config: LMGenerationConfigScope.() -> Unit) = GenerationStrategies.oneStep(config)
+    fun lmGeneration(config: LMGenerationConfigScope.() -> Unit) = GenerationStrategies.lmGeneration(config)
 
     infix fun PlanScope.givenLMConfig(given: LMGenerationConfigScope.() -> Unit): PlanScope {
         generationConfig = LMGenerationConfigScope().also(given).build()

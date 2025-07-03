@@ -20,7 +20,7 @@ import java.io.File
 data class LMPGPInvocation(
     val pgpId: String,
     val history: List<ChatMessage>,
-    val rawPlanGroups: List<String>,
+    val rawMessageContents: List<String>,
     val generatedPlans: List<Plan> = emptyList(),
     val generatedAdmissibleGoals: List<AdmissibleGoal> = emptyList(),
     val generatedAdmissibleBeliefs: List<AdmissibleBelief> = emptyList(),
@@ -40,7 +40,7 @@ data class LMPGPInvocation(
             pgpLogFile: File,
         ): LMPGPInvocation {
             val history = mutableListOf<ChatMessage>()
-            val rawPlans = mutableListOf<String>()
+            val rawMessageContents = mutableListOf<String>()
             var genCfg: LMGenerationConfig? = null
             var chatCompletionId: String? = null
             processFile(pgpLogFile) { logEntry ->
@@ -48,7 +48,7 @@ data class LMPGPInvocation(
                 when (event) {
                     is LMMessageReceived -> {
                         chatCompletionId = event.chatCompletionId
-                        event.chatMessage.content?.let { rawPlans.add(it) }
+                        event.chatMessage.content?.let { rawMessageContents.add(it) }
                         event.chatMessage.let { history.add(it) }
                     }
 
@@ -65,7 +65,7 @@ data class LMPGPInvocation(
             var admissibleGoalsNotParsed = 0
             var admissibleBeliefNotParsed = 0
             val parser = Parser.create()
-            rawPlans.forEach {
+            rawMessageContents.forEach {
                 val result = parser.parse(it)
                 when (result) {
                     is ParserSuccess.NewResult -> {
@@ -112,7 +112,7 @@ data class LMPGPInvocation(
             return LMPGPInvocation(
                 pgpId = pgpId,
                 history = history,
-                rawPlanGroups = rawPlans,
+                rawMessageContents = rawMessageContents,
                 generatedPlans = generatedPlans,
                 generatedAdmissibleGoals = generatedAdmissibleGoals,
                 generatedAdmissibleBeliefs = generatedAdmissibleBeliefs,
