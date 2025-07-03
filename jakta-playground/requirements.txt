@@ -3,7 +3,7 @@ dvc-s3
 jupyter
 pandas
 numpy
-tabulate
 jupyter
-seaborn
 scipy
+deepeval
+python-dotenv
