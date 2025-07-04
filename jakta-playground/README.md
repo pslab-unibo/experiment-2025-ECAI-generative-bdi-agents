@@ -35,7 +35,7 @@ You can run [dvc pull](https://dvc.org/doc/command-reference/pull) to download t
 ../gradlew dvc -Pargs="pull"
 ```
 
-This will download some hundreds of megabytes of data.
+This will download several gigabytes of data (~6.7 GB).
 
 ## Pushing experiment data
 
