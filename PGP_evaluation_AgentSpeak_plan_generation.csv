@@ -1,0 +1,22 @@
+Model,Amount of Generated Plans,Average amount of belief per plan context,Average amount of operations per plan body,Amount of generated plans which are general/specific (roughly: using variables or not),Amount of invented goals,Amount of invented beliefs,"Amount of generated plans which are useless (e.g., not executable at runtime because subsumed my more general plans, etc.)",Number of plans which are correctly converted in JaKtA,"Amount of inadequate usage of admissible goals: not properly written, invented but not used, used but not admissible, already admissible"," Amount of inadequate usage of admissible beliefs: not properly written, invented but not used, used but not admissible, already admissible", Amount of inadequate usage of actions," Cosine distance of generated plans group w.r.t. minimal, human-derived plans group",Time to goal achievement for the generated plan groups who work (in seconds) (maybe normalized w.r.t. the minimal human-generated plan),Executes (yes/no),Reaches destination (yes/no)
+Claude (Elastic Goldwasser),6,"1,5",1,3,2,0,0,6,0,0,0,"0,9338248802",,y,n
+Claude (Eloquent Bhaskara),6,2,"1,833333333",6,1,1,0,6,0,0,0,"0,9890578219",,y,n
+Claude (Gifted Bell),3,2,"1,333333333",0,0,0,0,3,0,0,0,"0,8179666749","1,12",y,y
+Claude (Xenodochial Pike),3,2,2,3,0,0,0,3,0,0,0,"0,9802750783","4,4",y,y
+Claude (Zealous Engelbart),6,"1,8","1,8",2,1,0,0,6,0,0,0,"0,926789855","2,9",y,y
+Deepseek (Awesome Lovelace),5,"2,2",2,2,1,2,0,5,0,1,0,"0,9024738641",,y,n
+Deepseek (Charming Cori),5,1,2,2,1,3,0,5,0,2,0,"0,8506064216","1,22",y,y
+Deepseek (Hopeful Rhodes),5,"1,6","1,8",0,1,0,1,5,0,0,0,"0,8192997455",,y,n
+Deepseek (Relaxed Elbakyan),6,"1,5","1,7",1,2,1,0,6,0,0,0,"0,8596456355",,y,n
+Deepseek (Suspicious Cerf),4,"1,3","2,3",0,1,2,1,4,1,2,0,"0,7343950192","4,29",y,y
+Gemini Pro (Dazzling Raman),2,"1,5",2,2,0,0,0,1,0,0,2,"0,7989376752",-,y,n
+Gemini Pro (Fervent Colden),3,"1,7","1,7",3,0,0,0,3,0,0,0,"0,9908078338","1,31",y,y
+Gemini Pro (Pensive Hermann),5,"1,6","1,6",5,0,2,0,5,0,0,0,"0,9740827192",-,y,n
+Gemini Pro (Sad Chaplygin),5,"1,2",2,5,1,2,0,5,0,0,1,"0,9632906482",-,y,n
+Gemini Pro (Sleepy Varahamihira),4,4,"1,25",4,0,0,0,4,0,0,0,"0,9434554443",,y,n
+GPT 4 (Adoring Shtern),2,2,"1,5",2,1,0,0,2,1,0,0,"0,8951934833","2,27",y,y
+GPT 4 (Determined Gould),2,"1,5","1,5",2,1,0,0,2,1,0,0,"0,9152428262","2,41",y,y
+GPT 4 (Interesting Hoover),2,2,"1,5",2,1,0,0,2,1,0,0,"0,8951934833","1,21",y,y
+GPT 4 (Sleepy Wiles),2,2,"1,5",2,1,0,0,2,1,0,0,"0,8951934833","2,56",y,y
+GPT 4 (Vigilant Agnesi),2,2,"1,5",2,1,0,0,2,1,0,0,"0,8951934833","3,09",y,y
+Optimal Solution (HUMAN),3,1,"1,3",3,0,0,0,3,0,0,0,1,"1,48",y,y
