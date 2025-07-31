@@ -278,12 +278,12 @@ column_name_to_short = {
     "Amount of Generated Plans": "PC",
     "Average amount of belief per plan context": "CC",
     "Average amount of operations per plan body": "PBC",
-    "Amount of generated plans which are general/specific (roughly: using variables or not)": "GR",
-    "Amount of generated plans which are useless (e.g., not executable at runtime because subsumed my more general plans, etc.)": "RR",
+    "Amount of generated plans which are general/specific (roughly: using variables or not)": "GC",
+    "Amount of generated plans which are useless (e.g., not executable at runtime because subsumed my more general plans, etc.)": "RA",
     "Amount of invented goals": "NGC",
     "Amount of invented beliefs": "NBC",
-    "Amount of inadequate usage of admissible goals: not properly written, invented but not used, used but not admissible, already admissible": "GSA",
-    " Amount of inadequate usage of admissible beliefs: not properly written, invented but not used, used but not admissible, already admissible": "BSA",
+    "Amount of inadequate usage of admissible goals: not properly written, invented but not used, used but not admissible, already admissible": "GSM",
+    " Amount of inadequate usage of admissible beliefs: not properly written, invented but not used, used but not admissible, already admissible": "BSM",
     " Amount of inadequate usage of actions": "TODO",
     "Time to goal achievement for the generated plan groups who work (in seconds) (maybe normalized w.r.t. the minimal human-generated plan)": "GAT",
     "Executes (yes/no)": "EC",
@@ -322,6 +322,7 @@ df["Model"] = df["Model"].str.replace(r"\s*\(.*?\)", "", regex=True)
 yes_no_columns = ["EC", "TSR"]
 for col in yes_no_columns:
     df[col] = df[col].apply(lambda v: 1 if v == 'y' else (0 if v == 'n' else v))
+    df[col] = df[col] * 100 # Percentage representation
 
 # drop cosine 
 df.drop(columns=["Cosine"], inplace=True)
@@ -336,7 +337,7 @@ for col in fix_columns:
 df_grouped = df.groupby("Model").mean().reset_index()
 # Convert to LaTeX table
 # Select these columns for the LaTeX table
-cols_to_display = ["Model", "PC", "CC", "PBC", "GR", "RR", "NGC", "NBC", "GSA", "BSA", "TSR", "GAT"]
+cols_to_display = ["Model", "PC", "CC", "PBC", "GC", "RA", "NGC", "NBC", "GSM", "BSM", "TSR", "GAT"]
 df_grouped = df_grouped[cols_to_display]
 latex_table = df_grouped.to_latex(index=False, float_format="%.2f", escape=False)
 print(latex_table)
@@ -345,18 +346,18 @@ metric_labels = {
     'PC': 'Plan Count',
     'CC': 'Context Complexity',
     'PBC': 'Plan Body Complexity', 
-    'GR': 'Generalization Rate (%)',
-    'RR': 'Redundancy Rate (%)',
-    'NGC': 'New Goals Count',
-    'NBC': 'New Beliefs Count',
-    'GSA': 'Goal Semantic Alignment',
-    'BSA': 'Belief Semantic Alignment',
+    'GC': 'Generalization Count',
+    'RA': 'Redundancy Amount',
+    'NGC': 'Novel Goals Count',
+    'NBC': 'Novel Beliefs Count',
+    'GSM': 'Goal Semantic Misalignment',
+    'BSM': 'Belief Semantic Misalignment',
     'TSR': 'Task Success Rate (%)',
     'GAT': 'Goal Achievement Time (s)'
 }
     
-metrics_to_maximize = ['GR', 'TSR']
-metrics_to_minimize = ['RR', 'GSA', 'BSA']
+metrics_to_maximize = ['GC', 'TSR']
+metrics_to_minimize = ['RA', 'GSM', 'BSM']
 neutral_metrics = ['PC', 'CC', 'PBC', 'NGC', 'NBC']
 # Create visualizations for plan generation metrics
 def plot_plan_metrics_comparison(df, metrics_to_plot=None):
@@ -378,9 +379,9 @@ def plot_plan_metrics_comparison(df, metrics_to_plot=None):
     
     # Define colors for different metric types
     color_map = {
-        'maximize': '#2ca02c',  # Green for metrics to maximize
-        'minimize': '#d62728',  # Red for metrics to minimize
-        'neutral': '#1f77b4'    # Blue for neutral metrics
+        'maximize': '#7ad151',  # Green for metrics to maximize
+        'minimize': '#482475',  # Purple for metrics to minimize
+        'neutral': '#25858e'    # Blue for neutral metrics
     }
     
     # Get models
@@ -446,6 +447,6 @@ def plot_plan_metrics_comparison(df, metrics_to_plot=None):
     return fig
 
 
-metrics_to_plot = ['PC', 'CC', 'PBC', 'NGC', 'NBC', 'RR', 'GSA', 'BSA', 'GR', 'TSR']
+metrics_to_plot = ['PC', 'CC', 'PBC', 'NGC', 'NBC', 'RA', 'GSM', 'BSM', 'GC', 'TSR']
 # Create the visualization
 plot_plan_metrics_comparison(df_grouped, metrics_to_plot)
