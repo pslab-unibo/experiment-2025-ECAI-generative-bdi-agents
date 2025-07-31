@@ -1,1 +1,5 @@
 deepeval
+matplotlib
+pandas
+seaborn
+jinja2
