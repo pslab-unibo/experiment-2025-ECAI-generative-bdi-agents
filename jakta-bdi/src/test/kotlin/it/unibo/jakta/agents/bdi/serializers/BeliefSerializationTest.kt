@@ -47,7 +47,8 @@ class BeliefSerializationTest :
                 val expectedJson = """
                 {
                     "type": "Belief",
-                    "rule": "$testBeliefValue"
+                    "rule": "$testBeliefValue",
+                    "purpose": null
                 }"""
 
                 serialized shouldBeWithTrimming expectedJson
@@ -69,7 +70,8 @@ class BeliefSerializationTest :
                 val jsonString = """
                 {
                     "type": "Belief",
-                    "rule": "$testBeliefValue"
+                    "rule": "$testBeliefValue",
+                    "purpose": null
                 }"""
 
                 val deserializedBelief = json.decodeFromString<Belief>(jsonString)

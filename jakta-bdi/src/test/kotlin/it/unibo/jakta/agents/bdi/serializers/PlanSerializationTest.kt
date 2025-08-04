@@ -38,7 +38,8 @@ class PlanSerializationTest :
                     "type": "Plan",
                     "trigger": {
                         "type": "AchievementGoalInvocation",
-                        "value": "purchase(product123, highPriority)"
+                        "value": "purchase(product123, highPriority)",
+                        "purpose": null
                     },
                     "guard": "purchase(product123, highPriority)",
                     "goals": [

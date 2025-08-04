@@ -44,7 +44,8 @@ class GoalSerializationTest :
                 val jsonString = """
                 {
                     "type": "Achieve",
-                    "value": "$testGoalJsonValue"
+                    "value": "$testGoalJsonValue",
+                    "purpose": null
                 }"""
 
                 val deserializedGoal = json.decodeFromString<Goal>(jsonString)
@@ -66,7 +67,8 @@ class GoalSerializationTest :
                 val jsonString = """
                 {
                     "type": "Achieve",
-                    "content": "invalid content structure"
+                    "content": "invalid content structure",
+                    "purpose": null
                 }"""
 
                 runCatching {

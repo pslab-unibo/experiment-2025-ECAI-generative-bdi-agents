@@ -20,7 +20,6 @@ class TriggerSerializationTest :
     override fun extensions() = listOf(KoinExtension(modules))
 
     val json by inject<Json>()
-
     val testTriggerJsonValue = "customer(john, member)"
     val testTriggerPurpose = "customer registration"
     val testTriggerValue = Struct.of("customer", Struct.of("john"), Struct.of("member"))
@@ -48,7 +47,8 @@ class TriggerSerializationTest :
                 val expectedJson = """
                 {
                     "type": "AchievementGoalInvocation",
-                    "value": "$testTriggerJsonValue"
+                    "value": "$testTriggerJsonValue",
+                    "purpose": null
                 }"""
 
                 serialized shouldBeWithTrimming expectedJson
@@ -70,7 +70,8 @@ class TriggerSerializationTest :
                 val jsonString = """
                 {
                     "type": "AchievementGoalInvocation",
-                    "value": "$testTriggerJsonValue"
+                    "value": "$testTriggerJsonValue",
+                    "purpose": null
                 }"""
 
                 val deserializedTrigger = json.decodeFromString<Trigger>(jsonString)
