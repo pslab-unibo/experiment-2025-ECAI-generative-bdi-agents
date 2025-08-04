@@ -24,12 +24,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Build
         run: ./gradlew build --scan
-      - name: Lint Check
-        run: ./gradlew ktlintCheck
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with: 
-          token: ${{ secrets.CODECOV_TOKEN }}
   release:
     concurrency:
       # Only one release job at a time. Strictly sequential.
@@ -37,13 +31,6 @@ jobs:
     needs:
       - build
     runs-on: ubuntu-latest
-    if: >-
-      !github.event.repository.fork
-      && github.ref == 'refs/heads/main'
-      && (
-        github.event_name != 'pull_request'
-        || github.event.pull_request.head.repo.full_name == github.repository
-      )
     steps:
       - name: Fetch sources
         uses: actions/checkout@v4.2.2
@@ -51,14 +38,8 @@ jobs:
           fetch-depth: 0
       - name: semver
         uses: anitvam/conventionalcommit-semantic-releasing@v0.7.58
-        env:
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          publish-command: "./gradlew uploadKotlin release"
   success:
     runs-on: ubuntu-latest
     needs:

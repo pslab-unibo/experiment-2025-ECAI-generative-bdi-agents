@@ -1,7 +1,5 @@
 # JaKtA Playground
 
-Code for the master thesis.
-
 ## Prerequisites
 
 Before starting, make sure you have JDK 21 or newer installed and at least Python 3.9.
