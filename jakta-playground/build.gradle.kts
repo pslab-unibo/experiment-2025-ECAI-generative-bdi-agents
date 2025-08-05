@@ -6,14 +6,6 @@ plugins {
     id("python-dvc")
 }
 
-repositories {
-    maven("https://maven.tryformation.com/releases") {
-        content {
-            includeGroup("com.jillesvangurp")
-        }
-    }
-}
-
 dependencies {
     implementation(project(":jakta-dsl"))
     implementation(project(":jakta-plan-generation"))
@@ -26,7 +18,6 @@ dependencies {
     implementation(libs.openai)
     implementation(libs.clikt)
     implementation(libs.bundles.koin)
-    implementation(libs.ktsearch)
 }
 
 tasks.register<JavaExec>("runExperiment") {

@@ -59,7 +59,6 @@ log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "lo
 log4j-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j" }
 log4j-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
-ktsearch = { module = "com.jillesvangurp:search-client-jvm", version.ref = "ktsearch" }
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
