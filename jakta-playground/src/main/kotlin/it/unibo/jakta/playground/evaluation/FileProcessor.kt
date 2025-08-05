@@ -18,10 +18,10 @@ object FileProcessor {
         println("Error writing to file: ${e.message}")
     }
 
-    private fun processLines(
+    private inline fun <reified T> processLinesGeneric(
         reader: BufferedReader,
         logger: JaktaLogger? = null,
-        processFunction: (LogEntry) -> Boolean,
+        processFunction: (T) -> Boolean,
     ): Boolean {
         var lineCount = 0
         var errorCount = 0
@@ -34,10 +34,10 @@ object FileProcessor {
                 lineCount++
                 val logEntry =
                     try {
-                        JaktaJsonComponent.json.decodeFromString<LogEntry>(line)
+                        JaktaJsonComponent.json.decodeFromString<T>(line)
                     } catch (e: Exception) {
                         errorCount++
-                        logger?.warn { "Could not parse line $lineCount: ${e.message} as a LogEntry." }
+                        logger?.warn { "Could not parse line $lineCount: ${e.message} as a ${T::class.simpleName}." }
                         null
                     }
                 logEntry?.let {
@@ -49,12 +49,21 @@ object FileProcessor {
         return shouldContinue
     }
 
+    fun processLegacyFile(
+        file: File,
+        logger: JaktaLogger? = null,
+        processFunction: (LegacyLogEntry) -> Boolean,
+    ) {
+        val reader = file.bufferedReader()
+        processLinesGeneric(reader, logger, processFunction)
+    }
+
     fun processFile(
         file: File,
         logger: JaktaLogger? = null,
         processFunction: (LogEntry) -> Boolean,
     ) {
         val reader = file.bufferedReader()
-        processLines(reader, logger, processFunction)
+        processLinesGeneric(reader, logger, processFunction)
     }
 }

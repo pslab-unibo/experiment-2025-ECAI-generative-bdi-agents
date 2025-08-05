@@ -14,7 +14,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import it.unibo.jakta.agents.bdi.engine.Jakta.capitalize
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastComponent
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastId
-import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent
+import it.unibo.jakta.agents.bdi.engine.serialization.modules.JaktaJsonComponent.json
 import it.unibo.jakta.agents.bdi.generationstrategies.lm.DefaultGenerationConfig.DEFAULT_TOKEN
 import it.unibo.jakta.playground.ModuleLoader
 import it.unibo.jakta.playground.evaluation.FileProcessor.writeToFile
@@ -24,6 +24,7 @@ import it.unibo.jakta.playground.evaluation.LogFileUtils.findMasLogFile
 import it.unibo.jakta.playground.evaluation.MetricsComputer
 import it.unibo.jakta.playground.evaluation.plandata.InvocationContext
 import it.unibo.jakta.playground.evaluation.plandata.LMPGPInvocation
+import kotlinx.serialization.encodeToString
 import java.io.File
 
 /**
@@ -128,7 +129,7 @@ class AnalyzePGP : CliktCommand() {
         val metricsDirectory = File(metricsDir).apply { mkdirs() }
         val evalFile = File(metricsDirectory, fileName + fileExtension)
 
-        evalFile.writeText(JaktaJsonComponent.json.encodeToString(evaluationResults))
+        evalFile.writeText(json.encodeToString(evaluationResults))
         println("\nResults written to: ${evalFile.absolutePath}")
     }
 }

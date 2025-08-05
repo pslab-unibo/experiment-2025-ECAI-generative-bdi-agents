@@ -6,6 +6,7 @@ import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.ex
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.extractLastId
 import it.unibo.jakta.agents.bdi.engine.logging.loggers.JaktaLogger.Companion.logFileRegex
 import java.io.File
+import java.util.UUID
 
 object LogFileUtils {
     fun findMasLogFile(expDir: String): File? =
@@ -45,6 +46,34 @@ object LogFileUtils {
                     countUuids(file.name) == 3 &&
                     file.name.startsWith(agentLogFile.name.substringBeforeLast("-"))
             }?.toList() ?: emptyList()
+
+    fun extractChatLogFilesLegacy(expDir: String): List<File> {
+        val baseDir = File(expDir)
+        val chatLogFiles = mutableListOf<File>()
+
+        baseDir.listFiles { file -> file.isDirectory }?.forEach { agentDir ->
+            val chatDir = File(agentDir, "chat")
+
+            if (chatDir.exists() && chatDir.isDirectory) {
+                chatDir
+                    .listFiles { file ->
+                        file.isFile && file.name.endsWith(".jsonl") && isValidUuid(file.nameWithoutExtension)
+                    }?.forEach { chatFile ->
+                        chatLogFiles.add(chatFile)
+                    }
+            }
+        }
+
+        return chatLogFiles
+    }
+
+    private fun isValidUuid(str: String): Boolean =
+        try {
+            UUID.fromString(str)
+            true
+        } catch (e: IllegalArgumentException) {
+            false
+        }
 
     fun countUuids(filename: String): Int {
         val pattern = Regex(UUID_PATTERN)

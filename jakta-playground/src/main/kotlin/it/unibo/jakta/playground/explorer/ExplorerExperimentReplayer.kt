@@ -24,7 +24,9 @@ import it.unibo.jakta.playground.MockGenerationStrategy.createLMGenStrategyWithM
 import it.unibo.jakta.playground.ModuleLoader
 import it.unibo.jakta.playground.ModuleLoader.jsonModule
 import it.unibo.jakta.playground.evaluation.FileProcessor.processFile
+import it.unibo.jakta.playground.evaluation.FileProcessor.processLegacyFile
 import it.unibo.jakta.playground.evaluation.LogFileUtils.extractAgentLogFiles
+import it.unibo.jakta.playground.evaluation.LogFileUtils.extractChatLogFilesLegacy
 import it.unibo.jakta.playground.evaluation.LogFileUtils.extractPgpLogFiles
 import it.unibo.jakta.playground.evaluation.LogFileUtils.findMasLogFile
 import it.unibo.jakta.playground.explorer.agents.ExplorerRobot.explorerRobot
@@ -40,13 +42,17 @@ class ExperimentReplayer : CliktCommand() {
         .help("The directory from which the previously recorded LLM responses will be taken.")
         .required()
 
+    val legacy: Boolean by option()
+        .flag(default = false)
+        .help("Whether to use the flat-based or hierarchical-based experiment storing convention.")
+
     init {
         ModuleLoader.loadModules()
     }
 
     override fun run() {
         val expName = UUID.randomUUID().toString()
-        val lmResponses = getChatMessages(expDir).mapNotNull { it.content }
+        val lmResponses = getChatMessages(expDir, legacy).mapNotNull { it.content }
         if (lmResponses.isEmpty()) {
             println("No LLM responses found. Cannot replay experiment.")
         } else {
@@ -59,7 +65,6 @@ class ExperimentReplayer : CliktCommand() {
                     )
                 gridWorld()
                 explorerRobot(strategy = createLMGenStrategyWithMockedAPI(lmResponses))
-
                 lmGeneration {
                     contextFilters = listOf(metaPlanFilter, printActionFilter)
                     systemPromptBuilder = systemPrompt
@@ -70,24 +75,39 @@ class ExperimentReplayer : CliktCommand() {
     }
 
     companion object {
-        private fun getChatMessages(expDir: String): List<ChatMessage> {
+        private fun getChatMessages(
+            expDir: String,
+            legacy: Boolean,
+        ): List<ChatMessage> {
             val history = mutableListOf<ChatMessage>()
-            val masLogFile = findMasLogFile(expDir) ?: return emptyList()
-            extractAgentLogFiles(expDir, masLogFile).forEach { agentLogFile ->
-                extractPgpLogFiles(expDir, agentLogFile).forEach { pgpLogFile ->
-                    processFile(pgpLogFile) { logEntry ->
-                        val event = logEntry.message.event
-                        if (event is LMMessageReceived) {
-                            event.chatMessage.let { history.add(it) }
+            if (legacy) {
+                val chatLogFiles = extractChatLogFilesLegacy(expDir)
+                chatLogFiles.forEach { chatLogFile ->
+                    processLegacyFile(chatLogFile) { logEntry ->
+                        if (logEntry.role == "assistant") {
+                            history.add(ChatMessage.Assistant(logEntry.content))
                         }
                         true
+                    }
+                }
+            } else {
+                val masLogFile = findMasLogFile(expDir) ?: return emptyList()
+                extractAgentLogFiles(expDir, masLogFile).forEach { agentLogFile ->
+                    extractPgpLogFiles(expDir, agentLogFile).forEach { pgpLogFile ->
+                        processFile(pgpLogFile) { logEntry ->
+                            val event = logEntry.message.event
+                            if (event is LMMessageReceived) {
+                                event.chatMessage.let { history.add(it) }
+                            }
+                            true
+                        }
                     }
                 }
             }
             return history
         }
 
-        private fun extractDirectoryPath(pathString: String): String {
+        fun extractDirectoryPath(pathString: String): String {
             val normalizedPath = pathString.replace('\\', '/')
 
             val pattern = """(.+)/[^/]+$""".toRegex()
