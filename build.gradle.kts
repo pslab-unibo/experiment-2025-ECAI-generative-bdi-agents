@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.taskTree)
-    alias(libs.plugins.multiJvmTesting)
+    // alias(libs.plugins.multiJvmTesting) %% Version 3.6.0 is issuing problems with Java version
     alias(libs.plugins.kotlin.qa)
 }
 
@@ -35,7 +35,7 @@ allprojects {
         apply(plugin = dokka.id)
         apply(plugin = kotlin.jvm.id)
         apply(plugin = taskTree.id)
-        apply(plugin = multiJvmTesting.id)
+//        apply(plugin = multiJvmTesting.id) %% Version 3.6.0 is issuing problems with Java version
         apply(plugin = kotlin.qa.id)
     }
 
@@ -64,9 +64,9 @@ allprojects {
         }
     }
 
-    multiJvm {
-        jvmVersionForCompilation.set(21)
-    }
+//    multiJvm {
+//        jvmVersionForCompilation.set(21)
+//    }
 
     signing {
         val signingKey: String? by project
