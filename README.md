@@ -193,6 +193,36 @@ INFO mas - Key-values {directionToMove=east} have been added to the environment
 INFO mas - Reached object home
 ```
 
+## Generate Plots
+Here we describe the procedure to generate plots used in the paper and in the Supplementary Material.
+
+### Requirements
+ - Python 3.X
+ - Bash terminal
+
+### Procedure
+0. Locate the root project folder
+```bash
+cd experiment-2025-ECAI-generative-bdi-agents/
+```
+1. Create a Python virtual environment
+```bash
+python -m venv venv
+```
+2. Load virtual environment in current shell
+```bash
+source venv/bin/activate
+```
+3. Install python requirements
+```bash
+pip install -r requirements.txt
+```
+4. Execute plots generation script
+```bash
+python data_extraction_and_plotting.py
+```
+5. Inspect the generated plots, located in the root folder: `geval_results_bar_plot.png` and `plan_metrics_comparison.pdf`.
+
 ## Experiments' execution time
 
 The execution time of each experiment where home is reached is reported in the following table.
