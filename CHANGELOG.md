@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/pslab-unibo/experiment-2025-ECAI-generative-bdi-agents/compare/v1.0.0...v1.1.0) (2025-08-05)
+
+
+### Bug Fixes
+
+* remove dokka ([fe4e2cd](https://github.com/pslab-unibo/experiment-2025-ECAI-generative-bdi-agents/commit/fe4e2cd7f6c4895109a5e35184136e33cec570a0))
+* remove scan ([e9063fe](https://github.com/pslab-unibo/experiment-2025-ECAI-generative-bdi-agents/commit/e9063fe75f5eedb4492f515ad7e09bc6792b33b9))
+
+
+### Features
+
+* add description in README.md for plot generation script ([b88c1e6](https://github.com/pslab-unibo/experiment-2025-ECAI-generative-bdi-agents/commit/b88c1e6521b849dfb799cfd41ca4ddb1f5c06605))
+
 # 1.0.0 (2025-08-05)
 
 
