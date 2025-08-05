@@ -8,7 +8,7 @@ group = "it.unibo.jakta"
 plugins {
     alias(libs.plugins.gitSemVer)
     alias(libs.plugins.publishOnCentral)
-    alias(libs.plugins.dokka)
+    //   alias(libs.plugins.dokka)
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.taskTree)
     // alias(libs.plugins.multiJvmTesting) %% Version 3.6.0 is issuing problems with Java version
@@ -32,7 +32,7 @@ allprojects {
     with(rootProject.libs.plugins) {
         apply(plugin = publishOnCentral.id)
         apply(plugin = gitSemVer.id)
-        apply(plugin = dokka.id)
+//        apply(plugin = dokka.id)
         apply(plugin = kotlin.jvm.id)
         apply(plugin = taskTree.id)
 //        apply(plugin = multiJvmTesting.id) %% Version 3.6.0 is issuing problems with Java version
