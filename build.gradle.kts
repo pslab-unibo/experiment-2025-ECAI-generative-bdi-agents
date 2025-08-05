@@ -19,6 +19,9 @@ dependencies {
     implementation(project(":jakta-state-machine"))
     implementation(project(":jakta-bdi"))
     implementation(project(":jakta-dsl"))
+    implementation(project(":jakta-plan-generation"))
+    implementation(project(":jakta-playground"))
+    implementation(project(":jakta-konsist-test"))
 }
 
 val Provider<PluginDependency>.id: String get() = get().pluginId

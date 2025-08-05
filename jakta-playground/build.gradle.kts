@@ -1,7 +1,6 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.ktor)
     alias(libs.plugins.kotlinx)
     id("python-dvc")
 }
